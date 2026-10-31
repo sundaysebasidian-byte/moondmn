@@ -1,0 +1,8 @@
+import {
+  "sundaysebasidian-byte/moondmn" @lib,
+  "sundaysebasidian-byte/moondmn/feel/types",
+  "sundaysebasidian-byte/moondmn/feel/eval",
+  "moonbitlang/core/bench",
+}
+
+pkgtype(kind: "executable")
