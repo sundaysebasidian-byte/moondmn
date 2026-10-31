@@ -74,7 +74,7 @@ pub fn days_from_civil(year : Int32, month : Int32, day : Int32) -> Int64 {
   let mp = if month > 2 { month - 3 } else { month + 9 }
   let doy = (153 * mp + 2) / 5 + day - 1
   let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
-  (era * 146097 + doe - 719468).to_int64()
+  era.to_int64() * 146097L + doe.to_int64() - 719468L
 }
 
 ///|
@@ -106,7 +106,7 @@ pub fn Date::ordinal(self : Date) -> Int64 {
 /// Return the ISO weekday, Monday=1 through Sunday=7.
 pub fn Date::weekday(self : Date) -> Int32 {
   let w = (self.ordinal() + 3L) % 7L
-  w.to_int() + 1
+  (if w < 0L { w + 7L } else { w }).to_int() + 1
 }
 
 ///|

@@ -156,6 +156,7 @@ test("feel: the clock is injected", () => {
 });
 
 test("errors come back as JSON and never throw", () => {
+  assert.equal(call("feel_eval", {expression: 'day of week(date("-2021-01-02"))'}).value, "Tuesday");
   const syntax = call("feel_eval", { expression: "1 +" });
   assert.equal(syntax.ok, false);
   assert.ok(syntax.error.code.startsWith("E_"));

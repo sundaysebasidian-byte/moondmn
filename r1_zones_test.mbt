@@ -88,3 +88,21 @@ test "R1 I5 calendar arithmetic does not construct a DST gap" {
     content="\"2024-11-03T01:30:00@America/New_York\"",
   )
 }
+
+///|
+test "R1 B1 proleptic dates cannot index weekday names below zero" {
+  inspect(
+    @moondmn.feel_eval("day of week(date(\"-2021-01-02\"))"),
+    content="\"Tuesday\"",
+  )
+  for year in [-999999999, -2021, -1, 0, 1, 1969, 999999999] {
+    for day in [1, 2, 3, 4, 5, 6, 7] {
+      let date = @types.date_of(year, 1, day)
+      assert_true(date.weekday() >= 1 && date.weekday() <= 7)
+      inspect(
+        @types.civil_from_days(date.ordinal()).text() == date.text(),
+        content="true",
+      )
+    }
+  }
+}
