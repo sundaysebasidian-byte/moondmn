@@ -12,7 +12,7 @@ MoonDMN 是用 MoonBit 从零写的 OMG DMN 1.5 决策引擎和 FEEL 表达式�
 
 English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. It runs without a JVM,
 compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
-(Level 2: 116/116, Level 3: 3162/3291).
+(Level 2: 116/116, Level 3: 3170/3291).
 
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
@@ -169,18 +169,18 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 
 | 能力 | 状态 | 说明 |
 | --- | --- | --- |
-| FEEL 精确十进制 | 已支持 | 34 位有效数字、半偶舍入、指数字面量 |
+| FEEL 精确十进制 | 已支持 | 34 位、半偶舍入、scale [-6111,6176]；超越函数仍用有限精度浮点桥接 |
 | 三值逻辑与 null 相等 | 已支持 | `and`/`or`/`not`、FEEL 相等规则 |
-| 日期、时间、时长、时区 | 已支持 | 命名时区夏令时、跨时区比较、日期算术 |
-| 列表、上下文、区间 | 已支持 | 四组区间定界符、比较式区间、属性访问 |
-| 过滤器、路径、迭代器 | 已支持 | `[i]`、`.field`、`for`、`some`、`every` |
-| 用户函数与 BKM | 已支持 | 闭包、命名参数、知识模型调用 |
-| 决策表 | 已支持 | U/A/P/First/RuleOrder/OutputOrder/Collect 全部策略 |
-| 决策服务与 DRG | 已支持 | 依赖排序、输入注入、输出集合 |
-| 类型系统 | 已支持 | itemDefinition、`instance of`、结构化类型描述 |
-| 内置函数 | 已支持（约 90 个） | 数学、字符串、正则、列表、上下文、时间 |
+| 日期、时间、时长、时区 | 部分支持 | IANA 2026e 子集 39 名称、1970–2100 年；DST gap 报错、overlap 取较早时刻；详见 conformance |
+| 列表、上下文、区间 | 部分支持 | 支持常用操作；开闭区间边界、重复键等仍有 TCK 失败 |
+| 过滤器、路径、迭代器 | 部分支持 | 路径按已知键识别多词名称；item 遮蔽、缺字段与非法 domain 处理仍有失败 |
+| 用户函数与 BKM | 部分支持 | 命名缺参绑定 null；部分类型/输出适配仍有失败 |
+| 决策表 | 部分支持 | 全部 hit policy 可用；复杂模型/变量匹配仍有失败，lint 可证明有限枚举覆盖 |
+| 决策服务与 DRG | 部分支持 | 依赖求值与输出集合可用；服务参数顺序/类型适配仍有失败 |
+| 类型系统 | 部分支持 | 根包/CLI/Playground 共用声明时态 JSON 转换；结构类型/隐式转换仍有失败 |
+| 内置函数 | 部分支持（约 90 个） | 剩余逐例缺陷和受限函数见 docs/conformance.md |
 | `now()` / `today()` | 已支持（需注入时钟） | API 的 clock 参数、CLI 的 `--now`；不注入则报不支持 |
-| 正则 `s`/`x`/`m` 标志 | 部分支持 | 基础匹配可用，标志和部分替换未覆盖 |
+| 正则 `s`/`x`/`m` 标志 | 部分支持 | 基础匹配可用，仍有 Unicode 折叠和 XPath 正则语法差异 |
 | 外部 Java 函数 | 明确不支持 | 需要 JVM |
 | DMN 1.5 `import` | 明确不支持 | 多文件导入尚未实现 |
 
@@ -191,7 +191,7 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 级别 | 用例数 | 通过 | 通过率 |
 | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 100.0% |
-| Level 3 | 3291 | 3162 | 96.08% |
+| Level 3 | 3291 | 3170 | 96.32% |
 
 目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。逐套件矩阵、失败分类和复现步骤见
 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。

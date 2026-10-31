@@ -1,0 +1,200 @@
+[
+  {
+    "command": [
+      "moon",
+      "version",
+      "--all"
+    ],
+    "exit_code": 0,
+    "stdout": "moon 0.1.20261028 (e1e1f15 2026-10-28) ~/.moon/bin/moon\nmoonc v0.10.18+6c83a7f62 (2026-10-28) ~/.moon/bin/moonc\nmoonrun 0.1.20261028 (e1e1f15 2026-10-28) ~/.moon/bin/moonrun\n\nFeature flags enabled: rr_moon_mod,rr_moon_pkg\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "v24.18.0\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "moon",
+      "check",
+      "--deny-warn",
+      "--target",
+      "native"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "Finished. moon: no work to do\n"
+  },
+  {
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "native"
+    ],
+    "exit_code": 0,
+    "stdout": "Total tests: 224, passed: 224, failed: 0.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "moon",
+      "check",
+      "--deny-warn",
+      "--target",
+      "wasm-gc"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "Finished. moon: ran 3 tasks, now up to date\n"
+  },
+  {
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "wasm-gc"
+    ],
+    "exit_code": 0,
+    "stdout": "Total tests: 224, passed: 224, failed: 0.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "moon",
+      "check",
+      "--deny-warn",
+      "--target",
+      "js"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "Finished. moon: ran 3 tasks, now up to date\n"
+  },
+  {
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "js"
+    ],
+    "exit_code": 0,
+    "stdout": "Total tests: 224, passed: 224, failed: 0.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "moon",
+      "fmt",
+      "--check"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "Finished. moon: ran 64 tasks, now up to date\n"
+  },
+  {
+    "command": [
+      "moon",
+      "info"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "Finished. moon: no work to do\n"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--exit-code",
+      "--",
+      "*.mbti"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test-cli.py"
+    ],
+    "exit_code": 0,
+    "stdout": "CLI integration: 12 checks passed\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/check-decimal.py"
+    ],
+    "exit_code": 0,
+    "stdout": "decimal128 oracle: 120 arithmetic cases passed\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "bash",
+      "scripts/build-web.sh"
+    ],
+    "exit_code": 0,
+    "stdout": "Artifacts:\n  sundaysebasidian-byte/moondmn/playground  js  /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/_build/js/release/build/playground/playground.js\nbuilt web/dist\n",
+    "stderr": "Finished. moon: ran 9 tasks, now up to date\n"
+  },
+  {
+    "command": [
+      "node",
+      "web/smoke.mjs"
+    ],
+    "exit_code": 0,
+    "stdout": "ok   loan: model summary\nok   loan: lint\nok   loan: graph layers follow requirements\nok   loan: form round trip keeps the example input\nok   loan: evaluate Offer\nok   insurance: model summary\nok   insurance: lint\nok   insurance: graph layers follow requirements\nok   insurance: form round trip keeps the example input\nok   insurance: evaluate Quote\nok   subscription: model summary\nok   subscription: lint\nok   subscription: graph layers follow requirements\nok   subscription: form round trip keeps the example input\nok   subscription: evaluate Reminder\nok   insurance: every hit policy reports its hits\nok   loan: a failed UNIQUE table still reports the rules that matched\nok   loan: input values come back typed through the declared item definitions\nok   form: decimals stay exact and empty fields are left out\nok   feel: exact decimals, types and context\nok   feel: the clock is injected\nok   errors come back as JSON and never throw\nok   malformed boxed conditional stays inside the JSON boundary\nok   core typed JSON bridge serves browser evaluation too\n24 passed\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--target",
+      "native",
+      "--",
+      "tck",
+      ".tck/TestCases/compliance-level-2",
+      "--json",
+      "evidence/tck-level-2.json"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--target",
+      "native",
+      "--",
+      "tck",
+      ".tck/TestCases/compliance-level-3",
+      "--json",
+      "evidence/tck-level-3.json"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/report-conformance.py"
+    ],
+    "exit_code": 0,
+    "stdout": "Level 3 3170/3291; 121 failures classified {'已知 bug': 87, '未实现特性': 26, '覆盖边界': 2, '规范/TCK 差异待确认': 2, '驱动环境未提供': 4}\n",
+    "stderr": ""
+  }
+]

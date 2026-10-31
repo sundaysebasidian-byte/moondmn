@@ -1,20 +1,20 @@
 {
   "total": 3291,
-  "passed": 3162,
-  "failed": 129,
+  "passed": 3170,
+  "failed": 121,
   "skipped": 0,
   "empty_files": 0,
   "failures": {
-    "E_TCK_MISMATCH": 55,
+    "E_TCK_MISMATCH": 54,
     "E_TYPE_UNSUPPORTED": 2,
     "E_TYPE": 4,
     "E_NAME": 3,
-    "E_TCK_EXPECTED_ERROR": 23,
-    "E_NUMBER": 2,
+    "E_TCK_EXPECTED_ERROR": 19,
+    "E_ZONE_UNSUPPORTED": 2,
     "E_DMN_ITERATOR": 4,
     "E_IMPORT_UNSUPPORTED": 6,
-    "E_PARSE": 6,
     "E_DUPLICATE": 1,
+    "E_PARSE": 3,
     "E_DMN_FILTER": 2,
     "E_BUILTIN_UNSUPPORTED": 4,
     "E_UNSUPPORTED_SYNTAX": 17
@@ -3935,14 +3935,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
       "id": "subtract_lhs_time_minus_rhs_time_005",
-      "status": "PASS",
-      "detail": ""
+      "status": "E_ZONE_UNSUPPORTED",
+      "detail": "unknown time zone"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
       "id": "subtract_lhs_time_minus_rhs_time_006",
-      "status": "PASS",
-      "detail": ""
+      "status": "E_ZONE_UNSUPPORTED",
+      "detail": "unknown time zone"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
@@ -4067,8 +4067,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
       "id": "exponent_lhs_number_exp_rhs_number_003",
-      "status": "E_NUMBER",
-      "detail": "non-finite number has no FEEL representation"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected 3486784401"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
@@ -9179,14 +9179,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0057-feel-context/0057-feel-context-test-01.xml",
       "id": "004",
-      "status": "E_PARSE",
-      "detail": "expected :, got bar"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0057-feel-context/0057-feel-context-test-01.xml",
       "id": "005",
-      "status": "E_PARSE",
-      "detail": "expected :, got +"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0057-feel-context/0057-feel-context-test-01.xml",
@@ -9995,8 +9995,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
       "id": "time_005",
-      "status": "PASS",
-      "detail": ""
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual false, expected true"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
@@ -10043,8 +10043,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
       "id": "datetime_003_a",
-      "status": "PASS",
-      "detail": ""
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual false, expected true"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
@@ -10343,8 +10343,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0075-feel-exponent/0075-feel-exponent-test-01.xml",
       "id": "decision_001",
-      "status": "E_NUMBER",
-      "detail": "non-finite number has no FEEL representation"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected 3486784401"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0075-feel-exponent/0075-feel-exponent-test-01.xml",
@@ -13157,14 +13157,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "named_params_002",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "named_params_003",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
@@ -13967,8 +13967,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1150-boxed-conditional/1150-boxed-conditional-test-01.xml",
       "id": "003",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0005-literal-invocation/0005-literal-invocation-test-01.xml",
@@ -14621,8 +14621,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1115-feel-date-function/1115-feel-date-function-test-01.xml",
       "id": "035_e6c1bb43fd",
-      "status": "E_PARSE",
-      "detail": "invalid integer"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1115-feel-date-function/1115-feel-date-function-test-01.xml",
@@ -14813,8 +14813,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
       "id": "015_376d693a79",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected \"12:00:00\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
@@ -14951,8 +14951,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
       "id": "038_05b311131c",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected \"11:59:45\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
@@ -15119,8 +15119,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
       "id": "066_5116e12fd3",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
@@ -18119,8 +18119,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
       "id": "004",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected \"abc\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
@@ -18167,8 +18167,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
       "id": "009",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
@@ -19091,8 +19091,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1117-feel-date-and-time-function/1117-feel-date-and-time-function-test-01.xml",
       "id": "077_f83b3ac8bb",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1117-feel-date-and-time-function/1117-feel-date-and-time-function-test-01.xml",
