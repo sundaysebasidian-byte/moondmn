@@ -88,6 +88,29 @@ jobs:
           moon run cmd/main -- lint examples/eligibility.dmn
           moon run cmd/main -- eval examples/eligibility.dmn --decision Eligible --input examples/input.json
 
+  playground:
+    name: Playground
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Official installer commands: https://www.moonbitlang.com/download/
+      - name: Install MoonBit
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build playground
+        run: scripts/build-web.sh
+
+      - name: Smoke test
+        run: node web/smoke.mjs
+
   tck:
     name: DMN TCK
     runs-on: ubuntu-latest
