@@ -346,10 +346,20 @@ fn bind_args(
   name : String,
   args : Array[(String?, @types.Value)],
 ) -> @types.Value raise @types.EngineError {
+  let named = args.iter().any(arg => arg.0 is Some(_))
+  if named && args.iter().any(arg => arg.0 is None) {
+    raise err("E_ARITY", "cannot mix named and positional arguments")
+  }
   if name == "date" || name == "time" || name == "date and time" {
     return temporal_call(name, args)
   }
-  let names = params(name)
+  let names = if (name == "floor" || name == "ceiling") &&
+    named &&
+    !args.iter().any(arg => arg.0 is Some("scale")) {
+    ["n"]
+  } else {
+    params(name)
+  }
   if names.is_empty() {
     let positional = []
     for arg in args {
@@ -423,7 +433,7 @@ fn bind_args(
         }
         positional.push(v)
       }
-      None => gap = true
+      None => if named { positional.push(Null) } else { gap = true }
     }
   }
   for extra in extras {
@@ -639,7 +649,7 @@ fn dispatch(
       arity(name, xs, 2, 3)
       let body = text(xs[0], name)
       let start = index_of_value(xs[1], name)
-      let length = if xs.length() == 3 {
+      let length = if xs.length() == 3 && !(xs[2] is Null) {
         Some(index_of_value(xs[2], name))
       } else {
         None
@@ -711,7 +721,11 @@ fn dispatch(
       let input = text(xs[0], name)
       let pattern = text(xs[1], name)
       let replacement = text(xs[2], name)
-      let flags = if xs.length() == 4 { text(xs[3], name) } else { "" }
+      let flags = if xs.length() == 4 && !(xs[3] is Null) {
+        text(xs[3], name)
+      } else {
+        ""
+      }
       let regex = compile_regex(pattern, flags)
       Text(
         regex
@@ -734,9 +748,24 @@ fn dispatch(
     "string join" => {
       arity(name, xs, 1, 4)
       let items = list(xs[0], name)
-      let delimiter = if xs.length() > 1 { text(xs[1], name) } else { "" }
-      let prefix = if xs.length() > 2 { text(xs[2], name) } else { "" }
-      let suffix = if xs.length() > 3 { text(xs[3], name) } else { "" }
+      let delimiter = if xs.length() > 1 && !(xs[1] is Null) {
+        text(xs[1], name)
+      } else {
+        ""
+      }
+      if xs.length() == 3 {
+        return Null
+      }
+      let prefix = if xs.length() > 2 && !(xs[2] is Null) {
+        text(xs[2], name)
+      } else {
+        ""
+      }
+      let suffix = if xs.length() > 3 && !(xs[3] is Null) {
+        text(xs[3], name)
+      } else {
+        ""
+      }
       let parts = []
       for item in items {
         if !(item is Null) {
@@ -756,7 +785,14 @@ fn dispatch(
     }
     "floor" => {
       arity(name, xs, 1, 2)
-      let scale = if xs.length() > 1 { index_of_value(xs[1], name) } else { 0 }
+      if xs.length() > 1 && xs[1] is Null {
+        return Null
+      }
+      let scale = if xs.length() > 1 && !(xs[1] is Null) {
+        index_of_value(xs[1], name)
+      } else {
+        0
+      }
       let factor = @types.Decimal::power_of_ten(
         if scale < 0 {
           -scale
@@ -775,7 +811,14 @@ fn dispatch(
     }
     "ceiling" => {
       arity(name, xs, 1, 2)
-      let scale = if xs.length() > 1 { index_of_value(xs[1], name) } else { 0 }
+      if xs.length() > 1 && xs[1] is Null {
+        return Null
+      }
+      let scale = if xs.length() > 1 && !(xs[1] is Null) {
+        index_of_value(xs[1], name)
+      } else {
+        0
+      }
       let factor = @types.Decimal::power_of_ten(
         if scale < 0 {
           -scale
@@ -855,7 +898,7 @@ fn dispatch(
       arity(name, xs, 2, 3)
       let items = list(xs[0], name)
       let start = index_of_value(xs[1], name)
-      let length = if xs.length() == 3 {
+      let length = if xs.length() == 3 && !(xs[2] is Null) {
         Some(index_of_value(xs[2], name))
       } else {
         None

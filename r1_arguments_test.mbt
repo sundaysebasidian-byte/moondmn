@@ -30,3 +30,25 @@ test "R1 I4 missing named BKM parameter is null" {
   )
   inspect(@moondmn.evaluate_decision(model, "d", "{}"), content="[1,null]")
 }
+
+///|
+test "R1 I4 builtin named parameters bind null including interior gaps" {
+  inspect(@moondmn.feel_eval("is(value1:1)"), content="false")
+  inspect(@moondmn.feel_eval("is(value2:1)"), content="false")
+  inspect(
+    @moondmn.feel_eval("substring(string: \"abc\", start position: 2)"),
+    content="\"bc\"",
+  )
+  inspect(
+    @moondmn.feel_eval("string join(list: [\"a\",\"b\"])"),
+    content="\"ab\"",
+  )
+  inspect(@moondmn.feel_eval("number(from: \"123\")"), content="123")
+}
+
+///|
+test "R1 I4 optional overload selection preserves explicit null" {
+  inspect(@moondmn.feel_eval("floor(n:1.56)"), content="1")
+  inspect(@moondmn.feel_eval("floor(n:1.56,scale:null)"), content="null")
+  inspect(@moondmn.feel_eval("ceiling(1.56,null)"), content="null")
+}
