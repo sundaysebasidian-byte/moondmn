@@ -6,7 +6,7 @@ import {
 }
 
 // Values
-pub fn compile(String, names? : Array[String]) -> Expr raise @types.EngineError
+pub fn compile(String, names? : Array[String], context? : Map[String, @types.Value]) -> Expr raise @types.EngineError
 
 pub fn compile_test(String, names? : Array[String]) -> Test raise @types.EngineError
 

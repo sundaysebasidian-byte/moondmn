@@ -1125,7 +1125,7 @@ pub fn feel_eval(
   for k, _ in ctx {
     names.push(k)
   }
-  evaluate(@parser.compile(source, names~), ctx)
+  evaluate(@parser.compile(source, names~, context=ctx), ctx)
 }
 
 ///|

@@ -46,6 +46,7 @@ priv struct Parser {
   mut pos : Int32
   mut depth : Int32
   mut in_range : Bool
+  properties : Array[String]
 }
 
 ///|
@@ -353,7 +354,14 @@ fn Parser::postfix(p : Parser) -> Expr raise @types.EngineError {
           "expected a property name",
         )
       }
-      value = Path(value, part.text)
+      value = Path(
+        value,
+        if part.kind == "string" {
+          part.text
+        } else {
+          p.known_name(part)
+        },
+      )
     } else if t.text == "[" && !p.in_range {
       ignore(p.take())
       let filter = p.expr(1)
@@ -436,7 +444,7 @@ fn Parser::atom(p : Parser) -> Expr raise @types.EngineError {
       } else if t.kind == "temporal" {
         Lit(temporal_value(t.text, t.line, t.column))
       } else if t.kind == "name" {
-        Name(t.text)
+        Name(p.known_name(t))
       } else {
         raise @types.Failure(
           "E_PARSE",
@@ -643,8 +651,29 @@ fn Parser::context_atom(p : Parser) -> Expr raise @types.EngineError {
           "expected a context key",
         )
       }
+      let mut name = key.text
+      let mut previous = key
+      if key.kind != "string" {
+        while !p.at(":") {
+          let next = p.peek()
+          if next.kind == "eof" ||
+            [",", "}", "{", "[", "]", "(", ")"].contains(next.text) {
+            p.error("E_PARSE", "expected a context name followed by :")
+          }
+          ignore(p.take())
+          if next.line != previous.line ||
+            next.column > previous.column + previous.text.length() {
+            name = name + " "
+          }
+          name = name + next.text
+          previous = next
+        }
+      }
       p.expect(":")
-      entries.push((key.text, p.expr(1)))
+      if !p.properties.contains(name) {
+        p.properties.push(name)
+      }
+      entries.push((name, p.expr(1)))
       if p.at(",") {
         ignore(p.take())
         continue
@@ -760,12 +789,14 @@ fn Parser::single_test(p : Parser) -> Test raise @types.EngineError {
 pub fn compile(
   source : String,
   names~ : Array[String] = [],
+  context~ : Map[String, @types.Value] = Map([]),
 ) -> Expr raise @types.EngineError {
   let p = Parser::{
-    tokens: @lexer.lex(source, names),
+    tokens: @lexer.lex(source, names, properties=context_properties(context)),
     pos: 0,
     depth: 0,
     in_range: false,
+    properties: [],
   }
   let value = p.expr(1)
   if p.peek().kind != "eof" {
@@ -795,6 +826,7 @@ pub fn compile_test(
     pos: 0,
     depth: 0,
     in_range: false,
+    properties: [],
   }
   let result = p.test_list()
   if p.peek().kind != "eof" {
@@ -807,4 +839,64 @@ pub fn compile_test(
     )
   }
   result
+}
+
+///|
+fn context_properties(context : Map[String, @types.Value]) -> Array[String] {
+  let out = []
+  fn visit(value : @types.Value, depth : Int32) {
+    if depth > 32 {
+      return
+    }
+    match value {
+      Context(fields) =>
+        for key, value in fields {
+          if !out.contains(key) {
+            out.push(key)
+          }
+          visit(value, depth + 1)
+        }
+      List(items) =>
+        for item in items {
+          visit(item, depth + 1)
+        }
+      _ => ()
+    }
+  }
+  for _, value in context {
+    visit(value, 0)
+  }
+  out
+}
+
+///|
+fn Parser::known_name(p : Parser, first : @lexer.Token) -> String {
+  let mut best = first.text
+  let mut used = 0
+  let mut candidate = first.text
+  let mut previous = first
+  let mut offset = 0
+  while p.pos + offset < p.tokens.length() {
+    let next = p.peek_at(offset)
+    if next.kind == "eof" ||
+      [".", ":", ",", "}", "{", "[", "]", "(", ")"].contains(next.text) {
+      break
+    }
+    if next.line != previous.line ||
+      next.column > previous.column + previous.text.length() {
+      candidate = candidate + " "
+    }
+    candidate = candidate + next.text
+    offset = offset + 1
+    if p.properties.contains(candidate) {
+      best = candidate
+      used = offset
+    }
+    if !p.properties.iter().any(name => name.has_prefix(candidate)) {
+      break
+    }
+    previous = next
+  }
+  p.pos = p.pos + used
+  best
 }

@@ -6,7 +6,7 @@ import {
 }
 
 // Values
-pub fn lex(String, Array[String]) -> Array[Token] raise @types.EngineError
+pub fn lex(String, Array[String], properties? : Array[String]) -> Array[Token] raise @types.EngineError
 
 // Errors
 

@@ -233,8 +233,11 @@ fn collapse_spaces(text : String) -> String {
 pub fn lex(
   source : String,
   names : Array[String],
+  properties~ : Array[String] = [],
 ) -> Array[Token] raise @types.EngineError {
   let chars = source.to_array()
+  let scoped_properties = names.copy()
+  scoped_properties.append(properties)
   if chars.length() > 100000 {
     raise @types.fail("E_LIMIT", "expression too long")
   }
@@ -359,9 +362,27 @@ pub fn lex(
     } else if ch == '?' {
       kind = "name"
       i = i + 1
-    } else if known_length(chars, i, names) > 0 {
+    } else if known_length(
+        chars,
+        i,
+        if out.get(out.length() - 1) is Some(t) && t.text == "." {
+          scoped_properties
+        } else {
+          names
+        },
+      ) >
+      0 {
       kind = "name"
-      i = i + known_length(chars, i, names)
+      i = i +
+        known_length(
+          chars,
+          i,
+          if out.get(out.length() - 1) is Some(t) && t.text == "." {
+            scoped_properties
+          } else {
+            names
+          },
+        )
     } else if ch.is_ascii_alphabetic() || ch == '_' {
       kind = "name"
       i = i + 1
