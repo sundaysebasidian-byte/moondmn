@@ -1,37 +1,30 @@
 {
   "total": 3291,
-  "passed": 2994,
-  "failed": 297,
+  "passed": 3162,
+  "failed": 129,
   "skipped": 0,
   "empty_files": 0,
   "failures": {
-    "E_NAME": 8,
-    "E_TCK_MISMATCH": 99,
+    "E_TCK_MISMATCH": 55,
     "E_TYPE_UNSUPPORTED": 2,
-    "E_TYPE": 55,
-    "E_TCK_EXPECTED_ERROR": 48,
+    "E_TYPE": 4,
+    "E_NAME": 3,
+    "E_TCK_EXPECTED_ERROR": 23,
     "E_NUMBER": 2,
     "E_DMN_ITERATOR": 4,
     "E_IMPORT_UNSUPPORTED": 6,
-    "E_PARSE": 8,
+    "E_PARSE": 6,
     "E_DUPLICATE": 1,
-    "E_DMN_FILTER": 4,
-    "E_TYPE_FIELD": 2,
-    "E_TYPE_COLLECTION": 3,
-    "E_RANGE": 6,
-    "E_ARITY": 6,
-    "E_BUILTIN_UNSUPPORTED": 16,
-    "E_DMN_CONDITIONAL": 1,
-    "E_UNSUPPORTED_SYNTAX": 17,
-    "E_DECIMAL_SYNTAX": 4,
-    "E_REGEX": 5
+    "E_DMN_FILTER": 2,
+    "E_BUILTIN_UNSUPPORTED": 4,
+    "E_UNSUPPORTED_SYNTAX": 17
   },
   "cases": [
     {
       "file": ".tck/TestCases/compliance-level-3/0006-join/0006-join-test-01.xml",
       "id": "001",
-      "status": "E_NAME",
-      "detail": "unknown name: name"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0013-sort/0013-sort-test-01.xml",
@@ -42,8 +35,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0001-filter/0001-filter-test-01.xml",
       "id": "001",
-      "status": "E_NAME",
-      "detail": "unknown name: dept"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0086-import/0086-import-test-01.xml",
@@ -2166,14 +2159,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "006",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected 3"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "007",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected 1"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
@@ -2202,38 +2195,38 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "012",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected [true]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "013",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected []"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "014",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 100, expected [100]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "015",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected []"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "016",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"foo\", expected [\"foo\"]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "017",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected []"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
@@ -2280,8 +2273,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "025",
-      "status": "E_NAME",
-      "detail": "unknown name: a"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
@@ -2298,14 +2291,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "028",
-      "status": "E_NAME",
-      "detail": "unknown name: x"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
       "id": "029",
-      "status": "E_NAME",
-      "detail": "unknown name: x"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0069-feel-list/0069-feel-list-test-01.xml",
@@ -9138,8 +9131,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0032-conditionals/0032-conditionals-test-01.xml",
       "id": "003",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected 90"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0032-conditionals/0032-conditionals-test-01.xml",
@@ -9156,8 +9149,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0032-conditionals/0032-conditionals-test-01.xml",
       "id": "006",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected \"World\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0057-feel-context/0057-feel-context-test-01.xml",
@@ -9540,26 +9533,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1151-boxed-filter/1151-boxed-filter-test-01.xml",
       "id": "001",
-      "status": "E_DMN_FILTER",
-      "detail": "filter needs a list and a predicate"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1151-boxed-filter/1151-boxed-filter-test-01.xml",
       "id": "002",
-      "status": "E_DMN_FILTER",
-      "detail": "filter needs a list and a predicate"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1151-boxed-filter/1151-boxed-filter-test-01.xml",
       "id": "004",
       "status": "E_DMN_FILTER",
-      "detail": "filter needs a list and a predicate"
+      "detail": "filter predicate is not boolean"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1151-boxed-filter/1151-boxed-filter-test-01.xml",
       "id": "005",
       "status": "E_DMN_FILTER",
-      "detail": "filter needs a list and a predicate"
+      "detail": "filter predicate is not boolean"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0011-insert-remove/0011-insert-remove-test-01.xml",
@@ -9570,32 +9563,32 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0020-vacation-days/0020-vacation-days-test-01.xml",
       "id": "001",
-      "status": "E_TYPE",
-      "detail": "values of type null and number are not comparable"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected 27"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0020-vacation-days/0020-vacation-days-test-01.xml",
       "id": "002",
-      "status": "E_TYPE",
-      "detail": "values of type null and null are not comparable"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected 22"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0020-vacation-days/0020-vacation-days-test-01.xml",
       "id": "003",
-      "status": "E_TYPE",
-      "detail": "values of type number and null are not comparable"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected 24"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0020-vacation-days/0020-vacation-days-test-01.xml",
       "id": "004",
-      "status": "E_TYPE",
-      "detail": "values of type null and number are not comparable"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected 30"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0020-vacation-days/0020-vacation-days-test-01.xml",
       "id": "005",
-      "status": "E_TYPE",
-      "detail": "values of type number and null are not comparable"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected 24"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0020-vacation-days/0020-vacation-days-test-01.xml",
@@ -9642,8 +9635,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0066-feel-negation/0066-feel-negation-test-01.xml",
       "id": "003_d",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
@@ -10452,20 +10445,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0082-feel-coercion/0082-feel-coercion-test-01.xml",
       "id": "decision_005",
-      "status": "E_TYPE_FIELD",
-      "detail": "missing field: age"
+      "status": "E_TCK_EXPECTED_ERROR",
+      "detail": "expected error"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0082-feel-coercion/0082-feel-coercion-test-01.xml",
       "id": "decision_006_a",
-      "status": "E_TYPE_COLLECTION",
-      "detail": "expected list; singleton coercion unsupported"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0082-feel-coercion/0082-feel-coercion-test-01.xml",
       "id": "decision_007",
-      "status": "E_TYPE",
-      "detail": "value does not conform to string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0082-feel-coercion/0082-feel-coercion-test-01.xml",
@@ -10584,14 +10577,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0082-feel-coercion/0082-feel-coercion-test-01.xml",
       "id": "literal_004",
-      "status": "E_TYPE_COLLECTION",
-      "detail": "expected list; singleton coercion unsupported"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0082-feel-coercion/0082-feel-coercion-test-01.xml",
       "id": "literal_005",
-      "status": "E_TYPE",
-      "detail": "value does not conform to number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0082-feel-coercion/0082-feel-coercion-test-01.xml",
@@ -10644,14 +10637,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0082-feel-coercion/0082-feel-coercion-test-01.xml",
       "id": "decision_context_03",
-      "status": "E_TYPE_FIELD",
-      "detail": "missing field: c"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual {\"a\":1,\"b\":2,\"c\":null}, expected null"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "during",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"duringPRT\":true,\"duringPRF\":false,\"duringPRT2\":true,\"duringPRT3\":true,\"duringPRF2\":true,\"duringPRF3\":true,\"duringRRT\":true,\"duringRRT2\":true,\"duringRRT3\":true,\"duringRRT4\":false,\"duringRRT5\":true,\"duringRRT6\":false,\"duringRRT7\":false,\"duringRRT8\":true}, expected {\"duringPRT\":true,\"duringPRF\":false,\"duringPRT2\":true,\"duringPRT3\":true,\"duringPRF2\":false,\"duringPRF3\":false,\"duringRRT\":true,\"duringRRT2\":true,\"duringRRT3\":true,\"duringRRT4\":true,\"duringRRT5\":true,\"duringRRT6\":true,\"duringRRT7\":true,\"duringRRT8\":true}"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
@@ -10663,19 +10656,19 @@
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "started by",
       "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"startedbyRPT\":true,\"startedbyRPF\":false,\"startedbyRPF2\":false,\"startedbyRRT\":true,\"startedbyRRT2\":true,\"startedbyRRF\":false,\"startedbyRRF2\":false,\"startedbyRRT3\":false,\"startedbyRRT4\":false,\"startedbyRRT5\":false}, expected {\"startedbyRPT\":true,\"startedbyRPF\":false,\"startedbyRPF2\":false,\"startedbyRRT\":true,\"startedbyRRT2\":true,\"startedbyRRF\":false,\"startedbyRRF2\":false,\"startedbyRRT3\":true,\"startedbyRRT4\":true,\"startedbyRRT5\":true}"
+      "detail": "actual {\"startedbyRPT\":true,\"startedbyRPF\":false,\"startedbyRPF2\":false,\"startedbyRRT\":true,\"startedbyRRT2\":true,\"startedbyRRF\":false,\"startedbyRRF2\":false,\"startedbyRRT3\":false,\"startedbyRRT4\":true,\"startedbyRRT5\":false}, expected {\"startedbyRPT\":true,\"startedbyRPF\":false,\"startedbyRPF2\":false,\"startedbyRRT\":true,\"startedbyRRT2\":true,\"startedbyRRF\":false,\"startedbyRRF2\":false,\"startedbyRRT3\":true,\"startedbyRRT4\":true,\"startedbyRRT5\":true}"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "includes",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"includesRPT\":true,\"includesRPF\":false,\"includesRPT2\":true,\"includesRPT3\":true,\"includesRPF2\":true,\"includesRPF3\":true,\"includesRRT\":true,\"includesRRT2\":true,\"includesRRT3\":true,\"includesRRT4\":false,\"includesRRT5\":true,\"includesRRT6\":false,\"includesRRT7\":false,\"includesRRT8\":true}, expected {\"includesRPT\":true,\"includesRPF\":false,\"includesRPT2\":true,\"includesRPT3\":true,\"includesRPF2\":false,\"includesRPF3\":false,\"includesRRT\":true,\"includesRRT2\":true,\"includesRRT3\":true,\"includesRRT4\":true,\"includesRRT5\":true,\"includesRRT6\":true,\"includesRRT7\":true,\"includesRRT8\":true}"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "met by",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"metbyRRT\":false,\"metbyRRF\":true,\"metbyRRF2\":true,\"metbyRRF3\":false}, expected {\"metbyRRT\":true,\"metbyRRF\":false,\"metbyRRF2\":false,\"metbyRRF3\":false}"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
@@ -10693,25 +10686,25 @@
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "overlaps before",
       "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"overlapsbeforeRRT\":true,\"overlapsbeforeRRF\":false,\"overlapsbeforeRRT2\":true,\"overlapsbeforeRRF2\":false,\"overlapsbeforeRRF3\":false,\"overlapsbeforeRRT3\":false,\"overlapsbeforeRRT4\":false,\"overlapsbeforeRRF4\":false,\"overlapsbeforeRRF5\":false}, expected {\"overlapsbeforeRRT\":true,\"overlapsbeforeRRF\":false,\"overlapsbeforeRRT2\":true,\"overlapsbeforeRRF2\":false,\"overlapsbeforeRRF3\":false,\"overlapsbeforeRRT3\":true,\"overlapsbeforeRRT4\":true,\"overlapsbeforeRRF4\":false,\"overlapsbeforeRRF5\":false}"
+      "detail": "actual {\"overlapsbeforeRRT\":true,\"overlapsbeforeRRF\":false,\"overlapsbeforeRRT2\":true,\"overlapsbeforeRRF2\":false,\"overlapsbeforeRRF3\":false,\"overlapsbeforeRRT3\":true,\"overlapsbeforeRRT4\":false,\"overlapsbeforeRRF4\":false,\"overlapsbeforeRRF5\":false}, expected {\"overlapsbeforeRRT\":true,\"overlapsbeforeRRF\":false,\"overlapsbeforeRRT2\":true,\"overlapsbeforeRRF2\":false,\"overlapsbeforeRRF3\":false,\"overlapsbeforeRRT3\":true,\"overlapsbeforeRRT4\":true,\"overlapsbeforeRRF4\":false,\"overlapsbeforeRRF5\":false}"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "finishes",
       "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"fnishesPRT\":true,\"finishesPRF\":false,\"finishesRRT\":true,\"finishesRRF\":false,\"finishesRRT2\":true,\"finishesRRF2\":false,\"finishesRRT3\":false}, expected {\"fnishesPRT\":true,\"finishesPRF\":false,\"finishesRRT\":true,\"finishesRRF\":false,\"finishesRRT2\":true,\"finishesRRF2\":true,\"finishesRRT3\":true}"
+      "detail": "actual {\"fnishesPRT\":true,\"finishesPRF\":false,\"finishesRRT\":true,\"finishesRRF\":false,\"finishesRRT2\":true,\"finishesRRF2\":false,\"finishesRRT3\":true}, expected {\"fnishesPRT\":true,\"finishesPRF\":false,\"finishesRRT\":true,\"finishesRRF\":false,\"finishesRRT2\":true,\"finishesRRF2\":true,\"finishesRRT3\":true}"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "finished by",
       "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"finishedbyRPT\":true,\"finishedbyRPF\":false,\"finishedbyRRT\":true,\"finishedbyRRF\":false,\"finishedbyRRT2\":true,\"finishedbyRRT3\":false,\"finishedbyRRT4\":false}, expected {\"finishedbyRPT\":true,\"finishedbyRPF\":false,\"finishedbyRRT\":true,\"finishedbyRRF\":false,\"finishedbyRRT2\":true,\"finishedbyRRT3\":true,\"finishedbyRRT4\":true}"
+      "detail": "actual {\"finishedbyRPT\":true,\"finishedbyRPF\":false,\"finishedbyRRT\":true,\"finishedbyRRF\":false,\"finishedbyRRT2\":true,\"finishedbyRRT3\":true,\"finishedbyRRT4\":false}, expected {\"finishedbyRPT\":true,\"finishedbyRPF\":false,\"finishedbyRRT\":true,\"finishedbyRRF\":false,\"finishedbyRRT2\":true,\"finishedbyRRT3\":true,\"finishedbyRRT4\":true}"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "starts",
       "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"startsPRT\":true,\"startsPRF\":false,\"startsPRF2\":false,\"startsRRT\":true,\"startsRRT2\":true,\"startsRRF\":false,\"startsRRF2\":false,\"startsRRT3\":false,\"startsRRT4\":false,\"startsRRT5\":false}, expected {\"startsPRT\":true,\"startsPRF\":false,\"startsPRF2\":false,\"startsRRT\":true,\"startsRRT2\":true,\"startsRRF\":false,\"startsRRF2\":false,\"startsRRT3\":true,\"startsRRT4\":true,\"startsRRT5\":true}"
+      "detail": "actual {\"startsPRT\":true,\"startsPRF\":false,\"startsPRF2\":false,\"startsRRT\":true,\"startsRRT2\":true,\"startsRRF\":false,\"startsRRF2\":false,\"startsRRT3\":false,\"startsRRT4\":true,\"startsRRT5\":false}, expected {\"startsPRT\":true,\"startsPRF\":false,\"startsPRF2\":false,\"startsRRT\":true,\"startsRRT2\":true,\"startsRRF\":false,\"startsRRF2\":false,\"startsRRT3\":true,\"startsRRT4\":true,\"startsRRT5\":true}"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
@@ -10723,13 +10716,13 @@
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "overlaps after",
       "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"overlapsafterRRT\":true,\"overlapsafterRRF\":false,\"overlapsafterRRT2\":true,\"overlapsafterRRF2\":false,\"overlapsafterRRF3\":false,\"overlapsafterRRT3\":false,\"overlapsafterRRT4\":false,\"overlapsafterRRF4\":false,\"overlapsafterRRF5\":false}, expected {\"overlapsafterRRT\":true,\"overlapsafterRRF\":false,\"overlapsafterRRT2\":true,\"overlapsafterRRF2\":false,\"overlapsafterRRF3\":false,\"overlapsafterRRT3\":true,\"overlapsafterRRT4\":true,\"overlapsafterRRF4\":false,\"overlapsafterRRF5\":false}"
+      "detail": "actual {\"overlapsafterRRT\":true,\"overlapsafterRRF\":false,\"overlapsafterRRT2\":true,\"overlapsafterRRF2\":false,\"overlapsafterRRF3\":false,\"overlapsafterRRT3\":true,\"overlapsafterRRT4\":false,\"overlapsafterRRF4\":false,\"overlapsafterRRF5\":false}, expected {\"overlapsafterRRT\":true,\"overlapsafterRRF\":false,\"overlapsafterRRT2\":true,\"overlapsafterRRF2\":false,\"overlapsafterRRF3\":false,\"overlapsafterRRT3\":true,\"overlapsafterRRT4\":true,\"overlapsafterRRF4\":false,\"overlapsafterRRF5\":false}"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1130-feel-interval/1130-feel-interval-test-01.xml",
       "id": "mmets",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"meetsRRT\":false,\"meetsRRF\":true,\"meetsRRF2\":true,\"meetsRRF3\":false}, expected {\"meetsRRT\":true,\"meetsRRF\":false,\"meetsRRF2\":false,\"meetsRRF3\":false}"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0009-append-flatten/0009-append-flatten-test-01.xml",
@@ -10854,8 +10847,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0021-singleton-list/0021-singleton-list-test-01.xml",
       "id": "001",
-      "status": "E_TYPE",
-      "detail": "value does not conform to string"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected \"BOB\""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0084-feel-for-loops/0084-feel-for-loops-test-01.xml",
@@ -10914,8 +10907,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0084-feel-for-loops/0084-feel-for-loops-test-01.xml",
       "id": "decision_013",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual [1,null,null,null,null], expected [1,1,2,6,24]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0084-feel-for-loops/0084-feel-for-loops-test-01.xml",
@@ -11076,8 +11069,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "003_c",
-      "status": "E_RANGE",
-      "detail": "range must be enclosed in brackets: ]18..21]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
@@ -11088,20 +11081,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "003_e",
-      "status": "E_RANGE",
-      "detail": "range must be enclosed in brackets: [18..21["
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "004_e",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "004_f",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
@@ -11148,8 +11141,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "007_a",
-      "status": "E_RANGE",
-      "detail": "invalid range endpoint in [date(\"1970-01-01\")..date(\"1970-01-02\")]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
@@ -11166,8 +11159,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "008_a",
-      "status": "E_RANGE",
-      "detail": "invalid range endpoint in [date and time(\"1970-01-01T00:00:00\")..@\"1970-01-02T00:00:00\"]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
@@ -11184,8 +11177,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "009_a",
-      "status": "E_RANGE",
-      "detail": "invalid range endpoint in [time(\"00:00:00\")..@\"00:00:00\"]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
@@ -11202,8 +11195,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "010_a",
-      "status": "E_RANGE",
-      "detail": "invalid range endpoint in [duration(\"P1D\")..@\"P2D\"]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
@@ -11274,68 +11267,68 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "018",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "019_a",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "019_b",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "020",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "021",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "022",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "023",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "024",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "025",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "026",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1156-range-function/1156-range-function-test-01.xml",
       "id": "027",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0014-loan-comparison/0014-loan-comparison-test-01.xml",
@@ -11706,14 +11699,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
       "id": "003_b",
-      "status": "E_TYPE",
-      "detail": "and requires booleans"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
       "id": "003_c",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected null"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
@@ -11754,14 +11747,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
       "id": "007_b",
-      "status": "E_TYPE",
-      "detail": "and requires booleans"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
       "id": "007_c",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected null"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
@@ -11772,8 +11765,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
       "id": "008_b",
-      "status": "E_TYPE",
-      "detail": "and requires booleans"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
@@ -11790,14 +11783,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
       "id": "009_b",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected null"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0064-feel-conjunction/0064-feel-conjunction-test-01.xml",
       "id": "009_c",
-      "status": "E_TYPE",
-      "detail": "and requires booleans"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
@@ -11850,14 +11843,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
       "id": "006_b",
-      "status": "E_TYPE",
-      "detail": "or requires booleans"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
       "id": "006_c",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected null"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
@@ -11868,8 +11861,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
       "id": "007_b",
-      "status": "E_TYPE",
-      "detail": "or requires booleans"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
@@ -11886,14 +11879,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
       "id": "008_b",
-      "status": "E_TYPE",
-      "detail": "or requires booleans"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
       "id": "008_c",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected null"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
@@ -11904,20 +11897,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
       "id": "009_b",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected null"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0065-feel-disjunction/0065-feel-disjunction-test-01.xml",
       "id": "009_c",
-      "status": "E_TYPE",
-      "detail": "or requires booleans"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0070-feel-instance-of/0070-feel-instance-of-test-01.xml",
       "id": "null_001",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0070-feel-instance-of/0070-feel-instance-of-test-01.xml",
@@ -12972,8 +12965,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "time_005",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
@@ -12984,8 +12977,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "time_007",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
@@ -13014,14 +13007,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "time_012",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "time_013",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
@@ -13044,20 +13037,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "datetime_004",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "datetime_005",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "datetime_006",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
@@ -13104,8 +13097,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "datetime_014",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
@@ -13116,14 +13109,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "datetime_016",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "datetime_017",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
@@ -13164,14 +13157,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "named_params_002",
-      "status": "E_ARITY",
-      "detail": "is called with 1 arguments"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected false"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
       "id": "named_params_003",
-      "status": "E_ARITY",
-      "detail": "missing argument for is"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected false"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0103-feel-is-function/0103-feel-is-function-test-01.xml",
@@ -13272,8 +13265,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0050-feel-abs-function/0050-feel-abs-function-test-01.xml",
       "id": "007",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0050-feel-abs-function/0050-feel-abs-function-test-01.xml",
@@ -13296,26 +13289,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0050-feel-abs-function/0050-feel-abs-function-test-01.xml",
       "id": "011",
-      "status": "E_TYPE",
-      "detail": "abs requires a number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0050-feel-abs-function/0050-feel-abs-function-test-01.xml",
       "id": "011_a",
-      "status": "E_TYPE",
-      "detail": "abs requires a number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0050-feel-abs-function/0050-feel-abs-function-test-01.xml",
       "id": "012",
-      "status": "E_TYPE",
-      "detail": "abs requires a number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0050-feel-abs-function/0050-feel-abs-function-test-01.xml",
       "id": "012_a",
-      "status": "E_TYPE",
-      "detail": "abs requires a number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0050-feel-abs-function/0050-feel-abs-function-test-01.xml",
@@ -13374,8 +13367,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0052-feel-exp-function/0052-feel-exp-function-test-01.xml",
       "id": "007",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0052-feel-exp-function/0052-feel-exp-function-test-01.xml",
@@ -13464,8 +13457,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0053-feel-log-function/0053-feel-log-function-test-01.xml",
       "id": "007",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0053-feel-log-function/0053-feel-log-function-test-01.xml",
@@ -13566,8 +13559,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0055-feel-odd-function/0055-feel-odd-function-test-01.xml",
       "id": "007",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0055-feel-odd-function/0055-feel-odd-function-test-01.xml",
@@ -13974,8 +13967,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1150-boxed-conditional/1150-boxed-conditional-test-01.xml",
       "id": "003",
-      "status": "E_DMN_CONDITIONAL",
-      "detail": "condition is not boolean"
+      "status": "E_TCK_EXPECTED_ERROR",
+      "detail": "expected error"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0005-literal-invocation/0005-literal-invocation-test-01.xml",
@@ -14034,8 +14027,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0051-feel-sqrt-function/0051-feel-sqrt-function-test-01.xml",
       "id": "007",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0051-feel-sqrt-function/0051-feel-sqrt-function-test-01.xml",
@@ -14136,8 +14129,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0054-feel-even-function/0054-feel-even-function-test-01.xml",
       "id": "007",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0054-feel-even-function/0054-feel-even-function-test-01.xml",
@@ -14820,8 +14813,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
       "id": "015_376d693a79",
-      "status": "E_TYPE",
-      "detail": "time offset must be a duration"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected \"12:00:00\""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
@@ -14958,8 +14951,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
       "id": "038_05b311131c",
-      "status": "E_TYPE",
-      "detail": "time offset must be a duration"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected \"11:59:45\""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
@@ -15048,8 +15041,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
       "id": "053_3d956966c0",
-      "status": "E_TYPE",
-      "detail": "time requires a string or date and time"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected \"00:00:00Z\""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1116-feel-time-function/1116-feel-time-function-test-01.xml",
@@ -15282,8 +15275,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0067-feel-split-function/0067-feel-split-function-test-01.xml",
       "id": "007",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0067-feel-split-function/0067-feel-split-function-test-01.xml",
@@ -15318,26 +15311,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0099-arithmetic-negation/0099-arithmetic-negation-test-01.xml",
       "id": "decision_003",
-      "status": "E_TYPE",
-      "detail": "unary minus requires a number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0099-arithmetic-negation/0099-arithmetic-negation-test-01.xml",
       "id": "decision_003_a",
-      "status": "E_TYPE",
-      "detail": "unary minus requires a number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0099-arithmetic-negation/0099-arithmetic-negation-test-01.xml",
       "id": "decision_004",
-      "status": "E_TYPE",
-      "detail": "unary minus requires a number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0099-arithmetic-negation/0099-arithmetic-negation-test-01.xml",
       "id": "decision_004_a",
-      "status": "E_TYPE",
-      "detail": "unary minus requires a number"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0099-arithmetic-negation/0099-arithmetic-negation-test-01.xml",
@@ -15408,14 +15401,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1101-feel-floor-function/1101-feel-floor-function-test-01.xml",
       "id": "004",
-      "status": "E_ARITY",
-      "detail": "too many arguments for floor"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1101-feel-floor-function/1101-feel-floor-function-test-01.xml",
       "id": "005",
-      "status": "E_ARITY",
-      "detail": "too many arguments for floor"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1101-feel-floor-function/1101-feel-floor-function-test-01.xml",
@@ -15672,20 +15665,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "001",
-      "status": "E_DECIMAL_SYNTAX",
-      "detail": "invalid decimal: 1000.000.01"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "002",
-      "status": "E_DECIMAL_SYNTAX",
-      "detail": "invalid decimal: 1000,000.01"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "003",
-      "status": "E_DECIMAL_SYNTAX",
-      "detail": "invalid decimal: 1000 000.01"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
@@ -15720,32 +15713,32 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "005",
-      "status": "E_TYPE",
-      "detail": "number requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "006",
-      "status": "E_DECIMAL_SYNTAX",
-      "detail": "invalid decimal: 1000,000.01"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "007",
-      "status": "E_TYPE",
-      "detail": "number requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "008",
-      "status": "E_TYPE",
-      "detail": "number requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "009",
-      "status": "PASS",
-      "detail": ""
+      "status": "E_TCK_EXPECTED_ERROR",
+      "detail": "expected error"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
@@ -15762,14 +15755,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "012",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
       "id": "013",
-      "status": "E_PARSE",
-      "detail": "expected ), got separator"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0058-feel-number-function/0058-feel-number-function-test-01.xml",
@@ -15954,14 +15947,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
       "id": "001",
-      "status": "E_TYPE_COLLECTION",
-      "detail": "expected list; singleton coercion unsupported"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
       "id": "002",
-      "status": "E_TYPE",
-      "detail": "value does not conform to string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
@@ -15972,26 +15965,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
       "id": "003",
-      "status": "E_TYPE",
-      "detail": "value does not conform to date and time"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
       "id": "004",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 1, expected [1]"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
       "id": "005",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual [1], expected 1"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
       "id": "006",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"2000-01-02\", expected \"2000-01-02T00:00:00Z\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
@@ -16015,13 +16008,13 @@
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
       "id": "010",
       "status": "E_TCK_MISMATCH",
-      "detail": "actual [1,[2],\"2000-12-01\"], expected [[1],2,\"2000-12-01T00:00:00Z\"]"
+      "detail": "actual [1,2,\"2000-12-01\"], expected [[1],2,\"2000-12-01T00:00:00Z\"]"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1157-implicit-conversions/1157-implicit-conversions-test-01.xml",
       "id": "011",
       "status": "E_TCK_MISMATCH",
-      "detail": "actual [1,[2],\"2000-02-01\"], expected [[1],2,\"2000-02-01T00:00:00Z\"]"
+      "detail": "actual [1,2,\"2000-02-01T00:00:00Z\"], expected [[1],2,\"2000-02-01T00:00:00Z\"]"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0035-test-structure-output/0035-test-structure-output-test-01.xml",
@@ -16200,14 +16193,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1102-feel-ceiling-function/1102-feel-ceiling-function-test-01.xml",
       "id": "004",
-      "status": "E_ARITY",
-      "detail": "too many arguments for ceiling"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1102-feel-ceiling-function/1102-feel-ceiling-function-test-01.xml",
       "id": "005",
-      "status": "E_ARITY",
-      "detail": "too many arguments for ceiling"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1102-feel-ceiling-function/1102-feel-ceiling-function-test-01.xml",
@@ -16398,8 +16391,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1109-feel-replace-function/1109-feel-replace-function-test-01.xml",
       "id": "020_52d93a8851",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: s"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1109-feel-replace-function/1109-feel-replace-function-test-01.xml",
@@ -16410,14 +16403,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1109-feel-replace-function/1109-feel-replace-function-test-01.xml",
       "id": "022_bd75fac0bd",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: s"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1109-feel-replace-function/1109-feel-replace-function-test-01.xml",
       "id": "023_5c337d3725",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: x"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1109-feel-replace-function/1109-feel-replace-function-test-01.xml",
@@ -16446,8 +16439,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1109-feel-replace-function/1109-feel-replace-function-test-01.xml",
       "id": "028_96e8c698af",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: s"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
@@ -16464,8 +16457,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "fn-null-flags",
-      "status": "E_TYPE",
-      "detail": "matches requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
@@ -16482,20 +16475,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "fn-matches-27",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: m"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "fn-matches-28",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: m"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "fn-matches-45",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
@@ -16524,26 +16517,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch08",
-      "status": "E_REGEX",
-      "detail": "invalid regular expression: [A-Z-[OI]]"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected true"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch09",
-      "status": "E_REGEX",
-      "detail": "invalid regular expression: [A-Z-[OI]]"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected true"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch10",
-      "status": "E_REGEX",
-      "detail": "invalid regular expression: [A-Z-[OI]]"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected false"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch11",
-      "status": "E_REGEX",
-      "detail": "invalid regular expression: [A-Z-[OI]]"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected false"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
@@ -16596,38 +16589,38 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "K2-MatchesFunc-1",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: x"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected true"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "K2-MatchesFunc-2",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: x"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "K2-MatchesFunc-3",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: x"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "K2-MatchesFunc-4",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: x"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "K2-MatchesFunc-5",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: x"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected true"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "K2-MatchesFunc-6",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "regular expression flag not supported: x"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected true"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
@@ -16686,8 +16679,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "K2-MatchesFunc-17",
-      "status": "E_REGEX",
-      "detail": "invalid regular expression: (a)\\1"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected true"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
@@ -16704,8 +16697,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
       "id": "003",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
@@ -16716,8 +16709,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
       "id": "005",
-      "status": "E_TYPE",
-      "detail": "context requires a list"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
@@ -16740,14 +16733,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
       "id": "009",
-      "status": "E_TYPE",
-      "detail": "context requires a list"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
       "id": "010",
-      "status": "E_TYPE",
-      "detail": "context requires a list"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
@@ -16776,8 +16769,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
       "id": "014_b",
-      "status": "E_TYPE",
-      "detail": "context requires a list"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",
@@ -17028,8 +17021,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0080-feel-getvalue-function/0080-feel-getvalue-function-test-01.xml",
       "id": "decision_008",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0080-feel-getvalue-function/0080-feel-getvalue-function-test-01.xml",
@@ -17430,26 +17423,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1141-feel-round-up-function/1141-feel-round-up-function-test-01.xml",
       "id": "001",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 5, expected 6"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1141-feel-round-up-function/1141-feel-round-up-function-test-01.xml",
       "id": "002",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual -5, expected -6"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1141-feel-round-up-function/1141-feel-round-up-function-test-01.xml",
       "id": "003",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 1.12, expected 1.13"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1141-feel-round-up-function/1141-feel-round-up-function-test-01.xml",
       "id": "004",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual -1.12, expected -1.13"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1141-feel-round-up-function/1141-feel-round-up-function-test-01.xml",
@@ -17478,8 +17471,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1141-feel-round-up-function/1141-feel-round-up-function-test-01.xml",
       "id": "010",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 5, expected 6"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1141-feel-round-up-function/1141-feel-round-up-function-test-01.xml",
@@ -17586,8 +17579,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1103-feel-substring-function/1103-feel-substring-function-test-01.xml",
       "id": "011_a559ce6410",
-      "status": "E_PARSE",
-      "detail": "expected ), got position"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0081-feel-getentries-function/0081-feel-getentries-function-test-01.xml",
@@ -17622,8 +17615,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0081-feel-getentries-function/0081-feel-getentries-function-test-01.xml",
       "id": "decision_006",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0081-feel-getentries-function/0081-feel-getentries-function-test-01.xml",
@@ -18018,8 +18011,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0095-feel-day-of-year-function/0095-feel-day-of-year-function-test-01.xml",
       "id": "null_006",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0095-feel-day-of-year-function/0095-feel-day-of-year-function-test-01.xml",
@@ -18036,26 +18029,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0096-feel-day-of-week-function/0096-feel-day-of-week-function-test-01.xml",
       "id": "date_001",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"_2021-01-11\":1,\"_2021-01-12\":2,\"_2021-01-13\":3,\"_2021-01-14\":4,\"_2021-01-15\":5,\"_2021-01-16\":6,\"_2021-01-17\":7}, expected {\"_2021-01-11\":\"Monday\",\"_2021-01-12\":\"Tuesday\",\"_2021-01-13\":\"Wednesday\",\"_2021-01-14\":\"Thursday\",\"_2021-01-15\":\"Friday\",\"_2021-01-16\":\"Saturday\",\"_2021-01-17\":\"Sunday\"}"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0096-feel-day-of-week-function/0096-feel-day-of-week-function-test-01.xml",
       "id": "date_002",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 2, expected \"Tuesday\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0096-feel-day-of-week-function/0096-feel-day-of-week-function-test-01.xml",
       "id": "datetime_001",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"_2021-01-11\":1,\"_2021-01-12\":2,\"_2021-01-13\":3,\"_2021-01-14\":4,\"_2021-01-15\":5,\"_2021-01-16\":6,\"_2021-01-17\":7}, expected {\"_2021-01-11\":\"Monday\",\"_2021-01-12\":\"Tuesday\",\"_2021-01-13\":\"Wednesday\",\"_2021-01-14\":\"Thursday\",\"_2021-01-15\":\"Friday\",\"_2021-01-16\":\"Saturday\",\"_2021-01-17\":\"Sunday\"}"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0096-feel-day-of-week-function/0096-feel-day-of-week-function-test-01.xml",
       "id": "datetime_002",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 2, expected \"Tuesday\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0096-feel-day-of-week-function/0096-feel-day-of-week-function-test-01.xml",
@@ -18090,8 +18083,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0096-feel-day-of-week-function/0096-feel-day-of-week-function-test-01.xml",
       "id": "null_006",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0096-feel-day-of-week-function/0096-feel-day-of-week-function-test-01.xml",
@@ -18126,8 +18119,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
       "id": "004",
-      "status": "E_TYPE",
-      "detail": "string join requires a string"
+      "status": "E_TCK_MISMATCH",
+      "detail": "actual null, expected \"abc\""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
@@ -18144,14 +18137,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
       "id": "006_a",
-      "status": "E_TYPE",
-      "detail": "string join requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
       "id": "006_b",
-      "status": "E_TYPE",
-      "detail": "string join requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
@@ -18228,14 +18221,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
       "id": "015",
-      "status": "E_TYPE",
-      "detail": "string join requires a list"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1140-feel-string-join-function/1140-feel-string-join-function-test-01.xml",
       "id": "016",
-      "status": "E_TYPE",
-      "detail": "string join requires a list"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
@@ -18342,14 +18335,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
       "id": "nested001",
-      "status": "E_TYPE",
-      "detail": "context put requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
       "id": "nested001_a",
-      "status": "E_TYPE",
-      "detail": "context put requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
@@ -18378,20 +18371,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
       "id": "nested006",
-      "status": "E_TYPE",
-      "detail": "context put requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
       "id": "nested007",
-      "status": "E_TYPE",
-      "detail": "context put requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
       "id": "nested008",
-      "status": "PASS",
-      "detail": ""
+      "status": "E_TCK_EXPECTED_ERROR",
+      "detail": "expected error"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
@@ -18402,20 +18395,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
       "id": "nested010",
-      "status": "E_TYPE",
-      "detail": "context put requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
       "id": "nested011",
-      "status": "E_TYPE",
-      "detail": "context put requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml",
       "id": "nested012",
-      "status": "E_TYPE",
-      "detail": "context put requires a string"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0098-feel-week-of-year-function/0098-feel-week-of-year-function-test-01.xml",
@@ -18516,8 +18509,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0098-feel-week-of-year-function/0098-feel-week-of-year-function-test-01.xml",
       "id": "null_006",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0098-feel-week-of-year-function/0098-feel-week-of-year-function-test-01.xml",
@@ -18534,26 +18527,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0097-feel-month-of-year-function/0097-feel-month-of-year-function-test-01.xml",
       "id": "date_001",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"_2021-01-01\":1,\"_2021-02-01\":2,\"_2021-03-01\":3,\"_2021-04-01\":4,\"_2021-05-01\":5,\"_2021-06-01\":6,\"_2021-07-01\":7,\"_2021-08-01\":8,\"_2021-09-01\":9,\"_2021-10-01\":10,\"_2021-11-01\":11,\"_2021-12-01\":12}, expected {\"_2021-01-01\":\"January\",\"_2021-02-01\":\"February\",\"_2021-03-01\":\"March\",\"_2021-04-01\":\"April\",\"_2021-05-01\":\"May\",\"_2021-06-01\":\"June\",\"_2021-07-01\":\"July\",\"_2021-08-01\":\"August\",\"_2021-09-01\":\"September\",\"_2021-10-01\":\"October\",\"_2021-11-01\":\"November\",\"_2021-12-01\":\"December\"}"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0097-feel-month-of-year-function/0097-feel-month-of-year-function-test-01.xml",
       "id": "date_002",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 9, expected \"September\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0097-feel-month-of-year-function/0097-feel-month-of-year-function-test-01.xml",
       "id": "datetime_001",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"_2021-01-01\":1,\"_2021-02-01\":2,\"_2021-03-01\":3,\"_2021-04-01\":4,\"_2021-05-01\":5,\"_2021-06-01\":6,\"_2021-07-01\":7,\"_2021-08-01\":8,\"_2021-09-01\":9,\"_2021-10-01\":10,\"_2021-11-01\":11,\"_2021-12-01\":12}, expected {\"_2021-01-01\":\"January\",\"_2021-02-01\":\"February\",\"_2021-03-01\":\"March\",\"_2021-04-01\":\"April\",\"_2021-05-01\":\"May\",\"_2021-06-01\":\"June\",\"_2021-07-01\":\"July\",\"_2021-08-01\":\"August\",\"_2021-09-01\":\"September\",\"_2021-10-01\":\"October\",\"_2021-11-01\":\"November\",\"_2021-12-01\":\"December\"}"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0097-feel-month-of-year-function/0097-feel-month-of-year-function-test-01.xml",
       "id": "datetime_002",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 9, expected \"September\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0097-feel-month-of-year-function/0097-feel-month-of-year-function-test-01.xml",
@@ -18588,8 +18581,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0097-feel-month-of-year-function/0097-feel-month-of-year-function-test-01.xml",
       "id": "null_006",
-      "status": "E_TCK_EXPECTED_ERROR",
-      "detail": "expected error"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0097-feel-month-of-year-function/0097-feel-month-of-year-function-test-01.xml",
@@ -19170,14 +19163,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1143-feel-round-half-up-function/1143-feel-round-half-up-function-test-01.xml",
       "id": "001",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 5, expected 6"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1143-feel-round-half-up-function/1143-feel-round-half-up-function-test-01.xml",
       "id": "002",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual -5, expected -6"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1143-feel-round-half-up-function/1143-feel-round-half-up-function-test-01.xml",
@@ -19188,8 +19181,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1143-feel-round-half-up-function/1143-feel-round-half-up-function-test-01.xml",
       "id": "004",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual -1.12, expected -1.13"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1143-feel-round-half-up-function/1143-feel-round-half-up-function-test-01.xml",
@@ -19218,8 +19211,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1143-feel-round-half-up-function/1143-feel-round-half-up-function-test-01.xml",
       "id": "010",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual 5, expected 6"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1143-feel-round-half-up-function/1143-feel-round-half-up-function-test-01.xml",
@@ -19338,14 +19331,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1147-feel-context-merge-function/1147-feel-context-merge-function-test-01.xml",
       "id": "012",
-      "status": "E_TYPE",
-      "detail": "context merge requires a list"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1147-feel-context-merge-function/1147-feel-context-merge-function-test-01.xml",
       "id": "013",
-      "status": "E_TYPE",
-      "detail": "context merge requires a list"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1108-feel-substring-after-function/1108-feel-substring-after-function-test-01.xml",
@@ -19428,8 +19421,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1144-feel-round-half-down-function/1144-feel-round-half-down-function-test-01.xml",
       "id": "004",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual -1.12, expected -1.13"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1144-feel-round-half-down-function/1144-feel-round-half-down-function-test-01.xml",
@@ -19638,20 +19631,20 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "014_1fadbba7cd",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P1Y3M\", expected \"P1Y2M\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "015_0e496f94fc",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P7Y7M\", expected \"P7Y6M\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "016_b38662aa93",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P4Y10M\", expected \"P4Y9M\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
@@ -19674,26 +19667,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "020_8ead9a0377",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P2Y1M\", expected \"P2Y\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "021_8a7d311ae9",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P1Y\", expected \"P11M\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "022_87e369773b",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P5Y8M\", expected \"P5Y7M\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "023_6385c7a83e",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P1Y1M\", expected \"P1Y\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
@@ -19704,14 +19697,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "025_161f6fca54",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P2Y10M\", expected \"P2Y9M\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "026_fcc906b375",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P3Y1M\", expected \"P3Y\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
@@ -19740,14 +19733,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "031_4fd9c09d89",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P4Y4M\", expected \"P4Y3M\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",
       "id": "032_2a09ac80d0",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual \"P2Y5M\", expected \"P2Y4M\""
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1121-feel-years-and-months-duration-function/1121-feel-years-and-months-duration-function-test-01.xml",

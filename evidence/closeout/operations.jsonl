@@ -1,0 +1,1 @@
+{"action": "retain", "result": "no cleanup candidates; no moves; no restore destinations", "reason": "current source, evidence, inputs and build/dependency directories remain needed; no old copies proven disposable"}

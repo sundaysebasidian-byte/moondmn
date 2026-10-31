@@ -150,7 +150,7 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 内置函数 | ✅（约 90 个） | 数学、字符串、正则、列表、上下文、时间 |
 | 外部 Java 函数 | ❌ | 需要 JVM，明确不实现 |
 | DMN 1.5 `import` | ❌ | 多文件导入尚未实现 |
-| `now()` / `today()` | ❌ | 需要可注入时钟 |
+| `now()` / `today()` | ✅（注入时钟） | API clock、CLI --now；无时钟时报不支持 |
 | 正则 `s`/`x`/`m` 标志 | ⚠️ 部分 | 基础匹配可用，标志与部分替换未覆盖 |
 
 ## 一致性结果
@@ -160,7 +160,7 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 级别 | 用例数 | 通过 | 通过率 |
 | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 100.0% |
-| Level 3 | 3291 | 2994 | 91.0% |
+| Level 3 | 3291 | 3162 | 96.08% |
 
 目标为 Level 2 ≥ 95%、Level 3 ≥ 80%。逐套件矩阵、失败分类与复现步骤见
 [docs/conformance.md](docs/conformance.md)，原始逐例报告在
@@ -191,7 +191,7 @@ CI 在 Ubuntu、macOS、Windows 上执行上述检查，并单独运行 TCK 任�
 ## 限制与路线图
 
 - 外部 Java 函数与 DMN 1.5 导入不在当前范围。
-- `now()`/`today()` 将支持注入时钟，便于确定性测试。
+- `now()`/`today()` 已支持 API clock 与 CLI `--now`；默认无隐含系统时钟。
 - 正则标志与 `range()` 高级参数计划补齐。
 - 部分隐式转换与函数元数据（`0103-feel-is-function`）仍有差距。
 - 计划增加性能基准与更多示例模型。
