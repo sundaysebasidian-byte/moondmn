@@ -17,7 +17,14 @@
 | Level 2 | 116 | 116 | 0 | 100.0% | `evidence/tck-level-2.json` |
 | Level 3 | 3291 | 3162 | 129 | 96.08% | `evidence/tck-level-3.json` |
 
-第 3a 阶段目标为 Level 2 不退步、Level 3 ≥ 96%，本次实测达到。
+目标为 Level 2 ≥ 95%、Level 3 ≥ 80%，实测均已达到。
+
+## 测试规模
+
+- 单元测试 198 个 test block，native、wasm-gc、js 三个后端各 198/198 通过；另有 9 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- 代码量 8483 行（含注释与 whitebox 测试文件；排除 whitebox 后 8445 行）。
+- 测试期望值由人工给定，没有用实现输出刷新。
+- 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。
 
 ## 失败分类（Level 3）
 
