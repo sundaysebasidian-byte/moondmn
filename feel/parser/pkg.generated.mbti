@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "sundaysebasidian-byte/moondmn/feel/parser"
+
+import {
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
+
+// Values
+pub fn compile(String, names? : Array[String]) -> Expr raise @types.EngineError
+
+// Errors
+
+// Types and methods
+pub(all) enum Expr {
+  Literal(@types.Value)
+  Name(String)
+  Unary(String, Expr)
+  Binary(String, Expr, Expr)
+  Conditional(Expr, Expr, Expr)
+  Sequence(Array[Expr])
+  Record(Array[(String, Expr)])
+  Call(String, Array[Expr])
+  Path(Expr, String)
+}
+
+// Type aliases
+
+// Traits
