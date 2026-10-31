@@ -28,7 +28,7 @@ pub(all) struct FunctionValue {
 ///|
 /// Structural equality follows the FEEL `equals` rules, including temporal
 /// instant comparison, so the `Eq` trait matches the rest of the engine.
-pub impl Eq for Value with equal(self : Value, other : Value) {
+pub impl Eq for Value with fn equal(self : Value, other : Value) {
   self.equals(other)
 }
 
