@@ -18,6 +18,8 @@ pub fn date_of(Int32, Int32, Int32) -> Date raise EngineError
 
 pub fn datetime_from_instant(@bigint.BigInt, Zone) -> DateTime raise EngineError
 
+pub fn datetime_of(Date, Time) -> DateTime raise EngineError
+
 pub fn datetime_zone_offset(DateTime) -> Int32 raise EngineError
 
 pub fn days_from_civil(Int32, Int32, Int32) -> Int64

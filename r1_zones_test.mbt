@@ -69,3 +69,22 @@ test "R1 I5 numeric time constructors keep fractional seconds" {
     content="null",
   )
 }
+
+///|
+test "R1 I5 calendar arithmetic does not construct a DST gap" {
+  let code = try {
+    ignore(
+      @moondmn.feel_eval("@\"2024-02-10T02:30:00@America/New_York\" + @\"P1M\""),
+    )
+    "success"
+  } catch {
+    e => @types.error_code(e)
+  }
+  inspect(code, content="E_ZONE_GAP")
+  inspect(
+    @moondmn.feel_eval(
+      "string(@\"2024-10-03T01:30:00@America/New_York\" + @\"P1M\")",
+    ),
+    content="\"2024-11-03T01:30:00@America/New_York\"",
+  )
+}

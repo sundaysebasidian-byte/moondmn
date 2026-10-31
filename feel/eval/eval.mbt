@@ -898,15 +898,19 @@ fn add(
     (DateTime(dt), DaysSeconds(x)) => DateTime(datetime_add_ds(dt, x))
     (DaysSeconds(x), DateTime(dt)) => DateTime(datetime_add_ds(dt, x))
     (DateTime(dt), YearsMonths(x)) =>
-      DateTime({
-        date: @types.date_add_months(dt.date, x.total_months()),
-        time: dt.time,
-      })
+      DateTime(
+        @types.datetime_of(
+          @types.date_add_months(dt.date, x.total_months()),
+          dt.time,
+        ),
+      )
     (YearsMonths(x), DateTime(dt)) =>
-      DateTime({
-        date: @types.date_add_months(dt.date, x.total_months()),
-        time: dt.time,
-      })
+      DateTime(
+        @types.datetime_of(
+          @types.date_add_months(dt.date, x.total_months()),
+          dt.time,
+        ),
+      )
     (DaysSeconds(x), DaysSeconds(y)) => DaysSeconds(x.add(y))
     (YearsMonths(x), YearsMonths(y)) =>
       YearsMonths(ym_of_months(x.total_months() + y.total_months()))
@@ -958,10 +962,12 @@ fn subtract(
     (DateTime(x), DateTime(y)) => DaysSeconds(datetime_difference(x, y))
     (DateTime(dt), DaysSeconds(x)) => DateTime(datetime_add_ds(dt, x.negate()))
     (DateTime(dt), YearsMonths(x)) =>
-      DateTime({
-        date: @types.date_add_months(dt.date, -x.total_months()),
-        time: dt.time,
-      })
+      DateTime(
+        @types.datetime_of(
+          @types.date_add_months(dt.date, -x.total_months()),
+          dt.time,
+        ),
+      )
     (DaysSeconds(x), DaysSeconds(y)) => DaysSeconds(x.subtract(y))
     (YearsMonths(x), YearsMonths(y)) =>
       YearsMonths(ym_of_months(x.total_months() - y.total_months()))

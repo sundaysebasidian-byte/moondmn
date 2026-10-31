@@ -528,7 +528,7 @@ fn dispatch(
       if xs.length() == 2 {
         let date = date_value(xs[0], name)
         let time = time_value(xs[1], name)
-        @types.DateTime({ date, time, })
+        @types.DateTime(@types.datetime_of(date, time))
       } else if xs.length() > 2 {
         let year = index_of_value(xs[0], name)
         let month = index_of_value(xs[1], name)

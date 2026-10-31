@@ -410,21 +410,7 @@ pub fn parse_datetime(text : String) -> DateTime raise EngineError {
   }
   let date_part = String::from_array(s.to_array()[0:index].to_owned())
   let time_part = String::from_array(s.to_array()[index + 1:].to_owned())
-  let value : DateTime = {
-    date: parse_date(date_part),
-    time: parse_time(time_part),
-  }
-  if value.time.zone is Named(name) {
-    if zone_transitions(name) is None {
-      raise fail("E_ZONE_UNSUPPORTED", "unknown time zone: " + name)
-    }
-    // Local calendar arithmetic does not need an offset. Enforce the tzdata
-    // year boundary when resolving an instant, not when retaining local text.
-    if value.date.year >= 1970 && value.date.year <= 2100 {
-      ignore(datetime_zone_offset(value))
-    }
-  }
-  value
+  datetime_of(parse_date(date_part), parse_time(time_part))
 }
 
 ///|
@@ -972,4 +958,19 @@ pub fn datetime_from_instant(
       zone,
     },
   }
+}
+
+///|
+/// Construct a local date-time and reject nonexistent times in covered IANA years.
+pub fn datetime_of(date : Date, time : Time) -> DateTime raise EngineError {
+  let value : DateTime = { date, time, }
+  if time.zone is Named(name) {
+    if zone_transitions(name) is None {
+      raise fail("E_ZONE_UNSUPPORTED", "unknown time zone: " + name)
+    }
+    if date.year >= 1970 && date.year <= 2100 {
+      ignore(datetime_zone_offset(value))
+    }
+  }
+  value
 }
