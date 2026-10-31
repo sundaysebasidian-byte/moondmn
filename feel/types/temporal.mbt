@@ -322,6 +322,9 @@ pub fn parse_time(text : String) -> Time raise EngineError {
     (hour == 24 && (minute != 0 || second != 0 || nanos != 0)) {
     raise fail("E_TIME_INVALID", "time component out of range")
   }
+  if zone is Named(name) && zone_transitions(name) is None {
+    raise fail("E_ZONE_UNSUPPORTED", "unknown time zone: " + name)
+  }
   { hour, minute, second, nanos, zone, }
 }
 
@@ -407,7 +410,21 @@ pub fn parse_datetime(text : String) -> DateTime raise EngineError {
   }
   let date_part = String::from_array(s.to_array()[0:index].to_owned())
   let time_part = String::from_array(s.to_array()[index + 1:].to_owned())
-  { date: parse_date(date_part), time: parse_time(time_part), }
+  let value : DateTime = {
+    date: parse_date(date_part),
+    time: parse_time(time_part),
+  }
+  if value.time.zone is Named(name) {
+    if zone_transitions(name) is None {
+      raise fail("E_ZONE_UNSUPPORTED", "unknown time zone: " + name)
+    }
+    // Local calendar arithmetic does not need an offset. Enforce the tzdata
+    // year boundary when resolving an instant, not when retaining local text.
+    if value.date.year >= 1970 && value.date.year <= 2100 {
+      ignore(datetime_zone_offset(value))
+    }
+  }
+  value
 }
 
 ///|
@@ -432,7 +449,7 @@ pub fn DateTime::instant(self : DateTime) -> Int64 raise EngineError {
       "E_ZONE_UNSUPPORTED", "date and time without offset has no instant",
     )
   }
-  let offset = zone_offset_seconds(self.time.zone, self.date)
+  let offset = datetime_zone_offset(self)
   let days = self.date.ordinal()
   (days * 86400L + self.time.seconds() / 1000000000L - offset.to_int64()) *
   1000000000L +
@@ -450,148 +467,81 @@ pub fn DateTime::has_offset(self : DateTime) -> Bool {
 }
 
 ///|
-/// ISO weekday of a day number: Monday = 1, Sunday = 7.
-fn weekday_of_ordinal(days : Int64) -> Int32 {
-  let w = (days + 3L) % 7L
-  (if w < 0L { w + 7L } else { w }).to_int() + 1
-}
-
-///|
-fn nth_weekday_ordinal(
-  year : Int32,
-  month : Int32,
-  weekday : Int32,
-  nth : Int32,
-) -> Int64 {
-  let first = days_from_civil(year, month, 1)
-  let offset = (weekday - weekday_of_ordinal(first) + 7) % 7
-  first + (offset + (nth - 1) * 7).to_int64()
-}
-
-///|
-fn last_weekday_ordinal(year : Int32, month : Int32, weekday : Int32) -> Int64 {
-  let next = if month == 12 {
-    days_from_civil(year + 1, 1, 1)
-  } else {
-    days_from_civil(year, month + 1, 1)
+/// Resolve an IANA offset at a complete local time using embedded 2026e data.
+/// Gaps fail explicitly; overlaps choose the earlier UTC instant.
+pub fn datetime_zone_offset(value : DateTime) -> Int32 raise EngineError {
+  match value.time.zone {
+    Unzoned => 0
+    Fixed(offset) => offset
+    Named(name) => {
+      let entries = match zone_transitions(name) {
+        Some(entries) => entries
+        None => raise fail("E_ZONE_UNSUPPORTED", "unknown time zone: " + name)
+      }
+      if value.date.year < 1970 || value.date.year > 2100 {
+        raise fail("E_ZONE_RANGE", "IANA data covers 1970 through 2100")
+      }
+      let local_seconds = value.date.ordinal() * 86400L +
+        value.time.seconds() / 1000000000L
+      let mut chosen : Int32? = None
+      let mut earliest = 9223372036854775807L
+      for i, entry in entries {
+        let until = if i + 1 < entries.length() {
+          entries[i + 1].0
+        } else {
+          4133980800L
+        }
+        let utc = local_seconds - entry.1.to_int64()
+        if utc >= entry.0 && utc < until && utc < earliest {
+          chosen = Some(entry.1)
+          earliest = utc
+        }
+      }
+      match chosen {
+        Some(offset) => offset
+        None =>
+          raise fail(
+            "E_ZONE_GAP", "local time is nonexistent or outside embedded UTC coverage",
+          )
+      }
+    }
   }
-  let last = next - 1L
-  last - ((weekday_of_ordinal(last) - weekday + 7) % 7).to_int64()
 }
 
 ///|
-/// Offset in seconds east of UTC for an IANA zone on a given date, including
-/// daylight saving rules for the zones this engine knows about.
+/// Compatibility helper: resolve at local midnight, never guess a whole-day offset.
 pub fn named_zone_offset(name : String, date : Date) -> Int32? {
-  let day = date.ordinal()
-  let year = date.year
-  match name {
-    "UTC" | "Etc/UTC" | "GMT" | "Etc/GMT" | "Z" | "UT" => Some(0)
-    "Europe/Paris"
-    | "Europe/Berlin"
-    | "Europe/Madrid"
-    | "Europe/Rome"
-    | "Europe/Amsterdam"
-    | "Europe/Brussels"
-    | "Europe/Vienna"
-    | "Europe/Stockholm"
-    | "Europe/Oslo"
-    | "Europe/Copenhagen"
-    | "Europe/Zurich" => {
-      let start = last_weekday_ordinal(year, 3, 7)
-      let finish = last_weekday_ordinal(year, 10, 7)
-      if day >= start && day < finish {
-        Some(7200)
-      } else {
-        Some(3600)
-      }
-    }
-    "Europe/London" | "Europe/Lisbon" | "Europe/Dublin" => {
-      let start = last_weekday_ordinal(year, 3, 7)
-      let finish = last_weekday_ordinal(year, 10, 7)
-      if day >= start && day < finish {
-        Some(3600)
-      } else {
-        Some(0)
-      }
-    }
-    "Asia/Dhaka" => Some(21600)
-    "Asia/Kolkata" | "Asia/Calcutta" => Some(19800)
-    "Asia/Karachi" => Some(18000)
-    "Asia/Tokyo" => Some(32400)
-    "Asia/Shanghai" | "Asia/Hong_Kong" | "Asia/Singapore" => Some(28800)
-    "America/New_York" | "America/Toronto" => {
-      let start = nth_weekday_ordinal(year, 3, 7, 2)
-      let finish = nth_weekday_ordinal(year, 11, 7, 1)
-      if day >= start && day < finish {
-        Some(-14400)
-      } else {
-        Some(-18000)
-      }
-    }
-    "America/Chicago" => {
-      let start = nth_weekday_ordinal(year, 3, 7, 2)
-      let finish = nth_weekday_ordinal(year, 11, 7, 1)
-      if day >= start && day < finish {
-        Some(-18000)
-      } else {
-        Some(-21600)
-      }
-    }
-    "America/Los_Angeles" | "America/Vancouver" => {
-      let start = nth_weekday_ordinal(year, 3, 7, 2)
-      let finish = nth_weekday_ordinal(year, 11, 7, 1)
-      if day >= start && day < finish {
-        Some(-25200)
-      } else {
-        Some(-28800)
-      }
-    }
-    "Australia/Sydney" | "Australia/Melbourne" => {
-      let start = nth_weekday_ordinal(year, 10, 7, 1)
-      let finish = nth_weekday_ordinal(year, 4, 7, 1)
-      if day >= start || day < finish {
-        Some(39600)
-      } else {
-        Some(36000)
-      }
-    }
-    "Australia/Brisbane" => Some(36000)
-    "Australia/Perth" => Some(28800)
-    "Pacific/Auckland" => {
-      let start = last_weekday_ordinal(year, 9, 7)
-      let finish = nth_weekday_ordinal(year, 4, 7, 1)
-      if day >= start || day < finish {
-        Some(46800)
-      } else {
-        Some(43200)
-      }
-    }
+  Some(
+    datetime_zone_offset({
+      date,
+      time: { hour: 0, minute: 0, second: 0, nanos: 0, zone: Named(name), },
+    }),
+  ) catch {
     _ => None
   }
 }
 
 ///|
-/// Zone offset for a specific calendar date. Unzoned values resolve to UTC.
+/// Compatibility helper for local midnight. Use datetime_zone_offset for a time.
 pub fn zone_offset_seconds(zone : Zone, date : Date) -> Int32 raise EngineError {
-  match zone {
-    Unzoned => 0
-    Fixed(o) => o
-    Named(name) =>
-      match named_zone_offset(name, date) {
-        Some(o) => o
-        None => raise fail("E_ZONE_UNSUPPORTED", "unknown time zone: " + name)
-      }
-  }
+  datetime_zone_offset({
+    date,
+    time: { hour: 0, minute: 0, second: 0, nanos: 0, zone, },
+  })
 }
 
 ///|
-/// Standard (non-daylight) offset of a zone, used for times without a date.
+/// Only date-independent named offsets can resolve a time without a date.
 pub fn standard_zone_offset(zone : Zone) -> Int32? {
   match zone {
     Unzoned => Some(0)
-    Fixed(o) => Some(o)
-    Named(name) => named_zone_offset(name, { year: 2018, month: 1, day: 1, })
+    Fixed(offset) => Some(offset)
+    Named(name) =>
+      match zone_transitions(name) {
+        Some(entries) if entries.iter().all(e => e.1 == entries[0].1) =>
+          Some(entries[0].1)
+        _ => None
+      }
   }
 }
 
@@ -970,5 +920,56 @@ pub fn parse_duration(
       duration_ds_of_nanos(if negative { -total_nanos } else { total_nanos }),
       DurationYM::zero(),
     )
+  }
+}
+
+///|
+/// Convert an exact UTC instant to a local date-time in the embedded IANA range.
+pub fn datetime_from_instant(
+  nanos : @bigint.BigInt,
+  zone : Zone,
+) -> DateTime raise EngineError {
+  if nanos < 0N || nanos >= 4133980800000000000N {
+    raise fail("E_ZONE_RANGE", "instant outside embedded IANA coverage")
+  }
+  let seconds = (nanos / 1000000000N).to_int64()
+  let offset = match zone {
+    Named(name) => {
+      let entries = match zone_transitions(name) {
+        Some(entries) => entries
+        None => raise fail("E_ZONE_UNSUPPORTED", "unknown time zone: " + name)
+      }
+      let mut offset = entries[0].1
+      for entry in entries {
+        if entry.0 > seconds {
+          break
+        }
+        offset = entry.1
+      }
+      offset
+    }
+    Fixed(offset) => offset
+    Unzoned => 0
+  }
+  let shifted = seconds + offset.to_int64()
+  let day = if shifted < 0L {
+    (shifted - 86399L) / 86400L
+  } else {
+    shifted / 86400L
+  }
+  let within = shifted - day * 86400L
+  let date = civil_from_days(day)
+  if date.year < 1970 || date.year > 2100 {
+    raise fail("E_ZONE_RANGE", "local date outside embedded IANA coverage")
+  }
+  {
+    date,
+    time: {
+      hour: (within / 3600L).to_int(),
+      minute: (within % 3600L / 60L).to_int(),
+      second: (within % 60L).to_int(),
+      nanos: (nanos % 1000000000N).to_int(),
+      zone,
+    },
   }
 }

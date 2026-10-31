@@ -442,7 +442,9 @@ pub fn call(
     @types.Failure(code, _, _, _) as e =>
       if [
           "E_TYPE", "E_ARITY", "E_NUMBER", "E_DECIMAL_SYNTAX", "E_DATE", "E_TIME",
-          "E_DURATION", "E_RANGE", "E_REGEX", "E_TEMPORAL",
+          "E_DURATION", "E_RANGE", "E_REGEX", "E_TEMPORAL", "E_ZONE_UNSUPPORTED",
+          "E_PARSE", "E_DATE_INVALID", "E_TIME_INVALID", "E_DATETIME_INVALID", "E_DURATION_INVALID",
+          "E_ZONE_RANGE", "E_ZONE_GAP", "E_ZONE_DATE_REQUIRED",
         ].contains(code) {
         Null
       } else {
@@ -540,12 +542,12 @@ fn dispatch(
               time: @types.make_time(0, 0, 0, 0, @types.Unzoned),
             })
           Text(s) => {
-            let datetime = @types.parse_datetime(s) catch {
-              _ => {
-                let date = @types.parse_date(s)
-                let time = @types.make_time(0, 0, 0, 0, @types.Unzoned)
-                { date, time, }
-              }
+            let datetime = if s.contains("T") {
+              @types.parse_datetime(s)
+            } else {
+              let date = @types.parse_date(s)
+              let time = @types.make_time(0, 0, 0, 0, @types.Unzoned)
+              { date, time, }
             }
             @types.DateTime(datetime)
           }

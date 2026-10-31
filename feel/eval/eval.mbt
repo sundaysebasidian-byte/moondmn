@@ -766,12 +766,28 @@ fn same_kind(a : @types.Value, b : @types.Value) -> Bool {
 ///|
 /// FEEL equality with three-valued logic: operands of different types are
 /// indeterminate, while null equals only null.
-fn equal_value(a : @types.Value, b : @types.Value) -> @types.Value {
+fn equal_value(
+  a : @types.Value,
+  b : @types.Value,
+) -> @types.Value raise @types.EngineError {
   if a is Null || b is Null {
     return Boolean(a is Null && b is Null)
   }
   if !same_kind(a, b) {
     return Null
+  }
+  for value in [a, b] {
+    match value {
+      DateTime(dt) if dt.time.zone is Named(_) =>
+        ignore(@types.datetime_zone_offset(dt))
+      Time(t) if t.zone is Named(_) =>
+        if @types.standard_zone_offset(t.zone) is None {
+          raise err(
+            "E_ZONE_DATE_REQUIRED", "named time needs a date to resolve an offset",
+          )
+        }
+      _ => ()
+    }
   }
   Boolean(a.equals(b))
 }
@@ -838,7 +854,7 @@ fn date_midnight_nanos(date : @types.Date) -> Int64 {
 
 ///|
 fn datetime_utc_nanos(dt : @types.DateTime) -> Int64 raise @types.EngineError {
-  let offset = @types.zone_offset_seconds(dt.time.zone, dt.date)
+  let offset = @types.datetime_zone_offset(dt)
   dt.date.ordinal() * 86400000000000L +
   dt.time.seconds() -
   offset.to_int64() * 1000000000L
@@ -1063,7 +1079,13 @@ fn time_add(t : @types.Time, d : @types.DurationDS) -> @types.Time {
 fn datetime_add_ds(
   dt : @types.DateTime,
   d : @types.DurationDS,
-) -> @types.DateTime {
+) -> @types.DateTime raise @types.EngineError {
+  if dt.time.zone is Named(_) && dt.date.year >= 1970 && dt.date.year <= 2100 {
+    return @types.datetime_from_instant(
+      @bigint.BigInt::from_int64(dt.instant()) + d.total_nanos(),
+      dt.time.zone,
+    )
+  }
   let day = 86400000000000N
   let base = @bigint.BigInt::from_int64(dt.date.ordinal()) * day +
     @bigint.BigInt::from_int64(dt.time.seconds())
