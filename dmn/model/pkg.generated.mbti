@@ -1,0 +1,29 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "sundaysebasidian-byte/moondmn/dmn/model"
+
+import {
+  "sundaysebasidian-byte/moondmn/dmn/xml",
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
+
+// Values
+pub fn boxed(@xml.Node, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
+
+pub fn evaluate_decision(Model, String, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
+
+pub fn expression(@xml.Node) -> @xml.Node raise @types.EngineError
+
+pub fn parse_model(String) -> Model raise @types.EngineError
+
+// Errors
+
+// Types and methods
+pub struct Model {
+  root : @xml.Node
+  decisions : Map[String, @xml.Node]
+  ids : Map[String, String]
+}
+
+// Type aliases
+
+// Traits
