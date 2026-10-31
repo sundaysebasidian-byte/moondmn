@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        uses: moonbitlang/setup-moonbit@main
+
+      - name: Toolchain version
+        shell: bash
+        run: moon version --all
+
+      - name: Format check
+        shell: bash
+        run: moon fmt --check
+
+      - name: Type check
+        shell: bash
+        run: moon check --deny-warn
+
+      - name: Build
+        shell: bash
+        run: moon build
+
+      - name: Test (native)
+        shell: bash
+        run: moon test
+
+      - name: Test (wasm-gc)
+        shell: bash
+        run: moon test --target wasm-gc
+
+      - name: Test (js)
+        shell: bash
+        run: moon test --target js
+
+      - name: Interface drift
+        shell: bash
+        run: |
+          moon info
+          git diff --exit-code -- '*.mbti'
+
+      - name: README quick starts
+        shell: bash
+        run: |
+          moon run examples/api-demo
+          moon run cmd/main -- feel 'sum([1, 2, 3]) * 2'
+          moon run cmd/main -- lint examples/eligibility.dmn
+          moon run cmd/main -- eval examples/eligibility.dmn --decision Eligible --input examples/input.json
+
+  tck:
+    name: DMN TCK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        uses: moonbitlang/setup-moonbit@main
+
+      - name: Fetch pinned TCK
+        run: ./scripts/fetch-tck.sh
+
+      - name: Level 2 conformance
+        run: |
+          moon run cmd/main -- tck .tck/TestCases/compliance-level-2 \
+            --json evidence/tck-level-2.json
+
+      - name: Level 3 conformance
+        run: |
+          moon run cmd/main -- tck .tck/TestCases/compliance-level-3 \
+            --json evidence/tck-level-3.json
+
+      - name: Summarise
+        run: |
+          python3 - <<'EOF'
+          import json
+          for level in (2, 3):
+              with open(f"evidence/tck-level-{level}.json") as handle:
+                  report = json.load(handle)
+              print(f"Level {level}: {report['passed']}/{report['total']} passed")
+          EOF
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: tck-reports
+          path: evidence/*.json
