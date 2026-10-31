@@ -1,0 +1,6 @@
+import {
+  "sundaysebasidian-byte/moondmn",
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
+
+pkgtype(kind: "executable")
