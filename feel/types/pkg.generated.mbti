@@ -6,13 +6,67 @@ import {
 }
 
 // Values
+pub fn civil_from_days(Int64) -> Date
+
+pub fn compare_values(Value, Value) -> Int32 raise EngineError
+
+pub fn date_add_days(Date, Int64) -> Date
+
+pub fn date_add_months(Date, Int32) -> Date raise EngineError
+
+pub fn date_of(Int32, Int32, Int32) -> Date raise EngineError
+
+pub fn days_from_civil(Int32, Int32, Int32) -> Int64
+
+pub fn days_in_month(Int32, Int32) -> Int32
+
 pub fn decimal(String) -> Decimal raise EngineError
+
+pub fn decimal_int(Int32) -> Decimal
+
+pub fn decimal_int64(Int64) -> Decimal
+
+pub fn decimal_to_scaled(Decimal, Int32) -> @bigint.BigInt
+
+pub fn duration_ds_of_nanos(@bigint.BigInt) -> DurationDS
+
+pub fn error_code(EngineError) -> String
+
+pub fn error_message(EngineError) -> String
 
 pub fn fail(String, String) -> EngineError
 
+pub fn fail_at(String, Int32, Int32, String) -> EngineError
+
+pub fn from_double(Double, Int32) -> Decimal raise EngineError
+
 pub fn from_json(Json) -> Value raise EngineError
 
+pub fn is_leap_year(Int32) -> Bool
+
 pub fn json_context(String) -> Map[String, Value] raise EngineError
+
+pub fn make_time(Int32, Int32, Int32, Int32, Zone) -> Time raise EngineError
+
+pub let max_digits : Int32
+
+pub fn named_zone_offset(String, Date) -> Int32?
+
+pub fn parse_date(String) -> Date raise EngineError
+
+pub fn parse_datetime(String) -> DateTime raise EngineError
+
+pub fn parse_duration(String) -> (DurationDS, DurationYM) raise EngineError
+
+pub fn parse_offset_text(String, Int32) -> (Zone, Int32) raise EngineError
+
+pub fn parse_time(String) -> Time raise EngineError
+
+pub fn standard_zone_offset(Zone) -> Int32?
+
+pub fn zero() -> Decimal
+
+pub fn zone_offset_seconds(Zone, Date) -> Int32 raise EngineError
 
 // Errors
 pub(all) suberror EngineError {
@@ -22,30 +76,135 @@ pub fn EngineError::equal(Self, Self) -> Bool
 pub fn EngineError::not_equal(Self, Self) -> Bool
 
 // Types and methods
+pub(all) struct Date {
+  year : Int32
+  month : Int32
+  day : Int32
+}
+pub fn Date::day_of_year(Self) -> Int32
+pub fn Date::ordinal(Self) -> Int64
+pub fn Date::text(Self) -> String
+pub fn Date::week_of_year(Self) -> Int32
+pub fn Date::weekday(Self) -> Int32
+
+pub(all) struct DateTime {
+  date : Date
+  time : Time
+}
+pub fn DateTime::has_offset(Self) -> Bool
+pub fn DateTime::instant(Self) -> Int64 raise EngineError
+pub fn DateTime::text(Self) -> String
+
 pub struct Decimal {
   coefficient : @bigint.BigInt
   scale : Int32
 } derive(Eq)
+pub fn Decimal::abs(Self) -> Self
 pub fn Decimal::add(Self, Self) -> Self raise EngineError
+pub fn Decimal::ceiling(Self) -> Self raise EngineError
 pub fn Decimal::compare(Self, Self) -> Int32
 pub fn Decimal::divide(Self, Self) -> Self raise EngineError
 pub fn Decimal::equal(Self, Self) -> Bool
+pub fn Decimal::exp(Self) -> Self raise EngineError
+pub fn Decimal::floor(Self) -> Self raise EngineError
+pub fn Decimal::is_integer(Self) -> Bool
+pub fn Decimal::is_negative(Self) -> Bool
+pub fn Decimal::is_zero(Self) -> Bool
+pub fn Decimal::ln(Self) -> Self raise EngineError
+pub fn Decimal::log10(Self) -> Self raise EngineError
+pub fn Decimal::modulo(Self, Self) -> Self raise EngineError
 pub fn Decimal::multiply(Self, Self) -> Self raise EngineError
 pub fn Decimal::negate(Self) -> Self
 pub fn Decimal::not_equal(Self, Self) -> Bool
+pub fn Decimal::pow(Self, Self) -> Self raise EngineError
+pub fn Decimal::power_of_ten(Int32) -> Self
+pub fn Decimal::round(Self, Int32) -> Self raise EngineError
+pub fn Decimal::sqrt(Self) -> Self raise EngineError
 pub fn Decimal::text(Self) -> String
+pub fn Decimal::to_int(Self) -> Int32 raise EngineError
+pub fn Decimal::truncate(Self) -> Self raise EngineError
+
+pub(all) struct DurationDS {
+  negative : Bool
+  days : Int64
+  nanos : Int64
+}
+pub fn DurationDS::add(Self, Self) -> Self
+pub fn DurationDS::canonical(Bool, Int64, Int64) -> Self
+pub fn DurationDS::is_zero(Self) -> Bool
+pub fn DurationDS::negate(Self) -> Self
+pub fn DurationDS::subtract(Self, Self) -> Self
+pub fn DurationDS::text(Self) -> String
+pub fn DurationDS::total_nanos(Self) -> @bigint.BigInt
+pub fn DurationDS::zero() -> Self
+
+pub(all) struct DurationYM {
+  negative : Bool
+  years : Int32
+  months : Int32
+}
+pub fn DurationYM::canonical(Bool, Int32, Int32) -> Self
+pub fn DurationYM::is_zero(Self) -> Bool
+pub fn DurationYM::text(Self) -> String
+pub fn DurationYM::total_months(Self) -> Int32
+pub fn DurationYM::zero() -> Self
+
+pub(all) struct FunctionValue {
+  name : String
+  params : Array[String]
+  callback : (Array[Value]) -> Value raise EngineError
+}
+
+pub(all) struct Range {
+  start : Value?
+  start_included : Bool
+  end : Value?
+  end_included : Bool
+}
+pub fn Range::contains(Self, Value) -> Bool raise EngineError
+pub fn Range::json(Self) -> Json raise EngineError
+pub fn Range::overlaps(Self, Self) -> Bool raise EngineError
+pub fn Range::text(Self) -> String
+pub fn Range::unbounded() -> Self
+
+pub(all) struct Time {
+  hour : Int32
+  minute : Int32
+  second : Int32
+  nanos : Int32
+  zone : Zone
+}
+pub fn Time::seconds(Self) -> Int64
+pub fn Time::text(Self) -> String
 
 pub(all) enum Value {
   Null
   Boolean(Bool)
   Number(Decimal)
   Text(String)
+  Date(Date)
+  Time(Time)
+  DateTime(DateTime)
+  DaysSeconds(DurationDS)
+  YearsMonths(DurationYM)
   List(Array[Value])
   Context(Map[String, Value])
-} derive(Eq)
+  Range(Range)
+  Function(FunctionValue)
+}
 pub fn Value::equal(Self, Self) -> Bool
+pub fn Value::equals(Self, Self) -> Bool
 pub fn Value::json(Self) -> Json raise EngineError
 pub fn Value::not_equal(Self, Self) -> Bool
+pub fn Value::text(Self) -> String
+pub fn Value::type_name(Self) -> String
+pub impl Eq for Value
+
+pub(all) enum Zone {
+  Unzoned
+  Fixed(Int32)
+  Named(String)
+}
 
 // Type aliases
 

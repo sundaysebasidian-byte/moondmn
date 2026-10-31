@@ -12,10 +12,12 @@ test "exact decimal arithmetic and limits" {
     @types.decimal("9999999999999999999999999999999999").text(),
     content="9999999999999999999999999999999999",
   )
-  let result = Ok(@types.decimal("1").divide(@types.decimal("3"))) catch {
-    e => Err(e)
-  }
-  assert_true(result is Err(_))
+  assert_true(
+    @types.decimal("1").divide(@types.decimal("3")).text().has_prefix("0.3333"),
+  )
+  assert_true(
+    @types.decimal("2").divide(@types.decimal("3")).text().has_prefix("0.6666"),
+  )
 }
 
 ///|
