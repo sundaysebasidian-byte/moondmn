@@ -852,7 +852,7 @@ fn whole_days(d : @types.DurationDS) -> @bigint.BigInt {
 }
 
 ///|
-/// Number of whole days touched by a duration, rounding away from zero.
+/// Ceiling of the exact signed day count, without narrowing to Int64.
 fn ceil_days(d : @types.DurationDS) -> @bigint.BigInt {
   let day = 86400000000000N
   let total = d.total_nanos()

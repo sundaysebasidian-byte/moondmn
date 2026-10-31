@@ -47,3 +47,7 @@ import * as dmn from "./moondmn.js";
 const res = JSON.parse(dmn.feel_eval(JSON.stringify({ expression: "0.1 + 0.2" })));
 // { ok: true, value: 0.3, type: "number", text: "0.3" }
 ```
+
+## 时态算术的受检边界
+
+底层月份参数/总月数使用 Int64，日期/时长转换和规范化可抛 E_DATE_RANGE / E_DURATION_RANGE。`DateTime::instant()` 只返回 Int64 纳秒；完整日期域使用 `DateTime::epoch_nanos()` BigInt。详细容量、调用方约束和回归见 [时态算术核验](temporal-arithmetic.md)。

@@ -41,6 +41,10 @@ Level 2 为 116/116。Level 3 为 3170/3291（96.32%），剩余 121 个失败�
 - 任何一个套件都可以用下文“复现”一节的命令单独重跑。
 <!-- summary:end -->
 
+## R2 时态边界返工
+
+N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，duration/epoch 纳秒在 BigInt 中计算，越界返回 E_DATE_RANGE 或 E_DURATION_RANGE。三个后端各 242/242、CLI 16 项、Web 26 项通过；两级 TCK 数字未变。逐项排查依据、容量范围和测试见 [时态算术核验](temporal-arithmetic.md)。这不改变下述剩余 121 个 TCK 失败的披露。
+
 ## 环境与方法
 
 - TCK 仓库：https://github.com/dmn-tck/tck
@@ -60,9 +64,9 @@ Level 2 为 116/116。Level 3 为 3170/3291（96.32%），剩余 121 个失败�
 
 ## 测试规模
 
-- 单元测试 224 个 test block，native、wasm-gc、js 三个后端各 224/224 通过；另有 12 项 CLI 进程级检查（`scripts/test-cli.py`）。
-- MoonBit 代码共 14217 行，其中自动生成的 tzdata 4394 行、whitebox 测试 38 行；排除这两部分后为 9785 行。
-- 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 25 项。
+- 单元测试 242 个 test block，native、wasm-gc、js 三个后端各 242/242 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- MoonBit 代码共 14331 行，其中自动生成的 tzdata 4394 行、whitebox 测试 38 行；排除这两部分后为 9899 行。
+- 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 26 项。
 - 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。
 
 ## 失败状态码（Level 3）
