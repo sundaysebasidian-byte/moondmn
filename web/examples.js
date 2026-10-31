@@ -10,8 +10,8 @@ const loan = `<?xml version="1.0" encoding="UTF-8"?>
   </itemDefinition>
   <itemDefinition id="t-applicant" name="Applicant">
     <itemComponent id="t-age" name="Age"><typeRef>number</typeRef></itemComponent>
-    <itemComponent id="t-income" name="Income"><typeRef>number</typeRef></itemComponent>
-    <itemComponent id="t-score" name="Score">
+    <itemComponent id="t-income" name="Annual Income"><typeRef>number</typeRef></itemComponent>
+    <itemComponent id="t-score" name="Credit Score">
       <typeRef>number</typeRef>
       <allowedValues><text>[300..850]</text></allowedValues>
     </itemComponent>
@@ -26,7 +26,7 @@ const loan = `<?xml version="1.0" encoding="UTF-8"?>
     <variable name="Credit Tier" typeRef="string"/>
     <informationRequirement><requiredInput href="#applicant"/></informationRequirement>
     <decisionTable hitPolicy="FIRST">
-      <input label="Credit Score"><inputExpression typeRef="number"><text>Applicant.Score</text></inputExpression></input>
+      <input label="Credit Score"><inputExpression typeRef="number"><text>Applicant.Credit Score</text></inputExpression></input>
       <output name="tier" typeRef="string"/>
       <rule><inputEntry><text>&gt;= 740</text></inputEntry><outputEntry><text>"A"</text></outputEntry></rule>
       <rule><inputEntry><text>&gt;= 670</text></inputEntry><outputEntry><text>"B"</text></outputEntry></rule>
@@ -40,7 +40,7 @@ const loan = `<?xml version="1.0" encoding="UTF-8"?>
     <informationRequirement><requiredInput href="#applicant"/></informationRequirement>
     <informationRequirement><requiredInput href="#amount"/></informationRequirement>
     <informationRequirement><requiredInput href="#term"/></informationRequirement>
-    <literalExpression><text>decimal(Loan Amount / Term Months * 12 / Applicant.Income, 3)</text></literalExpression>
+    <literalExpression><text>decimal(Loan Amount / Term Months * 12 / Applicant.Annual Income, 3)</text></literalExpression>
   </decision>
 
   <decision id="verdict" name="Verdict">
@@ -114,7 +114,7 @@ const insurance = `<?xml version="1.0" encoding="UTF-8"?>
     <variable name="Base Premium" typeRef="number"/>
     <informationRequirement><requiredInput href="#vehicle"/></informationRequirement>
     <decisionTable hitPolicy="UNIQUE">
-      <input label="Vehicle Type"><inputExpression typeRef="string"><text>Vehicle Type</text></inputExpression></input>
+      <input label="Vehicle Type"><inputExpression typeRef="Vehicle"><text>Vehicle Type</text></inputExpression></input>
       <output name="base" typeRef="number"/>
       <rule><inputEntry><text>"sedan"</text></inputEntry><outputEntry><text>600</text></outputEntry></rule>
       <rule><inputEntry><text>"suv"</text></inputEntry><outputEntry><text>720</text></outputEntry></rule>
@@ -302,7 +302,7 @@ export const examples = [
     decision: "Offer",
     now: "2026-03-01T09:00:00Z",
     input: {
-      Applicant: { Age: 34, Income: 72000, Score: 712, Employment: "employed" },
+      Applicant: { Age: 34, "Annual Income": 72000, "Credit Score": 712, Employment: "employed" },
       "Loan Amount": 18000,
       "Term Months": 36,
     },

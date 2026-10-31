@@ -53,6 +53,7 @@ for (const example of examples) {
     const lint = call("lint", { xml: example.xml });
     assert.equal(lint.ok, true);
     assert.equal(lint.findings.length, shape.lint);
+    assert.ok(!lint.findings.some((finding) => finding.decision === "Base Premium"), "a fully covered enum table is not a gap");
     for (const finding of lint.findings) {
       assert.equal(finding.code, "W_POSSIBLE_GAP");
       assert.ok(finding.line > 0 && finding.column > 0);
@@ -117,11 +118,11 @@ test("loan: input values come back typed through the declared item definitions",
   const summary = call("parse_dmn", { xml: example.xml });
   const applicant = summary.inputs.find((input) => input.name === "Applicant").type;
   assert.equal(applicant.base, "context");
-  const score = applicant.fields.find((field) => field.label === "Score");
+  const score = applicant.fields.find((field) => field.label === "Credit Score");
   assert.deepEqual(score.allowed, { kind: "range", min: 300, max: 850 });
   const employment = applicant.fields.find((field) => field.label === "Employment");
   assert.deepEqual(employment.allowed, { kind: "enum", values: ["employed", "self-employed", "retired", "unemployed"] });
-  const bad = call("evaluate", { xml: example.xml, decision: "Offer", input: { ...example.input, Applicant: { ...example.input.Applicant, Score: 900 } } });
+  const bad = call("evaluate", { xml: example.xml, decision: "Offer", input: { ...example.input, Applicant: { ...example.input.Applicant, "Credit Score": 900 } } });
   assert.equal(bad.ok, false);
   assert.equal(bad.error.code, "E_ALLOWED_VALUES");
 });
@@ -145,6 +146,17 @@ test("feel: exact decimals, types and context", () => {
   assert.deepEqual([list.value, list.type], [[2, 3], "list"]);
   const spaced = call("feel_eval", { expression: "Applicant Age >= 18", context: { "Applicant Age": 22 } });
   assert.equal(spaced.value, true);
+});
+
+test("feel: multi-word names work after a dot", () => {
+  const res = call("feel_eval", {
+    expression: "Applicant.Credit Score + Applicant.Annual Income / 1000",
+    context: { Applicant: { "Credit Score": 720, "Annual Income": 72000 } },
+  });
+  assert.deepEqual([res.ok, res.value, res.type], [true, 792, "number"]);
+  const loan = examples.find((item) => item.id === "loan");
+  assert.match(loan.xml, /Applicant\.Credit Score/);
+  assert.match(loan.xml, /Applicant\.Annual Income/);
 });
 
 test("feel: the clock is injected", () => {
