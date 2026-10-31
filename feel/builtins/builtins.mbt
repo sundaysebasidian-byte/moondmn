@@ -502,8 +502,18 @@ fn dispatch(
         ).to_int()
         let zone : @types.Zone = if xs.length() > 3 && !(xs[3] is Null) {
           match xs[3] {
-            DaysSeconds(d) =>
-              @types.Fixed((d.total_nanos() / 1000000000N).to_int())
+            DaysSeconds(d) => {
+              let total = d.total_nanos()
+              let seconds = total / 1000000000N
+              if seconds < -50400N ||
+                seconds > 50400N ||
+                total % 1000000000N != 0N {
+                raise err(
+                  "E_TIME_INVALID", "offset must be whole seconds within 14 hours",
+                )
+              }
+              @types.Fixed(seconds.to_int())
+            }
             Text(s) => {
               let (z, _) = @types.parse_offset_text(s, 0)
               z
@@ -1317,19 +1327,22 @@ fn has_year_month(text : String) -> Bool {
 }
 
 ///|
-fn ym_between(from : @types.Date, to : @types.Date) -> @types.Value {
-  let raw = to.year * 12 + to.month - (from.year * 12 + from.month)
+fn ym_between(
+  from : @types.Date,
+  to : @types.Date,
+) -> @types.Value raise @types.EngineError {
+  let raw = to.year.to_int64() * 12L +
+    to.month.to_int64() -
+    (from.year.to_int64() * 12L + from.month.to_int64())
   let months = raw +
-    (if raw > 0 && to.day < from.day {
-      -1
-    } else if raw < 0 && to.day > from.day {
-      1
+    (if raw > 0L && to.day < from.day {
+      -1L
+    } else if raw < 0L && to.day > from.day {
+      1L
     } else {
-      0
+      0L
     })
-  let negative = months < 0
-  let abs = if negative { -months } else { months }
-  YearsMonths(@types.DurationYM::canonical(negative, abs / 12, abs % 12))
+  YearsMonths(@types.duration_ym_of_months(@bigint.BigInt::from_int64(months)))
 }
 
 ///|

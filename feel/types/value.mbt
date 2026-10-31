@@ -122,7 +122,7 @@ fn time_compare(a : Time, b : Time) -> Int32 raise EngineError {
 ///|
 fn datetime_compare(a : DateTime, b : DateTime) -> Int32 raise EngineError {
   match (a.has_offset(), b.has_offset()) {
-    (true, true) => a.instant().compare(b.instant())
+    (true, true) => a.epoch_nanos().compare(b.epoch_nanos())
     (false, false) => {
       let c = a.date.ordinal().compare(b.date.ordinal())
       if c != 0 {

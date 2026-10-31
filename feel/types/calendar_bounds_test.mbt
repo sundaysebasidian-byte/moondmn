@@ -24,6 +24,15 @@ test "month arithmetic rejects crossing either year boundary" {
   }
   inspect(upper, content="E_DATE_RANGE")
   inspect(lower, content="E_DATE_RANGE")
+  for months in [-9223372036854775808L, 9223372036854775807L] {
+    let code = try {
+      ignore(@types.date_add_months(@types.parse_date("2000-01-01"), months))
+      "success"
+    } catch {
+      e => @types.error_code(e)
+    }
+    inspect(code, content="E_DATE_RANGE")
+  }
 }
 
 ///|

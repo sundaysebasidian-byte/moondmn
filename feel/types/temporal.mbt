@@ -1,5 +1,6 @@
 ///|
-/// Calendar date in the proleptic Gregorian calendar (years 1..9999).
+/// Calendar date in the proleptic Gregorian calendar (years -999999999..999999999).
+/// Construct validated values with date_of or parse_date.
 pub(all) struct Date {
   year : Int32
   month : Int32
@@ -8,6 +9,7 @@ pub(all) struct Date {
 
 ///|
 /// Time of day with optional UTC offset or named IANA zone.
+/// Construct validated values with make_time or parse_time.
 pub(all) struct Time {
   hour : Int32
   minute : Int32
@@ -68,18 +70,22 @@ pub fn days_in_month(year : Int32, month : Int32) -> Int32 {
 ///|
 /// Convert a Gregorian date to signed days since 1970-01-01.
 pub fn days_from_civil(year : Int32, month : Int32, day : Int32) -> Int64 {
-  let y = if month <= 2 { year - 1 } else { year }
-  let era = (if y >= 0 { y } else { y - 399 }) / 400
-  let yoe = y - era * 400
-  let mp = if month > 2 { month - 3 } else { month + 9 }
-  let doy = (153 * mp + 2) / 5 + day - 1
-  let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
-  era.to_int64() * 146097L + doe.to_int64() - 719468L
+  let y = year.to_int64() - (if month <= 2 { 1L } else { 0L })
+  let era = (if y >= 0L { y } else { y - 399L }) / 400L
+  let yoe = y - era * 400L
+  let mp = month.to_int64() + (if month > 2 { -3L } else { 9L })
+  let doy = (153L * mp + 2L) / 5L + day.to_int64() - 1L
+  let doe = yoe * 365L + yoe / 4L - yoe / 100L + doy
+  era * 146097L + doe - 719468L
 }
 
 ///|
 /// Convert signed days since 1970-01-01 to a Gregorian date.
-pub fn civil_from_days(days : Int64) -> Date {
+pub fn civil_from_days(days : Int64) -> Date raise EngineError {
+  if days < days_from_civil(-999999999, 1, 1) ||
+    days > days_from_civil(999999999, 12, 31) {
+    raise fail("E_DATE_RANGE", "epoch day outside supported years")
+  }
   let z = days + 719468L
   let era = (if z >= 0L { z } else { z - 146096L }) / 146097L
   let doe = z - era * 146097L
@@ -89,11 +95,11 @@ pub fn civil_from_days(days : Int64) -> Date {
   let mp = (5L * doy + 2L) / 153L
   let d = doy - (153L * mp + 2L) / 5L + 1L
   let m = if mp < 10L { mp + 3L } else { mp - 9L }
-  {
-    year: (if m <= 2L { y + 1L } else { y }).to_int(),
-    month: m.to_int(),
-    day: d.to_int(),
+  let year = if m <= 2L { y + 1L } else { y }
+  if year < -999999999L || year > 999999999L {
+    raise fail("E_DATE_RANGE", "epoch day outside supported years")
   }
+  { year: year.to_int(), month: m.to_int(), day: d.to_int(), }
 }
 
 ///|
@@ -348,6 +354,9 @@ pub fn make_time(
     (hour == 24 && (minute != 0 || second != 0 || nanos != 0)) {
     raise fail("E_TIME_INVALID", "time component out of range")
   }
+  if zone is Fixed(offset) && (offset < -50400 || offset > 50400) {
+    raise fail("E_TIME_INVALID", "offset outside 14 hours")
+  }
   { hour, minute, second, nanos, zone, }
 }
 
@@ -420,9 +429,14 @@ pub fn DateTime::text(self : DateTime) -> String {
 }
 
 ///|
-/// Seconds since midnight, ignoring the zone.
+/// Nanoseconds since midnight for a valid time, ignoring the zone.
 pub fn Time::seconds(self : Time) -> Int64 {
-  (self.hour * 3600 + self.minute * 60 + self.second).to_int64() * 1000000000L +
+  (
+    self.hour.to_int64() * 3600L +
+    self.minute.to_int64() * 60L +
+    self.second.to_int64()
+  ) *
+  1000000000L +
   self.nanos.to_int64()
 }
 
@@ -430,16 +444,13 @@ pub fn Time::seconds(self : Time) -> Int64 {
 /// Absolute instant as nanoseconds since 1970-01-01T00:00:00Z.
 /// Fails when the value has no resolvable offset.
 pub fn DateTime::instant(self : DateTime) -> Int64 raise EngineError {
-  if self.time.zone is Unzoned {
+  let total = self.epoch_nanos()
+  if total < -9223372036854775808N || total > 9223372036854775807N {
     raise fail(
-      "E_ZONE_UNSUPPORTED", "date and time without offset has no instant",
+      "E_DATE_RANGE", "instant exceeds Int64 nanoseconds; use epoch_nanos",
     )
   }
-  let offset = datetime_zone_offset(self)
-  let days = self.date.ordinal()
-  (days * 86400L + self.time.seconds() / 1000000000L - offset.to_int64()) *
-  1000000000L +
-  self.time.seconds() % 1000000000L
+  total.to_int64()
 }
 
 ///|
@@ -533,17 +544,25 @@ pub fn standard_zone_offset(zone : Zone) -> Int32? {
 
 ///|
 /// Add signed calendar days without changing the calendar representation.
-pub fn date_add_days(date : Date, days : Int64) -> Date {
-  civil_from_days(date.ordinal() + days)
+pub fn date_add_days(date : Date, days : Int64) -> Date raise EngineError {
+  ignore(date_of(date.year, date.month, date.day))
+  date_from_ordinal(
+    @bigint.BigInt::from_int64(date.ordinal()) +
+    @bigint.BigInt::from_int64(days),
+  )
 }
 
 ///|
 /// Add signed months, clamping the day to the destination month.
-pub fn date_add_months(date : Date, months : Int32) -> Date raise EngineError {
-  let total = date.year.to_int64() * 12L +
-    date.month.to_int64() -
-    1L +
-    months.to_int64()
+pub fn date_add_months(date : Date, months : Int64) -> Date raise EngineError {
+  ignore(date_of(date.year, date.month, date.day))
+  let base = date.year.to_int64() * 12L + date.month.to_int64() - 1L
+  let minimum = -999999999L * 12L
+  let maximum = 999999999L * 12L + 11L
+  if months < minimum - base || months > maximum - base {
+    raise fail("E_DATE_RANGE", "month arithmetic exceeds supported years")
+  }
+  let total = base + months
   let year = total / 12L - (if total % 12L < 0L { 1L } else { 0L })
   if year < -999999999L || year > 999999999L {
     raise fail("E_DATE_RANGE", "month arithmetic exceeds supported years")
@@ -564,13 +583,10 @@ pub fn DurationDS::canonical(
   negative : Bool,
   days : Int64,
   nanos : Int64,
-) -> DurationDS {
-  let day_nanos = 86400000000000L
-  let extra = nanos / day_nanos
-  let rest = nanos % day_nanos
-  let days = days + extra
-  let zero = days == 0L && rest == 0L
-  { negative: if zero { false } else { negative }, days, nanos: rest, }
+) -> DurationDS raise EngineError {
+  let total = @bigint.BigInt::from_int64(days) * 86400000000000N +
+    @bigint.BigInt::from_int64(nanos)
+  duration_ds_of_nanos(if negative { -total } else { total })
 }
 
 ///|
@@ -600,31 +616,50 @@ pub fn DurationDS::total_nanos(self : DurationDS) -> @bigint.BigInt {
 ///|
 /// Reverse the duration sign while preserving canonical zero.
 pub fn DurationDS::negate(self : DurationDS) -> DurationDS {
-  DurationDS::canonical(!self.negative, self.days, self.nanos)
+  {
+    negative: if self.is_zero() {
+      false
+    } else {
+      !self.negative
+    },
+    days: self.days,
+    nanos: self.nanos,
+  }
 }
 
 ///|
 /// Add two exact days-and-time durations.
-pub fn DurationDS::add(a : DurationDS, b : DurationDS) -> DurationDS {
+pub fn DurationDS::add(
+  a : DurationDS,
+  b : DurationDS,
+) -> DurationDS raise EngineError {
   let total = a.total_nanos() + b.total_nanos()
   duration_ds_of_nanos(total)
 }
 
 ///|
 /// Subtract two exact days-and-time durations.
-pub fn DurationDS::subtract(a : DurationDS, b : DurationDS) -> DurationDS {
+pub fn DurationDS::subtract(
+  a : DurationDS,
+  b : DurationDS,
+) -> DurationDS raise EngineError {
   a.add(b.negate())
 }
 
 ///|
 /// Build a canonical duration from a signed nanosecond count, rounding
 /// sub-nanosecond input is not possible by construction.
-pub fn duration_ds_of_nanos(total : @bigint.BigInt) -> DurationDS {
+pub fn duration_ds_of_nanos(
+  total : @bigint.BigInt,
+) -> DurationDS raise EngineError {
   let negative = total < 0N
   let a = if negative { -total } else { total }
   let day_nanos = @bigint.BigInt::from_int64(86400000000000L)
   let days = a / day_nanos
   let nanos = a % day_nanos
+  if days > 9223372036854775807N {
+    raise fail("E_DURATION_RANGE", "days duration exceeds Int64 day capacity")
+  }
   {
     negative: if a.is_zero() {
       false
@@ -693,11 +728,10 @@ pub fn DurationYM::canonical(
   negative : Bool,
   years : Int32,
   months : Int32,
-) -> DurationYM {
-  let total = years * 12 + months
-  let y = total / 12
-  let m = total % 12
-  { negative: if total == 0 { false } else { negative }, years: y, months: m, }
+) -> DurationYM raise EngineError {
+  let total = @bigint.BigInt::from_int(years) * 12N +
+    @bigint.BigInt::from_int(months)
+  duration_ym_of_months(if negative { -total } else { total })
 }
 
 ///|
@@ -714,12 +748,12 @@ pub fn DurationYM::is_zero(self : DurationYM) -> Bool {
 
 ///|
 /// Return the signed total number of months.
-pub fn DurationYM::total_months(self : DurationYM) -> Int32 {
-  let n = self.years * 12 + self.months
+pub fn DurationYM::total_months(self : DurationYM) -> Int64 {
+  let total = self.years.to_int64() * 12L + self.months.to_int64()
   if self.negative {
-    -n
+    -total
   } else {
-    n
+    total
   }
 }
 
@@ -748,7 +782,13 @@ pub fn DurationYM::text(self : DurationYM) -> String {
 ///|
 /// Convert a decimal component to an integer in `target_scale` units,
 /// rounding half-to-even.
-pub fn decimal_to_scaled(d : Decimal, target_scale : Int32) -> @bigint.BigInt {
+pub fn decimal_to_scaled(
+  d : Decimal,
+  target_scale : Int32,
+) -> @bigint.BigInt raise EngineError {
+  if target_scale < -6111 || target_scale > 6176 {
+    raise fail("E_DECIMAL_RANGE", "target scale outside decimal128 range")
+  }
   if d.scale <= target_scale {
     d.coefficient *
     @bigint.BigInt::from_int(10).pow(
@@ -901,12 +941,9 @@ pub fn parse_duration(
     )
   }
   if has_ym {
-    let total = total_months
-    let years = (if total < 0N { -total } else { total }).to_int() / 12
-    let months = (if total < 0N { -total } else { total }).to_int() % 12
     (
       DurationDS::zero(),
-      DurationYM::canonical(negative && !total.is_zero(), years, months),
+      duration_ym_of_months(if negative { -total_months } else { total_months }),
     )
   } else {
     (
@@ -970,6 +1007,8 @@ pub fn datetime_from_instant(
 ///|
 /// Construct a local date-time and reject nonexistent times in covered IANA years.
 pub fn datetime_of(date : Date, time : Time) -> DateTime raise EngineError {
+  ignore(date_of(date.year, date.month, date.day))
+  ignore(make_time(time.hour, time.minute, time.second, time.nanos, time.zone))
   let value : DateTime = { date, time, }
   if time.zone is Named(name) {
     if zone_transitions(name) is None {
@@ -980,4 +1019,55 @@ pub fn datetime_of(date : Date, time : Time) -> DateTime raise EngineError {
     }
   }
   value
+}
+
+///|
+/// Convert an exact epoch day after checking the supported Gregorian year range.
+pub fn date_from_ordinal(days : @bigint.BigInt) -> Date raise EngineError {
+  if days < @bigint.BigInt::from_int64(days_from_civil(-999999999, 1, 1)) ||
+    days > @bigint.BigInt::from_int64(days_from_civil(999999999, 12, 31)) {
+    raise fail("E_DATE_RANGE", "epoch day outside supported years")
+  }
+  civil_from_days(days.to_int64())
+}
+
+///|
+/// Normalize an exact month count, rejecting magnitudes beyond Int32 years.
+pub fn duration_ym_of_months(
+  total : @bigint.BigInt,
+) -> DurationYM raise EngineError {
+  let magnitude = if total < 0N { -total } else { total }
+  if magnitude > 25769803775N {
+    raise fail("E_DURATION_RANGE", "years duration exceeds Int32 year capacity")
+  }
+  {
+    negative: total < 0N,
+    years: (magnitude / 12N).to_int(),
+    months: (magnitude % 12N).to_int(),
+  }
+}
+
+///|
+/// Exact UTC nanoseconds for the full date range; no Int64 narrowing.
+pub fn DateTime::epoch_nanos(
+  self : DateTime,
+) -> @bigint.BigInt raise EngineError {
+  if self.time.zone is Unzoned {
+    raise fail(
+      "E_ZONE_UNSUPPORTED", "date and time without offset has no instant",
+    )
+  }
+  ignore(date_of(self.date.year, self.date.month, self.date.day))
+  ignore(
+    make_time(
+      self.time.hour,
+      self.time.minute,
+      self.time.second,
+      self.time.nanos,
+      self.time.zone,
+    ),
+  )
+  @bigint.BigInt::from_int64(self.date.ordinal()) * 86400000000000N +
+  @bigint.BigInt::from_int64(self.time.seconds()) -
+  @bigint.BigInt::from_int(datetime_zone_offset(self)) * 1000000000N
 }

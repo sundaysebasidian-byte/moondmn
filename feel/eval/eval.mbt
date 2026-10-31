@@ -853,29 +853,30 @@ fn whole_days(d : @types.DurationDS) -> @bigint.BigInt {
 
 ///|
 /// Number of whole days touched by a duration, rounding away from zero.
-fn ceil_days(d : @types.DurationDS) -> Int64 {
+fn ceil_days(d : @types.DurationDS) -> @bigint.BigInt {
   let day = 86400000000000N
   let total = d.total_nanos()
   let q = total / day
   let r = total % day
   if r > 0N {
-    (q + 1N).to_int64()
+    q + 1N
   } else {
-    q.to_int64()
+    q
   }
 }
 
 ///|
-fn date_midnight_nanos(date : @types.Date) -> Int64 {
-  date.ordinal() * 86400000000000L
+fn date_midnight_nanos(date : @types.Date) -> @bigint.BigInt {
+  @bigint.BigInt::from_int64(date.ordinal()) * 86400000000000N
 }
 
 ///|
-fn datetime_utc_nanos(dt : @types.DateTime) -> Int64 raise @types.EngineError {
-  let offset = @types.datetime_zone_offset(dt)
-  dt.date.ordinal() * 86400000000000L +
-  dt.time.seconds() -
-  offset.to_int64() * 1000000000L
+fn datetime_utc_nanos(
+  dt : @types.DateTime,
+) -> @bigint.BigInt raise @types.EngineError {
+  date_midnight_nanos(dt.date) +
+  @bigint.BigInt::from_int64(dt.time.seconds()) -
+  @bigint.BigInt::from_int(@types.datetime_zone_offset(dt)) * 1000000000N
 }
 
 ///|
@@ -886,9 +887,17 @@ fn add(
   match (a, b) {
     (Number(x), Number(y)) => Number(x.add(y))
     (Date(d), DaysSeconds(x)) =>
-      Date(@types.date_add_days(d, whole_days(x).to_int64()))
+      Date(
+        @types.date_from_ordinal(
+          @bigint.BigInt::from_int64(d.ordinal()) + whole_days(x),
+        ),
+      )
     (DaysSeconds(x), Date(d)) =>
-      Date(@types.date_add_days(d, whole_days(x).to_int64()))
+      Date(
+        @types.date_from_ordinal(
+          @bigint.BigInt::from_int64(d.ordinal()) + whole_days(x),
+        ),
+      )
     (Date(d), YearsMonths(x)) =>
       Date(@types.date_add_months(d, x.total_months()))
     (YearsMonths(x), Date(d)) =>
@@ -933,20 +942,22 @@ fn subtract(
     (Date(x), Date(y)) =>
       DaysSeconds(
         @types.duration_ds_of_nanos(
-          @bigint.BigInt::from_int64(
-            (x.ordinal() - y.ordinal()) * 86400000000000L,
-          ),
+          @bigint.BigInt::from_int64(x.ordinal() - y.ordinal()) *
+          86400000000000N,
         ),
       )
-    (Date(d), DaysSeconds(x)) => Date(@types.date_add_days(d, -ceil_days(x)))
+    (Date(d), DaysSeconds(x)) =>
+      Date(
+        @types.date_from_ordinal(
+          @bigint.BigInt::from_int64(d.ordinal()) - ceil_days(x),
+        ),
+      )
     (Date(d), YearsMonths(x)) =>
       Date(@types.date_add_months(d, -x.total_months()))
     (Date(d), DateTime(dt)) =>
       DaysSeconds(
         @types.duration_ds_of_nanos(
-          @bigint.BigInt::from_int64(
-            date_midnight_nanos(d) - datetime_utc_nanos(dt),
-          ),
+          date_midnight_nanos(d) - datetime_utc_nanos(dt),
         ),
       )
     (Time(x), Time(y)) => DaysSeconds(time_difference(x, y))
@@ -954,9 +965,7 @@ fn subtract(
     (DateTime(dt), Date(d)) =>
       DaysSeconds(
         @types.duration_ds_of_nanos(
-          @bigint.BigInt::from_int64(
-            datetime_utc_nanos(dt) - date_midnight_nanos(d),
-          ),
+          datetime_utc_nanos(dt) - date_midnight_nanos(d),
         ),
       )
     (DateTime(x), DateTime(y)) => DaysSeconds(datetime_difference(x, y))
@@ -1051,10 +1060,8 @@ fn divide(
 }
 
 ///|
-fn ym_of_months(total : Int32) -> @types.DurationYM {
-  let negative = total < 0
-  let abs = if negative { -total } else { total }
-  @types.DurationYM::canonical(negative, abs / 12, abs % 12)
+fn ym_of_months(total : Int64) -> @types.DurationYM raise @types.EngineError {
+  @types.duration_ym_of_months(@bigint.BigInt::from_int64(total))
 }
 
 ///|
@@ -1074,10 +1081,7 @@ fn scale_ym(
 ) -> @types.DurationYM raise @types.EngineError {
   let total = @types.decimal(d.total_months().to_string())
   let scaled = total.multiply(factor).add(@types.decimal("0.5")).floor()
-  let months = @types.decimal_to_scaled(scaled, 0).to_int()
-  let negative = months < 0
-  let abs = if negative { -months } else { months }
-  @types.DurationYM::canonical(negative, abs / 12, abs % 12)
+  @types.duration_ym_of_months(@types.decimal_to_scaled(scaled, 0))
 }
 
 ///|
@@ -1106,7 +1110,7 @@ fn datetime_add_ds(
 ) -> @types.DateTime raise @types.EngineError {
   if dt.time.zone is Named(_) && dt.date.year >= 1970 && dt.date.year <= 2100 {
     return @types.datetime_from_instant(
-      @bigint.BigInt::from_int64(dt.instant()) + d.total_nanos(),
+      dt.epoch_nanos() + d.total_nanos(),
       dt.time.zone,
     )
   }
@@ -1123,7 +1127,7 @@ fn datetime_add_ds(
   let nanos = rest.to_int64()
   let seconds = nanos / 1000000000L
   {
-    date: @types.civil_from_days(days.to_int64()),
+    date: @types.date_from_ordinal(days),
     time: {
       hour: (seconds / 3600L).to_int(),
       minute: (seconds % 3600L / 60L).to_int(),
@@ -1158,21 +1162,21 @@ fn datetime_difference(
   a : @types.DateTime,
   b : @types.DateTime,
 ) -> @types.DurationDS raise @types.EngineError {
-  @types.duration_ds_of_nanos(
-    @bigint.BigInt::from_int64(datetime_difference_nanos(a, b)),
-  )
+  @types.duration_ds_of_nanos(datetime_difference_nanos(a, b))
 }
 
 ///|
 fn datetime_difference_nanos(
   a : @types.DateTime,
   b : @types.DateTime,
-) -> Int64 raise @types.EngineError {
+) -> @bigint.BigInt raise @types.EngineError {
   match (a.has_offset(), b.has_offset()) {
-    (true, true) => a.instant() - b.instant()
+    (true, true) => a.epoch_nanos() - b.epoch_nanos()
     (false, false) => {
       let days = a.date.ordinal() - b.date.ordinal()
-      days * 86400000000000L + a.time.seconds() - b.time.seconds()
+      @bigint.BigInt::from_int64(days) * 86400000000000N +
+      @bigint.BigInt::from_int64(a.time.seconds()) -
+      @bigint.BigInt::from_int64(b.time.seconds())
     }
     _ => raise err("E_TYPE", "cannot subtract zoned and unzoned date-times")
   }
