@@ -247,6 +247,10 @@ fn invoke(
   for _ in f.params {
     slots.push(None)
   }
+  let named = args.iter().any(arg => arg.0 is Some(_))
+  if named && args.iter().any(arg => arg.0 is None) {
+    raise err("E_ARITY", "cannot mix named and positional arguments")
+  }
   let mut next = 0
   for arg in args {
     match arg.0 {
@@ -270,6 +274,9 @@ fn invoke(
         if index < 0 {
           raise err("E_ARITY", "unknown parameter: " + key)
         }
+        if slots[index] is Some(_) {
+          raise err("E_ARITY", "duplicate parameter: " + key)
+        }
         slots[index] = Some(arg.1)
       }
     }
@@ -279,10 +286,14 @@ fn invoke(
     match slot {
       Some(v) => bound.push(v)
       None =>
-        raise err(
-          "E_ARITY",
-          "missing argument " + f.params[i] + " for " + f.name,
-        )
+        if named {
+          bound.push(Null)
+        } else {
+          raise err(
+            "E_ARITY",
+            "missing argument " + f.params[i] + " for " + f.name,
+          )
+        }
     }
   }
   (f.callback)(bound)
