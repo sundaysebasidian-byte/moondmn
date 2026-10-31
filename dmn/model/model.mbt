@@ -41,17 +41,14 @@ pub fn parse_model(source : String) -> Model raise @types.EngineError {
           decisions[name] = node
         }
       }
-      "itemDefinition"
-      | "businessKnowledgeModel"
-      | "decisionService"
-      | "import" =>
+      "businessKnowledgeModel" | "decisionService" | "import" =>
         raise @types.Failure(
           "E_DMN_UNSUPPORTED",
           node.line,
           node.column,
           "unsupported model element: " + node.name,
         )
-      "DMNDI" | "description" | "extensionElements" => ()
+      "itemDefinition" | "DMNDI" | "description" | "extensionElements" => ()
       _ =>
         raise @types.Failure(
           "E_DMN_UNSUPPORTED",
@@ -70,6 +67,11 @@ pub fn evaluate_decision(
   name : String,
   inputs : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
+  for node in model.root.all("inputData") {
+    if inputs.get(node.attr("name")) is Some(value) {
+      validate_variable(model, node, value)
+    }
+  }
   let cache = Map([])
   let visiting = []
   evaluate_named(model, name, inputs, cache, visiting)
@@ -124,6 +126,7 @@ fn evaluate_named(
     raise @types.fail("E_DMN_UNSUPPORTED", "knowledgeRequirement")
   }
   let value = boxed(expression(decision), ctx)
+  validate_variable(model, decision, value)
   ignore(visiting.pop())
   cache[name] = value
   value
