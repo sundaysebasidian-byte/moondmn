@@ -30,7 +30,7 @@ function test(name, fn) {
 
 const expectedShape = {
   loan: { inputs: 3, decisions: 5, lint: 0 },
-  insurance: { inputs: 5, decisions: 8, lint: 4 },
+  insurance: { inputs: 5, decisions: 8, lint: 3 },
   subscription: { inputs: 4, decisions: 6, lint: 1 },
 };
 
@@ -181,6 +181,12 @@ test("malformed boxed conditional stays inside the JSON boundary", () => {
     assert.equal(response.error.code, "E_DMN_SHAPE");
     assert.ok(response.error.line >= 1 && response.error.column >= 1);
   }
+});
+
+test("core typed JSON bridge serves browser evaluation too", () => {
+  const xml = "<definitions xmlns='https://www.omg.org/spec/DMN/20230324/MODEL/'><inputData id='x' name='x'><variable typeRef='date'/></inputData><decision id='d' name='d'><informationRequirement><requiredInput href='#x'/></informationRequirement><literalExpression><text>x + duration(\"P1D\")</text></literalExpression></decision></definitions>";
+  assert.equal(call("evaluate", {xml, decision:"d", input:{x:"2024-02-28"}}).value, "2024-02-29");
+  assert.equal(call("evaluate", {xml, decision:"d", input:{x:"2023-02-29"}}).error.code, "E_DATE_INVALID");
 });
 
 console.log(`${passed} passed`);

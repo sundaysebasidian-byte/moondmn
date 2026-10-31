@@ -27,4 +27,15 @@ with tempfile.TemporaryDirectory() as directory:
     context.write_text('{"Applicant Age":21}', encoding="utf-8")
     assert run("feel", "Applicant Age + 1", "--context", str(context)) == 22
 assert run("eval", "examples/eligibility.dmn", "--decision", "Eligible", "--input", "examples/input.json") is True
-print("CLI integration: 9 checks passed")
+with tempfile.TemporaryDirectory() as directory:
+    model = Path(directory) / "date.dmn"
+    inputs = Path(directory) / "input.json"
+    ns = "https://www.omg.org/spec/DMN/20230324/MODEL/"
+    model.write_text(f"<definitions xmlns='{ns}'><inputData id='x' name='x'><variable typeRef='date'/></inputData><decision id='d' name='d'><informationRequirement><requiredInput href='#x'/></informationRequirement><literalExpression><text>x + duration(\"P1D\")</text></literalExpression></decision></definitions>", encoding="utf-8")
+    inputs.write_text('{"x":"2024-02-28"}', encoding="utf-8")
+    assert run("eval", str(model), "--decision", "d", "--input", str(inputs)) == "2024-02-29"
+    inputs.write_text('{"Applicant":{"Credit Score":720}}', encoding="utf-8")
+    assert run("feel", "Applicant.Credit Score", "--context", str(inputs)) == 720
+    model.write_text(f"<definitions xmlns='{ns}'><decision id='d' name='d'><conditional><if><literalExpression><text>false</text></literalExpression></if></conditional></decision></definitions>", encoding="utf-8")
+    assert run("eval", str(model), "--decision", "d", "--input", str(inputs), code=1)["error"] == "E_DMN_SHAPE"
+print("CLI integration: 12 checks passed")
