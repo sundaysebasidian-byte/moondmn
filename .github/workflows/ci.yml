@@ -131,6 +131,9 @@ jobs:
               with open(f"evidence/tck-level-{level}.json") as handle:
                   report = json.load(handle)
               print(f"Level {level}: {report['passed']}/{report['total']} passed")
+              assert report['skipped'] == 0 and report['total'] > 0
+              minimum = 1.0 if level == 2 else 0.96
+              assert report['passed'] / report['total'] >= minimum
           EOF
 
       - name: Upload reports
