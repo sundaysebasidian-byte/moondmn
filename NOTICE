@@ -1,0 +1,42 @@
+MoonDMN
+Copyright 2026 sundaysebasidian-byte
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It builds upon and references the following third-party projects and
+specifications. No third-party source code is copied into this repository.
+
+1. DMN Technology Compatibility Kit (TCK)
+   Project:  https://github.com/dmn-tck/tck
+   License:  Apache License 2.0 (see the upstream LICENSE-ASL-2.0.txt)
+   Scope:    Official DMN test cases and models. The suite is fetched at
+             commit 1e349176e5ae689d924a2a2c7a8df25c220d8b07 by
+             scripts/fetch-tck.sh into the ignored .tck/ directory and is not
+             redistributed in this repository. Recorded results in evidence/
+             are derived test outcomes produced by this implementation.
+
+2. OMG Decision Model and Notation (DMN) 1.5
+   Project:  https://www.omg.org/spec/DMN/1.5/
+   License:  OMG specification terms
+   Scope:    Normative semantics of FEEL and DMN. The implementation was
+             written independently from the specification text; no
+             specification text is bundled.
+
+3. Milky2018/xml
+   Project:  https://github.com/Milky2018/xml
+   License:  Apache License 2.0
+   Scope:    XML parsing dependency declared in moon.mod (version 0.6.1).
+
+4. moonbitlang/x
+   Project:  https://github.com/moonbitlang/x
+   License:  Apache License 2.0
+   Scope:    Standard extensions (fs, json, string helpers) declared in
+             moon.mod (version 0.5.7).
+
+5. MoonBit core library and toolchain
+   Project:  https://github.com/moonbitlang/core and https://www.moonbitlang.com
+   License:  Apache License 2.0
+   Scope:    Language runtime and build tooling used to compile and test the
+             project. Not redistributed.
+
+All trademarks and copyrights remain the property of their respective owners.
