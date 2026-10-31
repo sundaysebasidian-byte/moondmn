@@ -15,7 +15,7 @@ fn option(
 fn run(args : Array[String]) -> Unit raise Error {
   if args.length() < 3 {
     raise @types.fail(
-      "E_CLI_USAGE", "moondmn feel <expr> [--context file] | eval <model> --decision name --input file",
+      "E_CLI_USAGE", "usage: moondmn feel <expr> [--context file] | eval <model> --decision name --input file | lint <model> | tck <dir> [--json out]",
     )
   }
   match args[1] {
