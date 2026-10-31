@@ -1,0 +1,52 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "sundaysebasidian-byte/moondmn/feel/types"
+
+import {
+  "moonbitlang/core/bigint",
+}
+
+// Values
+pub fn decimal(String) -> Decimal raise EngineError
+
+pub fn fail(String, String) -> EngineError
+
+pub fn from_json(Json) -> Value raise EngineError
+
+pub fn json_context(String) -> Map[String, Value] raise EngineError
+
+// Errors
+pub(all) suberror EngineError {
+  Failure(String, Int32, Int32, String)
+} derive(Eq)
+pub fn EngineError::equal(Self, Self) -> Bool
+pub fn EngineError::not_equal(Self, Self) -> Bool
+
+// Types and methods
+pub struct Decimal {
+  coefficient : @bigint.BigInt
+  scale : Int32
+} derive(Eq)
+pub fn Decimal::add(Self, Self) -> Self raise EngineError
+pub fn Decimal::compare(Self, Self) -> Int32
+pub fn Decimal::divide(Self, Self) -> Self raise EngineError
+pub fn Decimal::equal(Self, Self) -> Bool
+pub fn Decimal::multiply(Self, Self) -> Self raise EngineError
+pub fn Decimal::negate(Self) -> Self
+pub fn Decimal::not_equal(Self, Self) -> Bool
+pub fn Decimal::text(Self) -> String
+
+pub(all) enum Value {
+  Null
+  Boolean(Bool)
+  Number(Decimal)
+  Text(String)
+  List(Array[Value])
+  Context(Map[String, Value])
+} derive(Eq)
+pub fn Value::equal(Self, Self) -> Bool
+pub fn Value::json(Self) -> Json raise EngineError
+pub fn Value::not_equal(Self, Self) -> Bool
+
+// Type aliases
+
+// Traits
