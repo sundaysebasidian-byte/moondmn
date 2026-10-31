@@ -5,7 +5,12 @@
 pub struct Decimal {
   coefficient : @bigint.BigInt
   scale : Int32
-} derive(Eq)
+}
+
+///|
+pub impl Eq for Decimal with fn equal(self : Decimal, other : Decimal) -> Bool {
+  self.compare(other) == 0
+}
 
 ///|
 /// Matchable engine failure carrying code, line, column and message.
@@ -91,28 +96,36 @@ fn div_half_even(n : @bigint.BigInt, d : @bigint.BigInt) -> @bigint.BigInt {
 ///|
 /// Remove insignificant trailing zeros, then round to 34 significant digits.
 fn normalize(c : @bigint.BigInt, scale : Int32) -> Decimal raise EngineError {
+  if c.is_zero() {
+    return zero()
+  }
   let mut c = c
   let mut s = scale
-  if s < 0 {
-    c = c * pow10(-s)
-    s = 0
+  let drop = digit_count(c) - max_digits
+  // Round once at the coarser of the precision and subnormal quantum.
+  let drop = if s - 6176 > drop { s - 6176 } else { drop }
+  if drop > 0 {
+    c = if drop > digit_count(c) { 0N } else { div_half_even(c, pow10(drop)) }
+    s = s - drop
   }
-  while s > 0 && (c % 10N).is_zero() {
+  if c.is_zero() {
+    return zero()
+  }
+  if digit_count(c) > max_digits {
     c = c / 10N
     s = s - 1
   }
-  let mut digits = digit_count(c)
-  while digits > max_digits {
-    let drop = digits - max_digits
-    c = div_half_even(c, pow10(drop))
-    s = s - drop
-    if s < 0 {
-      raise fail("E_DECIMAL_RANGE", "decimal exponent exceeds supported range")
+  if s < -6111 {
+    let pad = -6111 - s
+    if digit_count(c) + pad > max_digits {
+      raise fail("E_DECIMAL_RANGE", "decimal128 overflow")
     }
-    digits = digit_count(c)
+    c = c * pow10(pad)
+    s = -6111
   }
-  if s > 128 {
-    raise fail("E_DECIMAL_RANGE", "decimal exponent exceeds supported range")
+  while s > -6111 && (c % 10N).is_zero() {
+    c = c / 10N
+    s = s - 1
   }
   { coefficient: c, scale: s, }
 }
@@ -122,7 +135,7 @@ fn normalize(c : @bigint.BigInt, scale : Int32) -> Decimal raise EngineError {
 /// decimal exponent. Values with more than 34 significant digits are rounded.
 pub fn decimal(text : String) -> Decimal raise EngineError {
   let chars = text.to_array()
-  if chars.is_empty() || chars.length() > 512 {
+  if chars.is_empty() || chars.length() > 10000 {
     raise fail("E_DECIMAL_SYNTAX", "invalid decimal: " + text)
   }
   let digits = StringBuilder()
@@ -132,6 +145,7 @@ pub fn decimal(text : String) -> Decimal raise EngineError {
   let mut i = 0
   let mut dot = false
   let mut exponent = false
+  let mut exponent_digits = 0
   let mut count = 0
   if chars[0] == '-' || chars[0] == '+' {
     if chars[0] == '-' {
@@ -143,8 +157,12 @@ pub fn decimal(text : String) -> Decimal raise EngineError {
     let ch = chars[i]
     if ch >= '0' && ch <= '9' {
       if exponent {
+        exponent_digits = exponent_digits + 1
+        if exp > 100000 {
+          raise fail("E_DECIMAL_RANGE", "decimal exponent too large")
+        }
         exp = exp * 10 + (ch.to_int() - 48)
-        if exp > 128 {
+        if exp > 1000000 {
           raise fail("E_DECIMAL_RANGE", "decimal exponent too large")
         }
       } else {
@@ -169,7 +187,7 @@ pub fn decimal(text : String) -> Decimal raise EngineError {
     }
     i = i + 1
   }
-  if count == 0 {
+  if count == 0 || (exponent && exponent_digits == 0) {
     raise fail("E_DECIMAL_SYNTAX", "invalid decimal: " + text)
   }
   normalize(
@@ -211,7 +229,7 @@ pub fn Decimal::is_negative(self : Decimal) -> Bool {
 ///|
 /// Test whether the normalized decimal has no fractional part.
 pub fn Decimal::is_integer(self : Decimal) -> Bool {
-  self.scale == 0
+  self.scale <= 0
 }
 
 ///|
@@ -234,6 +252,11 @@ pub fn Decimal::text(self : Decimal) -> String {
       out.write_string(".")
     }
     out.write_char(ch)
+  }
+  if self.scale < 0 {
+    for _ in 0..<-self.scale {
+      out.write_string("0")
+    }
   }
   out.to_string()
 }
@@ -286,10 +309,32 @@ pub fn Decimal::divide(a : Decimal, b : Decimal) -> Decimal raise EngineError {
   if b.coefficient.is_zero() {
     raise fail("E_DIV_ZERO", "division by zero")
   }
-  let extra = 40 + a.scale
-  let numerator = a.coefficient * pow10(b.scale + extra)
-  let denominator = b.coefficient * pow10(a.scale)
-  normalize(numerator / denominator, extra)
+  if a.is_zero() {
+    return zero()
+  }
+  let x = if a.coefficient < 0N { -a.coefficient } else { a.coefficient }
+  let y = if b.coefficient < 0N { -b.coefficient } else { b.coefficient }
+  let estimate = digit_count(x) - digit_count(y)
+  let below = if estimate >= 0 {
+    x < y * pow10(estimate)
+  } else {
+    x * pow10(-estimate) < y
+  }
+  let adjusted = estimate - (if below { 1 } else { 0 }) + b.scale - a.scale
+  let scale = 33 - adjusted
+  let scale = if scale > 6176 { 6176 } else { scale }
+  let shift = scale + b.scale - a.scale
+  let numerator = if shift >= 0 {
+    a.coefficient * pow10(shift)
+  } else {
+    a.coefficient
+  }
+  let denominator = if shift < 0 {
+    b.coefficient * pow10(-shift)
+  } else {
+    b.coefficient
+  }
+  normalize(div_half_even(numerator, denominator), scale)
 }
 
 ///|
@@ -319,7 +364,7 @@ pub fn Decimal::modulo(a : Decimal, b : Decimal) -> Decimal raise EngineError {
 ///|
 /// Round toward negative infinity.
 pub fn Decimal::floor(self : Decimal) -> Decimal raise EngineError {
-  if self.scale == 0 {
+  if self.scale <= 0 {
     return self
   }
   let q = floor_div(self.coefficient, pow10(self.scale))
@@ -329,7 +374,7 @@ pub fn Decimal::floor(self : Decimal) -> Decimal raise EngineError {
 ///|
 /// Round toward positive infinity.
 pub fn Decimal::ceiling(self : Decimal) -> Decimal raise EngineError {
-  if self.scale == 0 {
+  if self.scale <= 0 {
     return self
   }
   let q = floor_div(self.coefficient, pow10(self.scale))
@@ -340,7 +385,7 @@ pub fn Decimal::ceiling(self : Decimal) -> Decimal raise EngineError {
 ///|
 /// Discard fractional digits toward zero.
 pub fn Decimal::truncate(self : Decimal) -> Decimal raise EngineError {
-  if self.scale == 0 {
+  if self.scale <= 0 {
     return self
   }
   normalize(self.coefficient / pow10(self.scale), 0)
@@ -349,10 +394,14 @@ pub fn Decimal::truncate(self : Decimal) -> Decimal raise EngineError {
 ///|
 /// Convert an integral decimal to Int32; fractional values raise E_TYPE.
 pub fn Decimal::to_int(self : Decimal) -> Int32 raise EngineError {
-  if self.scale != 0 {
+  if !self.is_integer() {
     raise fail("E_TYPE", "value is not an integer")
   }
-  self.coefficient.to_int()
+  if self.compare(decimal_int(-2147483648)) < 0 ||
+    self.compare(decimal_int(2147483647)) > 0 {
+    raise fail("E_NUMBER", "integer outside Int32 range")
+  }
+  (self.coefficient * pow10(-self.scale)).to_int()
 }
 
 ///|
@@ -381,7 +430,11 @@ fn Decimal::to_double(self : Decimal) -> Double {
   for i = 0; i < self.scale; i = i + 1 {
     divisor = divisor * 10.0
   }
-  let value = value / divisor
+  let value = if self.scale < 0 {
+    value * @math.pow(10.0, (-self.scale).to_double())
+  } else {
+    value / divisor
+  }
   if negative {
     -value
   } else {
@@ -428,12 +481,14 @@ pub fn from_double(value : Double, places : Int32) -> Decimal raise EngineError 
 ///|
 /// Raise to a decimal power, using exact integer powers when supported.
 pub fn Decimal::pow(a : Decimal, b : Decimal) -> Decimal raise EngineError {
-  if b.scale == 0 &&
+  if b.is_integer() &&
+    b.compare(decimal_int(-1000)) >= 0 &&
+    b.compare(decimal_int(1000)) <= 0 &&
     (if b.coefficient < 0N { -b.coefficient } else { b.coefficient }).compare(
       1000N,
     ) <=
     0 {
-    let n = b.coefficient.to_int()
+    let n = b.to_int()
     let mut result = decimal_int(1)
     let mut factor = a
     let mut k = if n < 0 { -n } else { n }
@@ -490,8 +545,11 @@ pub fn Decimal::log10(self : Decimal) -> Decimal raise EngineError {
 
 ///|
 /// Construct a decimal power of ten.
-pub fn Decimal::power_of_ten(n : Int32) -> Decimal {
-  { coefficient: pow10(n), scale: 0, }
+pub fn Decimal::power_of_ten(n : Int32) -> Decimal raise EngineError {
+  if n < -6176 || n > 6144 {
+    raise fail("E_DECIMAL_RANGE", "power outside decimal128 range")
+  }
+  normalize(1N, -n)
 }
 
 ///|

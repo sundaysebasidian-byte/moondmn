@@ -98,7 +98,7 @@ pub fn DateTime::text(Self) -> String
 pub struct Decimal {
   coefficient : @bigint.BigInt
   scale : Int32
-} derive(Eq)
+}
 pub fn Decimal::abs(Self) -> Self
 pub fn Decimal::add(Self, Self) -> Self raise EngineError
 pub fn Decimal::ceiling(Self) -> Self raise EngineError
@@ -117,12 +117,13 @@ pub fn Decimal::multiply(Self, Self) -> Self raise EngineError
 pub fn Decimal::negate(Self) -> Self
 pub fn Decimal::not_equal(Self, Self) -> Bool
 pub fn Decimal::pow(Self, Self) -> Self raise EngineError
-pub fn Decimal::power_of_ten(Int32) -> Self
+pub fn Decimal::power_of_ten(Int32) -> Self raise EngineError
 pub fn Decimal::round(Self, Int32) -> Self raise EngineError
 pub fn Decimal::sqrt(Self) -> Self raise EngineError
 pub fn Decimal::text(Self) -> String
 pub fn Decimal::to_int(Self) -> Int32 raise EngineError
 pub fn Decimal::truncate(Self) -> Self raise EngineError
+pub impl Eq for Decimal
 
 pub(all) struct DurationDS {
   negative : Bool

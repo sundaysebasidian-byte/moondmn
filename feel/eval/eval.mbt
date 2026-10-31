@@ -93,7 +93,13 @@ pub fn evaluate(
               Null
             }
           }
-        _ => binary(op, left, evaluate(b, ctx))
+        _ => {
+          let right = evaluate(b, ctx)
+          binary(op, left, right) catch {
+            @types.Failure("E_DECIMAL_RANGE" | "E_NUMBER", _, _, _) => Null
+            e => raise e
+          }
+        }
       }
     }
     IfThenElse(c, a, b) =>
