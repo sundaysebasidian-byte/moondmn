@@ -1,4 +1,98 @@
 ///|
+priv struct Ranked {
+  rank : Int32
+  row : @types.Value
+}
+
+///|
+fn output_name(output : @xml.Node) -> String {
+  let name = output.attr("name")
+  if name != "" {
+    name
+  } else {
+    output.attr("id")
+  }
+}
+
+///|
+fn output_priority(
+  output : @xml.Node,
+  value : @types.Value,
+  ctx : Map[String, @types.Value],
+) -> Int32 raise @types.EngineError {
+  match output.child("outputValues") {
+    Some(allowed) => @eval.allowed_rank(allowed.content("text"), value, ctx)
+    None => -1
+  }
+}
+
+///|
+fn first_value(
+  outputs : Array[@xml.Node],
+  row : Map[String, @types.Value],
+) -> @types.Value {
+  row.get(output_name(outputs[0])).unwrap_or(Null)
+}
+
+///|
+fn row_value(
+  outputs : Array[@xml.Node],
+  row : Map[String, @types.Value],
+) -> @types.Value {
+  if outputs.length() == 1 {
+    row.get(output_name(outputs[0])).unwrap_or(Null)
+  } else {
+    Context(row)
+  }
+}
+
+///|
+fn default_row(
+  outputs : Array[@xml.Node],
+  ctx : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  let row = Map([])
+  for output in outputs {
+    let value = match output.child("defaultOutputEntry") {
+      Some(entry) => @eval.feel_eval(entry.content("text"), ctx~)
+      None => Null
+    }
+    row[output_name(output)] = value
+  }
+  row_value(outputs, row)
+}
+
+///|
+fn aggregate(
+  name : String,
+  matches : Array[@types.Value],
+) -> @types.Value raise @types.EngineError {
+  if name == "COUNT" {
+    return Number(@types.decimal(matches.length().to_string()))
+  }
+  if matches.is_empty() {
+    return Null
+  }
+  let mut n = match matches[0] {
+    Number(n) => n
+    _ => raise @types.fail("E_TABLE_AGGREGATION", "numeric output required")
+  }
+  for i = 1; i < matches.length(); i = i + 1 {
+    let m = match matches[i] {
+      Number(m) => m
+      _ => raise @types.fail("E_TABLE_AGGREGATION", "numeric output required")
+    }
+    match name {
+      "SUM" | "C+" => n = n.add(m)
+      "MIN" | "C<" => if m.compare(n) < 0 { n = m }
+      "MAX" | "C>" => if m.compare(n) > 0 { n = m }
+      _ => raise @types.fail("E_TABLE_AGGREGATION", name)
+    }
+  }
+  Number(n)
+}
+
+///|
 pub fn table(
   node : @xml.Node,
   ctx : Map[String, @types.Value],
@@ -8,7 +102,15 @@ pub fn table(
   } else {
     node.attr("hitPolicy")
   }
-  if !["UNIQUE", "ANY", "FIRST", "RULE ORDER", "COLLECT"].contains(policy) {
+  let collect = policy == "COLLECT" ||
+    policy == "C+" ||
+    policy == "C<" ||
+    policy == "C>" ||
+    policy == "C#"
+  if !(collect ||
+    ["UNIQUE", "ANY", "FIRST", "PRIORITY", "RULE ORDER", "OUTPUT ORDER"].contains(
+      policy,
+    )) {
     raise @types.fail("E_HIT_POLICY_UNSUPPORTED", policy)
   }
   let inputs = node.all("input")
@@ -47,7 +149,6 @@ pub fn table(
       continue
     }
     let row = Map([])
-    let mut single : @types.Value = Null
     for i, entry in entries {
       let v = @eval.feel_eval(entry.content("text"), ctx~)
       if outputs[i].child("outputValues") is Some(allowed) {
@@ -55,69 +156,104 @@ pub fn table(
           raise @types.fail("E_OUTPUT_VALUES", "output violates allowed values")
         }
       }
-      row[outputs[i].attr("name")] = v
-      single = v
+      row[output_name(outputs[i])] = v
     }
-    matches.push(if outputs.length() == 1 { single } else { Context(row) })
+    matches.push(row)
     if policy == "FIRST" {
       break
     }
   }
-  if policy == "RULE ORDER" {
-    return List(matches)
-  }
-  if policy == "COLLECT" {
-    let agg = node.attr("aggregation")
+  if collect {
+    if outputs.length() != 1 {
+      if node.attr("aggregation") != "" {
+        raise @types.fail(
+          "E_TABLE_AGGREGATION", "aggregation requires single output",
+        )
+      }
+    }
+    let rows = matches.map(row => row_value(outputs, row))
+    let agg = if node.attr("aggregation") != "" {
+      node.attr("aggregation")
+    } else {
+      match policy {
+        "C+" => "SUM"
+        "C<" => "MIN"
+        "C>" => "MAX"
+        "C#" => "COUNT"
+        _ => ""
+      }
+    }
     if agg == "" {
-      return List(matches)
+      return List(rows)
     }
     if outputs.length() != 1 {
       raise @types.fail(
         "E_TABLE_AGGREGATION", "aggregation requires single output",
       )
     }
-    if agg == "COUNT" {
-      return Number(@types.decimal(matches.length().to_string()))
-    }
-    if matches.is_empty() {
-      return Null
-    }
-    let mut n = match matches[0] {
-      Number(n) => n
-      _ => raise @types.fail("E_TABLE_AGGREGATION", "numeric output required")
-    }
-    for i = 1; i < matches.length(); i = i + 1 {
-      let m = match matches[i] {
-        Number(m) => m
-        _ => raise @types.fail("E_TABLE_AGGREGATION", "numeric output required")
-      }
-      match agg {
-        "SUM" => n = n.add(m)
-        "MIN" => if m.compare(n) < 0 { n = m }
-        "MAX" => if m.compare(n) > 0 { n = m }
-        _ => raise @types.fail("E_TABLE_AGGREGATION", agg)
-      }
-    }
-    return Number(n)
+    return aggregate(agg, rows)
   }
   if matches.is_empty() {
-    let row = Map([])
-    let mut single : @types.Value = Null
-    for output in outputs {
-      let v = match output.child("defaultOutputEntry") {
-        Some(entry) => @eval.feel_eval(entry.content("text"), ctx~)
-        None => @types.Null
+    if policy == "OUTPUT ORDER" {
+      for output in outputs {
+        if output.child("defaultOutputEntry") is Some(_) {
+          return List([default_row(outputs, ctx)])
+        }
       }
-      row[output.attr("name")] = v
-      single = v
+      return List([])
     }
-    return if outputs.length() == 1 { single } else { Context(row) }
+    return default_row(outputs, ctx)
+  }
+  if policy == "RULE ORDER" || policy == "OUTPUT ORDER" {
+    let rows = matches.map(row => row_value(outputs, row))
+    if policy == "OUTPUT ORDER" {
+      let ranked = []
+      for row in matches {
+        let rank = output_priority(outputs[0], first_value(outputs, row), ctx)
+        ranked.push({ rank, row: row_value(outputs, row), })
+      }
+      // Stable insertion sort: priority order, then rule order for ties.
+      for i = 1; i < ranked.length(); i = i + 1 {
+        let item = ranked[i]
+        let mut j = i - 1
+        while j >= 0 && ranked[j].rank > item.rank {
+          ranked[j + 1] = ranked[j]
+          j = j - 1
+        }
+        ranked[j + 1] = item
+      }
+      return List(ranked.map(item => item.row))
+    }
+    return List(rows)
+  }
+  if policy == "PRIORITY" {
+    let mut best = matches[0]
+    let mut best_rank = output_priority(
+      outputs[0],
+      first_value(outputs, matches[0]),
+      ctx,
+    )
+    for i = 1; i < matches.length(); i = i + 1 {
+      let rank = output_priority(
+        outputs[0],
+        first_value(outputs, matches[i]),
+        ctx,
+      )
+      if best_rank < 0 || (rank >= 0 && rank < best_rank) {
+        best = matches[i]
+        best_rank = rank
+      }
+    }
+    return row_value(outputs, best)
   }
   if policy == "UNIQUE" && matches.length() > 1 {
     raise @types.fail("E_HIT_UNIQUE", "multiple rules matched")
   }
-  if policy == "ANY" && !matches.iter().all(v => v == matches[0]) {
+  if policy == "ANY" &&
+    !matches
+    .iter()
+    .all(row => row_value(outputs, row).equals(row_value(outputs, matches[0]))) {
     raise @types.fail("E_HIT_ANY", "matched outputs differ")
   }
-  matches[0]
+  row_value(outputs, matches[0])
 }

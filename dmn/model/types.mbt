@@ -1,4 +1,89 @@
 ///|
+fn item_type_name(node : @xml.Node) -> String {
+  if node.attr("typeRef") != "" {
+    node.attr("typeRef")
+  } else {
+    node.content("typeRef")
+  }
+}
+
+///|
+fn join_specs(fields : Array[String]) -> String {
+  let out = StringBuilder()
+  for i, field in fields {
+    if i > 0 {
+      out.write_string(", ")
+    }
+    out.write_string(field)
+  }
+  out.to_string()
+}
+
+///|
+/// Structural descriptor of an ItemDefinition, used for `instance of` checks.
+fn definition_descriptor(
+  model : Model,
+  node : @xml.Node,
+  depth : Int32,
+) -> String {
+  if depth > 32 {
+    return "Any"
+  }
+  let components = node.all("itemComponent")
+  let base = if !components.is_empty() {
+    let fields : Array[String] = []
+    for component in components {
+      fields.push(
+        component.attr("name") +
+        ": " +
+        type_descriptor(model, item_type_name(component), depth + 1),
+      )
+    }
+    "context<" + join_specs(fields) + ">"
+  } else {
+    type_descriptor(model, item_type_name(node), depth + 1)
+  }
+  if node.attr("isCollection") == "true" {
+    "list<" + base + ">"
+  } else {
+    base
+  }
+}
+
+///|
+pub fn type_descriptor(
+  model : Model,
+  type_name : String,
+  depth : Int32,
+) -> String {
+  if depth > 32 {
+    return "Any"
+  }
+  let name = type_name.trim().to_owned()
+  if name == "" || name == "Any" || name == "any" {
+    return "any"
+  }
+  for definition in model.root.all("itemDefinition") {
+    if definition.attr("name") == name {
+      return definition_descriptor(model, definition, depth + 1)
+    }
+  }
+  name
+}
+
+///|
+/// Registry of named ItemDefinitions exposed to FEEL as `instance of` types.
+pub fn type_registry(model : Model) -> Map[String, @types.Value] {
+  let out : Map[String, @types.Value] = Map([])
+  for definition in model.root.all("itemDefinition") {
+    out[definition.attr("name")] = Text(
+      definition_descriptor(model, definition, 0),
+    )
+  }
+  out
+}
+
+///|
 /// Validate supported primitive, collection, alias and structured ItemDefinitions.
 /// No implicit coercions are performed in this version.
 fn validate_type(
@@ -10,7 +95,7 @@ fn validate_type(
   if depth > 32 {
     raise @types.fail("E_TYPE_CYCLE", "recursive ItemDefinition")
   }
-  if value == Null {
+  if value is Null {
     return
   }
   match type_name {
@@ -18,6 +103,25 @@ fn validate_type(
     "number" => if value is Number(_) { return }
     "string" => if value is Text(_) { return }
     "boolean" => if value is Boolean(_) { return }
+    "date" => if value is Date(_) { return }
+    "time" => if value is Time(_) { return }
+    "date and time" | "dateTime" => if value is DateTime(_) { return }
+    "days and time duration" | "dayTimeDuration" =>
+      if value is DaysSeconds(_) {
+        return
+      }
+    "years and months duration" | "yearMonthDuration" =>
+      if value is YearsMonths(_) {
+        return
+      }
+    "duration" =>
+      if value is DaysSeconds(_) || value is YearsMonths(_) {
+        return
+      }
+    "list" => if value is List(_) { return }
+    "context" => if value is Context(_) { return }
+    "range" => if value is Range(_) { return }
+    "function" => if value is Function(_) { return }
     _ => {
       for definition in model.root.all("itemDefinition") {
         if definition.attr("name") == type_name {

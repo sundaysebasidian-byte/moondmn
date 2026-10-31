@@ -9,7 +9,11 @@ import {
 // Values
 pub fn boxed(@xml.Node, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
 
+pub fn evaluate_bkm(Model, String, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
+
 pub fn evaluate_decision(Model, String, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
+
+pub fn evaluate_service(Model, String, Map[String, @types.Value]) -> Map[String, @types.Value] raise @types.EngineError
 
 pub fn expression(@xml.Node) -> @xml.Node raise @types.EngineError
 
@@ -19,12 +23,18 @@ pub fn parse_model(String) -> Model raise @types.EngineError
 
 pub fn table(@xml.Node, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
 
+pub fn type_descriptor(Model, String, Int32) -> String
+
+pub fn type_registry(Model) -> Map[String, @types.Value]
+
 // Errors
 
 // Types and methods
 pub struct Model {
   root : @xml.Node
   decisions : Map[String, @xml.Node]
+  bkms : Map[String, @xml.Node]
+  services : Map[String, @xml.Node]
   ids : Map[String, String]
 }
 
