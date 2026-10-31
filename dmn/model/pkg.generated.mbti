@@ -13,6 +13,8 @@ pub fn evaluate_decision(Model, String, Map[String, @types.Value]) -> @types.Val
 
 pub fn expression(@xml.Node) -> @xml.Node raise @types.EngineError
 
+pub fn lint(Model) -> Json
+
 pub fn parse_model(String) -> Model raise @types.EngineError
 
 pub fn table(@xml.Node, Map[String, @types.Value]) -> @types.Value raise @types.EngineError

@@ -19,6 +19,12 @@ fn run(args : Array[String]) -> Unit raise Error {
     )
   }
   match args[1] {
+    "lint" =>
+      println(
+        @model.lint(@lib.parse_model(@fs.read_file_to_string(args[2]))).stringify(
+          indent=2,
+        ),
+      )
     "tck" => {
       let report = @tck.run(args[2]).stringify(indent=2)
       if args.contains("--json") {
