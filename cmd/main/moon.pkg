@@ -1,5 +1,9 @@
-// import {
-//   "sundaysebasidian-byte/moondmn" @lib,
-// }
+import {
+  "sundaysebasidian-byte/moondmn" @lib,
+  "moonbitlang/core/env",
+  "moonbitlang/x/fs",
+  "moonbitlang/x/sys",
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
 
 pkgtype(kind: "executable")
