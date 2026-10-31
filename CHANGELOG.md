@@ -8,6 +8,10 @@
 
 ### Added
 
+- 浏览器 Playground（`playground/`、`web/`）：DMN XML 编辑器、按类型生成的输入表单、DRG 依赖图、
+  命中规则高亮的决策表、lint 定位和 FEEL 求值；导出 `feel_eval`、`parse_dmn`、`evaluate`、`lint`。
+- `scripts/build-web.sh`、`web/smoke.mjs`、GitHub Pages 部署工作流。
+
 - FEEL 精确十进制（34 位有效数字、半偶舍入）与无损 JSON 桥接。
 - 日期、时间、日期时间、时长与时区类型；命名时区的夏令时规则与跨时区比较。
 - 词法分析器：多词名称跨行折叠、转义字符串、`@"..."` 时间字面量、源码行列坐标。
@@ -29,6 +33,6 @@
 ### Known limitations
 
 - 未实现 DMN 1.5 `import` 与外部 Java 函数。
-- `now()` / `today()` 需要可注入时钟，暂不支持。
+- `now()` / `today()` 需要调用方注入时钟，没有隐含的系统时钟。
 - 正则标志（`s`、`x`、`m`）与部分替换语义未覆盖。
 - `range()` 函数的高级参数与部分隐式转换规则尚未实现。

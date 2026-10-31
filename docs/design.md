@@ -7,6 +7,7 @@
 
 ```
 cmd/main            命令行：feel / eval / lint / tck
+playground          浏览器入口：JSON 字符串进出，导出 feel_eval / parse_dmn / evaluate / lint
 api.mbt             库门面：字符串进、JSON 出
 tck                 官方 TCK 驱动器（XML 用例 → 模型 API → JSON 报告）
 dmn/model           模型解析后的语义层：DRG、决策表、BKM、决策服务、lint
@@ -18,7 +19,7 @@ feel/lexer          词法分析（多词名称、时间字面量、源码坐标
 feel/types          Decimal、日期/时间/时长/时区、Value、Range、比较与 JSON
 ```
 
-依赖方向自上而下单向：`cmd → api → tck/model/eval → parser → lexer → types`，
+依赖方向自上而下单向：`cmd → api → tck/model/eval → parser → lexer → types`，`playground → model/eval`（只依赖引擎包，不依赖文件 IO），
 `eval → builtins → types`。`types` 不依赖任何上层包，便于单独复用。
 
 ## 关键算法
@@ -61,6 +62,12 @@ IANA 风格的夏令时规则得到偏移，再换算为 UTC 纳秒。无时区�
    `list<...>`），通过保留上下文键 `$types` 注入求值环境，供 `instance of` 使用。
 5. BKM/服务：BKM 参数绑定到调用环境；决策服务注入输入与内部决策后返回输出集合。
 
+### 命中规则
+
+引擎只返回决策表的最终值。Playground 为了高亮命中的规则行，把每张表改写成一张 `RULE ORDER`
+的合成决策表（沿用原输入列与输入项，输出为规则序号），追加到同一份模型里求值，因此依赖、
+类型转换和输入值约束与真实求值一致。这一步只在 `playground/` 内完成，没有改动引擎。
+
 ### TCK 驱动
 
 扫描目录内 `*-test-*.xml`，读取 `<modelName>` 指向的 DMN 文件，按 `resultNode/@type`
@@ -88,12 +95,12 @@ CLI 将其序列化为 JSON 并以退出码 1 结束。主要错误码：
 ## 测试与性能
 
 - 单元测试覆盖 Decimal、词法、语法、求值、模型、XML 与 lint，三后端均通过。
-- TCK 作为端到端回归：L2 116/116，L3 2994/3291（约 91.0%）。
+- TCK 作为端到端回归：L2 116/116，L3 3162/3291（96.08%）。
 - 全部用例在单机 native 后端约 2 秒内完成；无全局可变状态，除求值缓存外若干分配均随表达式规模线性。
 - 安全边界：XML 解析拒绝 DTD/外部实体并限制嵌套深度；词法限制表达式长度；递归求值限制深度。
 
 ## 取舍与后续
 
 优先保证规范语义与可诊断性，因此选择显式语法树与结构化错误，而非生成代码。
-后续计划：DMN 1.5 import、外部函数桥接、now/today 可注入时钟、正则标志完整支持、
+后续计划：DMN 1.5 import、外部函数桥接、正则标志完整支持、
 区间函数高级参数，以及更细的性能基准。
