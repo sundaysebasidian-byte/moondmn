@@ -13,6 +13,10 @@ pub fn evaluate(@parser.Expr, Map[String, @types.Value]) -> @types.Value raise @
 
 pub fn feel_eval(String, ctx? : Map[String, @types.Value]) -> @types.Value raise @types.EngineError
 
+pub fn split_tests(String) -> Array[String] raise @types.EngineError
+
+pub fn unary_test(String, @types.Value, Map[String, @types.Value]) -> Bool raise @types.EngineError
+
 // Errors
 
 // Types and methods
