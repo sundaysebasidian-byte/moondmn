@@ -1,0 +1,30 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "sundaysebasidian-byte/moondmn/dmn/xml"
+
+import {
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
+
+// Values
+pub fn parse(String) -> Node raise @types.EngineError
+
+// Errors
+
+// Types and methods
+pub struct Node {
+  name : String
+  uri : String
+  attributes : Map[String, String]
+  children : Array[Node]
+  mut text : String
+  line : Int32
+  column : Int32
+}
+pub fn Node::all(Self, String) -> Array[Self]
+pub fn Node::attr(Self, String) -> String
+pub fn Node::child(Self, String) -> Self?
+pub fn Node::content(Self, String) -> String
+
+// Type aliases
+
+// Traits
