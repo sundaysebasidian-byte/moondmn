@@ -19,6 +19,14 @@ fn run(args : Array[String]) -> Unit raise Error {
     )
   }
   match args[1] {
+    "tck" => {
+      let report = @tck.run(args[2]).stringify(indent=2)
+      if args.contains("--json") {
+        @fs.write_string_to_file(option(args, "--json"), report)
+      } else {
+        println(report)
+      }
+    }
     "feel" => {
       let context = if args.contains("--context") {
         @fs.read_file_to_string(option(args, "--context"))
