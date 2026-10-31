@@ -202,4 +202,14 @@ test("core typed JSON bridge serves browser evaluation too", () => {
   assert.equal(call("evaluate", {xml, decision:"d", input:{x:"2023-02-29"}}).error.code, "E_DATE_INVALID");
 });
 
+test("extreme month arithmetic retains identity and returns JSON range errors", () => {
+  assert.equal(call("feel_eval", {expression:'string(date("999999999-12-31") + duration("P0M"))'}).value, "999999999-12-31");
+  assert.equal(call("feel_eval", {expression:'string(date("-999999999-01-31") + duration("P0M"))'}).value, "-999999999-01-31");
+  for (const expression of ['date("999999999-12-31") + duration("P1M")', 'date("-999999999-01-31") - duration("P1M")']) {
+    const result = call("feel_eval", {expression});
+    assert.equal(result.ok, false);
+    assert.equal(result.error.code, "E_DATE_RANGE");
+  }
+});
+
 console.log(`${passed} passed`);

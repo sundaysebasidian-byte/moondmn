@@ -38,4 +38,8 @@ with tempfile.TemporaryDirectory() as directory:
     assert run("feel", "Applicant.Credit Score", "--context", str(inputs)) == 720
     model.write_text(f"<definitions xmlns='{ns}'><decision id='d' name='d'><conditional><if><literalExpression><text>false</text></literalExpression></if></conditional></decision></definitions>", encoding="utf-8")
     assert run("eval", str(model), "--decision", "d", "--input", str(inputs), code=1)["error"] == "E_DMN_SHAPE"
-print("CLI integration: 12 checks passed")
+assert run("feel", 'string(date("999999999-12-31") + duration("P0M"))') == "999999999-12-31"
+assert run("feel", 'string(date("-999999999-01-31") + duration("P0M"))') == "-999999999-01-31"
+assert run("feel", 'date("999999999-12-31") + duration("P1M")', code=1)["error"] == "E_DATE_RANGE"
+assert run("feel", 'date("-999999999-01-31") - duration("P1M")', code=1)["error"] == "E_DATE_RANGE"
+print("CLI integration: 16 checks passed")
