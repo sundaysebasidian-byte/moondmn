@@ -1,4 +1,5 @@
 ///|
+/// Return static model diagnostics as JSON.
 pub fn lint(model : Model) -> Json {
   let findings = []
   for name, decision in model.decisions {

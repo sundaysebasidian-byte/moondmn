@@ -20,6 +20,6 @@ moon run cmd/main -- feel 'today()' --now 2024-02-29T23:30:00-05:00
 未知函数和未实现能力仍为显式错误。
 
 本阶段审查删除了 model 的 expression/boxed/type_descriptor/type_registry 和 eval 的 binary
-等内部辅助函数的 pub。根包公开函数均有文档注释。底层包仍暴露跨包实现所需的类型和操作，
+以及 table 等内部辅助函数的 pub。根包与底层公开函数已补充用途、单位或错误约束注释。底层包仍暴露跨包实现所需的类型和操作，
 不承诺所有底层接口均为稳定 API。未新增 native FFI；根包 clock 和 JSON API 已在 native、
 wasm-gc、js 单元测试调用验证。未验证宿主 JavaScript 导出封装或浏览器集成。

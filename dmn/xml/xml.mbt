@@ -1,4 +1,5 @@
 ///|
+/// Namespace-aware XML node with source location and ordered children.
 pub struct Node {
   name : String
   uri : String
@@ -10,21 +11,25 @@ pub struct Node {
 }
 
 ///|
+/// Return an attribute value, or the empty string if absent.
 pub fn Node::attr(n : Node, key : String) -> String {
   n.attributes.get(key).unwrap_or("")
 }
 
 ///|
+/// Return direct children matching this node namespace and local name.
 pub fn Node::all(n : Node, name : String) -> Array[Node] {
   n.children.filter(x => x.name == name && x.uri == n.uri)
 }
 
 ///|
+/// Return the first direct child matching namespace and local name.
 pub fn Node::child(n : Node, name : String) -> Node? {
   n.all(name).get(0)
 }
 
 ///|
+/// Return the text of the first matching direct child, or the empty string.
 pub fn Node::content(n : Node, name : String) -> String {
   match n.child(name) {
     Some(v) => v.text.trim().to_owned()
@@ -54,6 +59,7 @@ fn node(e : @upstream.NamespaceElement, line : Int32, column : Int32) -> Node {
 }
 
 ///|
+/// Parse namespace-aware XML, rejecting DTDs and excessive input or nesting.
 pub fn parse(source : String) -> Node raise @types.EngineError {
   if source.length() > 10000000 {
     raise @types.fail("E_LIMIT", "XML exceeds 10MB")

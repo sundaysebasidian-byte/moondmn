@@ -1,10 +1,12 @@
 ///|
+/// A positional or named FEEL call argument.
 pub(all) struct Arg {
   name : String?
   value : Expr
 }
 
 ///|
+/// Compiled FEEL expression tree; treat as immutable after compilation.
 pub(all) enum Expr {
   Lit(@types.Value)
   Name(String)
@@ -754,6 +756,7 @@ fn Parser::single_test(p : Parser) -> Test raise @types.EngineError {
 }
 
 ///|
+/// Compile a complete FEEL expression using the supplied scoped names.
 pub fn compile(
   source : String,
   names~ : Array[String] = [],

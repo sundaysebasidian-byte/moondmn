@@ -17,8 +17,6 @@ pub fn lint(Model) -> Json
 
 pub fn parse_model(String) -> Model raise @types.EngineError
 
-pub fn table(@xml.Node, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
-
 // Errors
 
 // Types and methods

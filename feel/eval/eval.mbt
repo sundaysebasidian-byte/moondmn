@@ -15,6 +15,7 @@ fn err(code : String, message : String) -> @types.EngineError {
 }
 
 ///|
+/// Evaluate a compiled expression in the supplied scope.
 pub fn evaluate(
   expr : @parser.Expr,
   ctx : Map[String, @types.Value],
@@ -1115,6 +1116,7 @@ fn datetime_difference_nanos(
 }
 
 ///|
+/// Compile and evaluate FEEL using the current context names.
 pub fn feel_eval(
   source : String,
   ctx~ : Map[String, @types.Value] = Map([]),

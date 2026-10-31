@@ -93,7 +93,7 @@ fn aggregate(
 }
 
 ///|
-pub fn table(
+fn table(
   node : @xml.Node,
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {

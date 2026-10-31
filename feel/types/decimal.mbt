@@ -8,16 +8,19 @@ pub struct Decimal {
 } derive(Eq)
 
 ///|
+/// Matchable engine failure carrying code, line, column and message.
 pub(all) suberror EngineError {
   Failure(String, Int32, Int32, String)
 } derive(Eq)
 
 ///|
+/// Construct a semantic failure without a source location.
 pub fn fail(code : String, message : String) -> EngineError {
   Failure(code, 1, 1, message)
 }
 
 ///|
+/// Construct a failure with a source line and column.
 pub fn fail_at(
   code : String,
   line : Int32,
@@ -28,6 +31,7 @@ pub fn fail_at(
 }
 
 ///|
+/// Extract the machine-readable error code.
 pub fn error_code(e : EngineError) -> String {
   match e {
     Failure(code, _, _, _) => code
@@ -35,6 +39,7 @@ pub fn error_code(e : EngineError) -> String {
 }
 
 ///|
+/// Extract the diagnostic message.
 pub fn error_message(e : EngineError) -> String {
   match e {
     Failure(_, _, _, message) => message
@@ -174,36 +179,43 @@ pub fn decimal(text : String) -> Decimal raise EngineError {
 }
 
 ///|
+/// Construct an exact decimal from a 32-bit integer.
 pub fn decimal_int(n : Int32) -> Decimal {
   { coefficient: @bigint.BigInt::from_int(n), scale: 0, }
 }
 
 ///|
+/// Construct an exact decimal from a 64-bit integer.
 pub fn decimal_int64(n : Int64) -> Decimal {
   { coefficient: @bigint.BigInt::from_int64(n), scale: 0, }
 }
 
 ///|
+/// Construct exact decimal zero.
 pub fn zero() -> Decimal {
   { coefficient: 0N, scale: 0, }
 }
 
 ///|
+/// Test whether the decimal coefficient is zero.
 pub fn Decimal::is_zero(self : Decimal) -> Bool {
   self.coefficient.is_zero()
 }
 
 ///|
+/// Test the decimal sign.
 pub fn Decimal::is_negative(self : Decimal) -> Bool {
   self.coefficient < 0N
 }
 
 ///|
+/// Test whether the normalized decimal has no fractional part.
 pub fn Decimal::is_integer(self : Decimal) -> Bool {
   self.scale == 0
 }
 
 ///|
+/// Format the normalized decimal without binary floating-point conversion.
 pub fn Decimal::text(self : Decimal) -> String {
   if self.coefficient.is_zero() {
     return "0"
@@ -227,6 +239,7 @@ pub fn Decimal::text(self : Decimal) -> String {
 }
 
 ///|
+/// Add decimals with the engine precision limit.
 pub fn Decimal::add(a : Decimal, b : Decimal) -> Decimal raise EngineError {
   let scale = if a.scale > b.scale { a.scale } else { b.scale }
   normalize(
@@ -237,11 +250,13 @@ pub fn Decimal::add(a : Decimal, b : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Reverse the decimal sign.
 pub fn Decimal::negate(a : Decimal) -> Decimal {
   { coefficient: -a.coefficient, scale: a.scale, }
 }
 
 ///|
+/// Return the non-negative decimal magnitude.
 pub fn Decimal::abs(a : Decimal) -> Decimal {
   if a.coefficient < 0N {
     a.negate()
@@ -251,11 +266,13 @@ pub fn Decimal::abs(a : Decimal) -> Decimal {
 }
 
 ///|
+/// Multiply decimals with the engine precision limit.
 pub fn Decimal::multiply(a : Decimal, b : Decimal) -> Decimal raise EngineError {
   normalize(a.coefficient * b.coefficient, a.scale + b.scale)
 }
 
 ///|
+/// Return a negative, zero or positive integer according to numeric order.
 pub fn Decimal::compare(a : Decimal, b : Decimal) -> Int32 {
   let scale = if a.scale > b.scale { a.scale } else { b.scale }
   (a.coefficient * pow10(scale - a.scale)).compare(
@@ -264,6 +281,7 @@ pub fn Decimal::compare(a : Decimal, b : Decimal) -> Int32 {
 }
 
 ///|
+/// Divide decimals; zero divisors raise E_DIV_ZERO.
 pub fn Decimal::divide(a : Decimal, b : Decimal) -> Decimal raise EngineError {
   if b.coefficient.is_zero() {
     raise fail("E_DIV_ZERO", "division by zero")
@@ -287,6 +305,7 @@ fn floor_div(a : @bigint.BigInt, b : @bigint.BigInt) -> @bigint.BigInt {
 }
 
 ///|
+/// Compute FEEL modulo with the divisor sign convention.
 pub fn Decimal::modulo(a : Decimal, b : Decimal) -> Decimal raise EngineError {
   if b.coefficient.is_zero() {
     raise fail("E_DIV_ZERO", "modulo by zero")
@@ -298,6 +317,7 @@ pub fn Decimal::modulo(a : Decimal, b : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Round toward negative infinity.
 pub fn Decimal::floor(self : Decimal) -> Decimal raise EngineError {
   if self.scale == 0 {
     return self
@@ -307,6 +327,7 @@ pub fn Decimal::floor(self : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Round toward positive infinity.
 pub fn Decimal::ceiling(self : Decimal) -> Decimal raise EngineError {
   if self.scale == 0 {
     return self
@@ -317,6 +338,7 @@ pub fn Decimal::ceiling(self : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Discard fractional digits toward zero.
 pub fn Decimal::truncate(self : Decimal) -> Decimal raise EngineError {
   if self.scale == 0 {
     return self
@@ -325,6 +347,7 @@ pub fn Decimal::truncate(self : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Convert an integral decimal to Int32; fractional values raise E_TYPE.
 pub fn Decimal::to_int(self : Decimal) -> Int32 raise EngineError {
   if self.scale != 0 {
     raise fail("E_TYPE", "value is not an integer")
@@ -333,6 +356,7 @@ pub fn Decimal::to_int(self : Decimal) -> Int32 raise EngineError {
 }
 
 ///|
+/// Round to decimal places using half-even ties; negative places are clamped to zero.
 pub fn Decimal::round(
   self : Decimal,
   places : Int32,
@@ -402,6 +426,7 @@ pub fn from_double(value : Double, places : Int32) -> Decimal raise EngineError 
 }
 
 ///|
+/// Raise to a decimal power, using exact integer powers when supported.
 pub fn Decimal::pow(a : Decimal, b : Decimal) -> Decimal raise EngineError {
   if b.scale == 0 &&
     (if b.coefficient < 0N { -b.coefficient } else { b.coefficient }).compare(
@@ -431,6 +456,7 @@ pub fn Decimal::pow(a : Decimal, b : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Compute a square root through the bounded floating-point bridge.
 pub fn Decimal::sqrt(self : Decimal) -> Decimal raise EngineError {
   if self.coefficient < 0N {
     raise fail("E_NUMBER", "square root of a negative number")
@@ -439,11 +465,13 @@ pub fn Decimal::sqrt(self : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Compute the exponential through the floating-point bridge.
 pub fn Decimal::exp(self : Decimal) -> Decimal raise EngineError {
   from_double(@math.exp(self.to_double()), 8)
 }
 
 ///|
+/// Compute the natural logarithm through the floating-point bridge.
 pub fn Decimal::ln(self : Decimal) -> Decimal raise EngineError {
   if self.coefficient <= 0N {
     raise fail("E_NUMBER", "logarithm of a non-positive number")
@@ -452,6 +480,7 @@ pub fn Decimal::ln(self : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Compute the base-ten logarithm through the floating-point bridge.
 pub fn Decimal::log10(self : Decimal) -> Decimal raise EngineError {
   if self.coefficient <= 0N {
     raise fail("E_NUMBER", "logarithm of a non-positive number")
@@ -460,6 +489,7 @@ pub fn Decimal::log10(self : Decimal) -> Decimal raise EngineError {
 }
 
 ///|
+/// Construct a decimal power of ten.
 pub fn Decimal::power_of_ten(n : Int32) -> Decimal {
   { coefficient: pow10(n), scale: 0, }
 }

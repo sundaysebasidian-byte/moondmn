@@ -17,6 +17,7 @@ pub(all) struct Time {
 }
 
 ///|
+/// Unzoned, fixed-offset or named time zone representation.
 pub(all) enum Zone {
   Unzoned
   Fixed(Int32) // offset in seconds east of UTC
@@ -24,6 +25,7 @@ pub(all) enum Zone {
 }
 
 ///|
+/// Calendar date and local time with an optional zone.
 pub(all) struct DateTime {
   date : Date
   time : Time
@@ -47,11 +49,13 @@ pub(all) struct DurationYM {
 }
 
 ///|
+/// Test the Gregorian leap-year rule.
 pub fn is_leap_year(year : Int32) -> Bool {
   (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
 }
 
 ///|
+/// Return the month length, or zero for an invalid month.
 pub fn days_in_month(year : Int32, month : Int32) -> Int32 {
   match month {
     1 | 3 | 5 | 7 | 8 | 10 | 12 => 31
@@ -62,6 +66,7 @@ pub fn days_in_month(year : Int32, month : Int32) -> Int32 {
 }
 
 ///|
+/// Convert a Gregorian date to signed days since 1970-01-01.
 pub fn days_from_civil(year : Int32, month : Int32, day : Int32) -> Int64 {
   let y = if month <= 2 { year - 1 } else { year }
   let era = (if y >= 0 { y } else { y - 399 }) / 400
@@ -73,6 +78,7 @@ pub fn days_from_civil(year : Int32, month : Int32, day : Int32) -> Int64 {
 }
 
 ///|
+/// Convert signed days since 1970-01-01 to a Gregorian date.
 pub fn civil_from_days(days : Int64) -> Date {
   let z = days + 719468L
   let era = (if z >= 0L { z } else { z - 146096L }) / 146097L
@@ -91,17 +97,20 @@ pub fn civil_from_days(days : Int64) -> Date {
 }
 
 ///|
+/// Return signed days since 1970-01-01.
 pub fn Date::ordinal(self : Date) -> Int64 {
   days_from_civil(self.year, self.month, self.day)
 }
 
 ///|
+/// Return the ISO weekday, Monday=1 through Sunday=7.
 pub fn Date::weekday(self : Date) -> Int32 {
   let w = (self.ordinal() + 3L) % 7L
   w.to_int() + 1
 }
 
 ///|
+/// Return the one-based day within the year.
 pub fn Date::day_of_year(self : Date) -> Int32 {
   (self.ordinal() - days_from_civil(self.year, 1, 1) + 1L).to_int()
 }
@@ -118,6 +127,7 @@ fn weeks_in_year(year : Int32) -> Int32 {
 }
 
 ///|
+/// Return the ISO week number, including adjacent-year weeks.
 pub fn Date::week_of_year(self : Date) -> Int32 {
   let ordinal = self.day_of_year()
   let weekday = self.weekday()
@@ -131,6 +141,7 @@ pub fn Date::week_of_year(self : Date) -> Int32 {
 }
 
 ///|
+/// Format the calendar date as an ISO date.
 pub fn Date::text(self : Date) -> String {
   let month = (if self.month < 10 { "0" } else { "" }) + self.month.to_string()
   let day = (if self.day < 10 { "0" } else { "" }) + self.day.to_string()
@@ -144,6 +155,7 @@ pub fn Date::text(self : Date) -> String {
 }
 
 ///|
+/// Validate year, month and day and construct a Gregorian date.
 pub fn date_of(
   year : Int32,
   month : Int32,
@@ -191,6 +203,7 @@ fn two_digits(s : String, at : Int32, what : String) -> Int32 raise EngineError 
 }
 
 ///|
+/// Parse an ISO date, rejecting invalid calendar components.
 pub fn parse_date(text : String) -> Date raise EngineError {
   let s = text.trim().to_owned()
   let chars = s.to_array()
@@ -278,6 +291,7 @@ fn parse_offset(
 }
 
 ///|
+/// Parse an ISO time with an optional UTC offset or named zone.
 pub fn parse_time(text : String) -> Time raise EngineError {
   let s = text.trim().to_owned()
   let chars = s.to_array()
@@ -344,6 +358,7 @@ pub fn parse_offset_text(
 }
 
 ///|
+/// Format time, fractional seconds and the stored zone.
 pub fn Time::text(self : Time) -> String {
   let hour = (if self.hour < 10 { "0" } else { "" }) + self.hour.to_string()
   let minute = (if self.minute < 10 { "0" } else { "" }) +
@@ -382,6 +397,7 @@ pub fn Time::text(self : Time) -> String {
 }
 
 ///|
+/// Parse an ISO date and time separated by T.
 pub fn parse_datetime(text : String) -> DateTime raise EngineError {
   let s = text.trim().to_owned()
   let idx = s.find("T")
@@ -395,6 +411,7 @@ pub fn parse_datetime(text : String) -> DateTime raise EngineError {
 }
 
 ///|
+/// Format the stored date, time and zone as ISO text.
 pub fn DateTime::text(self : DateTime) -> String {
   self.date.text() + "T" + self.time.text()
 }
@@ -423,6 +440,7 @@ pub fn DateTime::instant(self : DateTime) -> Int64 raise EngineError {
 }
 
 ///|
+/// Test whether this date-time carries a fixed or named zone.
 pub fn DateTime::has_offset(self : DateTime) -> Bool {
   match self.time.zone {
     Fixed(_) => true
@@ -578,11 +596,13 @@ pub fn standard_zone_offset(zone : Zone) -> Int32? {
 }
 
 ///|
+/// Add signed calendar days without changing the calendar representation.
 pub fn date_add_days(date : Date, days : Int64) -> Date {
   civil_from_days(date.ordinal() + days)
 }
 
 ///|
+/// Add signed months, clamping the day to the destination month.
 pub fn date_add_months(date : Date, months : Int32) -> Date raise EngineError {
   let total = date.year * 12 + (date.month - 1) + months
   let year = if total >= 0 { total / 12 } else { (total - 11) / 12 }
@@ -596,6 +616,7 @@ pub fn date_add_months(date : Date, months : Int32) -> Date raise EngineError {
 }
 
 ///|
+/// Normalize signed day and nanosecond components.
 pub fn DurationDS::canonical(
   negative : Bool,
   days : Int64,
@@ -610,16 +631,19 @@ pub fn DurationDS::canonical(
 }
 
 ///|
+/// Construct a zero days-and-time duration.
 pub fn DurationDS::zero() -> DurationDS {
   { negative: false, days: 0L, nanos: 0L, }
 }
 
 ///|
+/// Test whether both duration components are zero.
 pub fn DurationDS::is_zero(self : DurationDS) -> Bool {
   self.days == 0L && self.nanos == 0L
 }
 
 ///|
+/// Return the exact signed nanosecond count as a BigInt.
 pub fn DurationDS::total_nanos(self : DurationDS) -> @bigint.BigInt {
   let n = @bigint.BigInt::from_int64(self.days) * 86400000000000N +
     @bigint.BigInt::from_int64(self.nanos)
@@ -631,17 +655,20 @@ pub fn DurationDS::total_nanos(self : DurationDS) -> @bigint.BigInt {
 }
 
 ///|
+/// Reverse the duration sign while preserving canonical zero.
 pub fn DurationDS::negate(self : DurationDS) -> DurationDS {
   DurationDS::canonical(!self.negative, self.days, self.nanos)
 }
 
 ///|
+/// Add two exact days-and-time durations.
 pub fn DurationDS::add(a : DurationDS, b : DurationDS) -> DurationDS {
   let total = a.total_nanos() + b.total_nanos()
   duration_ds_of_nanos(total)
 }
 
 ///|
+/// Subtract two exact days-and-time durations.
 pub fn DurationDS::subtract(a : DurationDS, b : DurationDS) -> DurationDS {
   a.add(b.negate())
 }
@@ -667,6 +694,7 @@ pub fn duration_ds_of_nanos(total : @bigint.BigInt) -> DurationDS {
 }
 
 ///|
+/// Format a canonical ISO days-and-time duration.
 pub fn DurationDS::text(self : DurationDS) -> String {
   if self.is_zero() {
     return "P0D"
@@ -717,6 +745,7 @@ pub fn DurationDS::text(self : DurationDS) -> String {
 }
 
 ///|
+/// Normalize years and months with a separate sign.
 pub fn DurationYM::canonical(
   negative : Bool,
   years : Int32,
@@ -729,16 +758,19 @@ pub fn DurationYM::canonical(
 }
 
 ///|
+/// Construct a zero years-and-months duration.
 pub fn DurationYM::zero() -> DurationYM {
   { negative: false, years: 0, months: 0, }
 }
 
 ///|
+/// Test whether the years-and-months duration is zero.
 pub fn DurationYM::is_zero(self : DurationYM) -> Bool {
   self.years == 0 && self.months == 0
 }
 
 ///|
+/// Return the signed total number of months.
 pub fn DurationYM::total_months(self : DurationYM) -> Int32 {
   let n = self.years * 12 + self.months
   if self.negative {
@@ -749,6 +781,7 @@ pub fn DurationYM::total_months(self : DurationYM) -> Int32 {
 }
 
 ///|
+/// Format a canonical ISO years-and-months duration.
 pub fn DurationYM::text(self : DurationYM) -> String {
   if self.is_zero() {
     return "P0M"

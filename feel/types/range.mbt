@@ -8,11 +8,13 @@ pub(all) struct Range {
 }
 
 ///|
+/// Construct a range with neither a lower nor an upper bound.
 pub fn Range::unbounded() -> Range {
   { start: None, start_included: false, end: None, end_included: false, }
 }
 
 ///|
+/// Test point membership with open and closed endpoint semantics.
 pub fn Range::contains(range : Range, value : Value) -> Bool raise EngineError {
   if value is Null {
     return false
@@ -33,6 +35,7 @@ pub fn Range::contains(range : Range, value : Value) -> Bool raise EngineError {
 }
 
 ///|
+/// Test whether two ranges share at least one point.
 pub fn Range::overlaps(a : Range, b : Range) -> Bool raise EngineError {
   let starts_before_end_of_b = match a.start {
     None => true
@@ -60,6 +63,7 @@ pub fn Range::overlaps(a : Range, b : Range) -> Bool raise EngineError {
 }
 
 ///|
+/// Format range endpoints and inclusion brackets.
 pub fn Range::text(range : Range) -> String {
   let low = match range.start {
     Some(v) => v.text()
@@ -75,6 +79,7 @@ pub fn Range::text(range : Range) -> String {
 }
 
 ///|
+/// Encode range bounds and inclusion flags as JSON.
 pub fn Range::json(range : Range) -> Json raise EngineError {
   let start = match range.start {
     Some(v) => v.json()

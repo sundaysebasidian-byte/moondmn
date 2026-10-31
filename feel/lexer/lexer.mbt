@@ -229,6 +229,7 @@ fn collapse_spaces(text : String) -> String {
 }
 
 ///|
+/// Tokenize FEEL using longest scoped names; failures include source positions.
 pub fn lex(
   source : String,
   names : Array[String],

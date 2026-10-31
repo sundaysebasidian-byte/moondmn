@@ -19,6 +19,7 @@ pub(all) enum Value {
 }
 
 ///|
+/// Callable FEEL value with parameter names and a captured callback.
 pub(all) struct FunctionValue {
   name : String
   params : Array[String]
@@ -36,6 +37,7 @@ pub impl Eq for Value with fn equal(self : Value, other : Value) {
 pub extend Value with Eq::{not_equal, equal}
 
 ///|
+/// Return the FEEL runtime type name.
 pub fn Value::type_name(self : Value) -> String {
   match self {
     Null => "null"
@@ -55,6 +57,7 @@ pub fn Value::type_name(self : Value) -> String {
 }
 
 ///|
+/// Format a value as FEEL-oriented diagnostic text.
 pub fn Value::text(self : Value) -> String {
   match self {
     Null => "null"
@@ -133,6 +136,7 @@ fn datetime_compare(a : DateTime, b : DateTime) -> Int32 raise EngineError {
 }
 
 ///|
+/// Compare compatible FEEL values; incompatible kinds raise E_TYPE.
 pub fn compare_values(a : Value, b : Value) -> Int32 raise EngineError {
   match (a, b) {
     (Number(x), Number(y)) => x.compare(y)
@@ -167,6 +171,7 @@ pub fn compare_values(a : Value, b : Value) -> Int32 raise EngineError {
 }
 
 ///|
+/// Compare FEEL values structurally, with temporal instant equality.
 pub fn Value::equals(a : Value, b : Value) -> Bool {
   match (a, b) {
     (Null, Null) => true
@@ -253,6 +258,7 @@ fn eq_bound(a : Value?, b : Value?) -> Bool {
 }
 
 ///|
+/// Encode a value as JSON; decimals retain exact numeric spelling.
 pub fn Value::json(self : Value) -> Json raise EngineError {
   match self {
     Null => Json::null()
@@ -281,6 +287,7 @@ pub fn Value::json(self : Value) -> Json raise EngineError {
 }
 
 ///|
+/// Decode JSON values using exact decimals.
 pub fn from_json(j : Json) -> Value raise EngineError {
   match j {
     Null => Null
@@ -300,6 +307,7 @@ pub fn from_json(j : Json) -> Value raise EngineError {
 }
 
 ///|
+/// Decode a JSON object, rejecting invalid JSON and duplicate keys.
 pub fn json_context(text : String) -> Map[String, Value] raise EngineError {
   let j = @json.parse(
     text,

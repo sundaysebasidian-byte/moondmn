@@ -1,4 +1,5 @@
 ///|
+/// Parsed model indexes; treat as immutable during evaluation.
 pub struct Model {
   root : @xml.Node
   decisions : Map[String, @xml.Node]
@@ -31,6 +32,7 @@ fn expression_child(node : @xml.Node) -> @xml.Node raise @types.EngineError {
 }
 
 ///|
+/// Parse namespace-aware DMN XML and index its named elements.
 pub fn parse_model(source : String) -> Model raise @types.EngineError {
   let root = @xml.parse(source)
   if root.name != "definitions" ||
@@ -94,6 +96,7 @@ pub fn parse_model(source : String) -> Model raise @types.EngineError {
 }
 
 ///|
+/// Evaluate a named decision against typed input values.
 pub fn evaluate_decision(
   model : Model,
   name : String,

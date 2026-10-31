@@ -162,6 +162,7 @@ pub fn lexer_names() -> Array[String] {
 }
 
 ///|
+/// Test membership in the supported builtin name vocabulary.
 pub fn has(name : String) -> Bool {
   builtin_names.contains(name)
 }

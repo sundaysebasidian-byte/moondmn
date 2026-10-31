@@ -253,6 +253,7 @@ fn collect(
 }
 
 ///|
+/// Run every TCK case beneath a directory and return a JSON report.
 pub fn run(directory : String) -> Json raise Error {
   let files = []
   collect(directory, files, 0)
