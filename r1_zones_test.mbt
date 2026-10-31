@@ -23,3 +23,49 @@ test "R1 I5 duration crosses spring DST by the elapsed instant" {
     content="\"2024-03-10T03:30:00@America/New_York\"",
   )
 }
+
+///|
+test "R1 I5 FEEL equality resolves after transition and keeps fractions" {
+  inspect(
+    @moondmn.feel_eval(
+      "@\"2024-03-10T03:00:00@America/New_York\" = @\"2024-03-10T07:00:00Z\"",
+    ),
+    content="true",
+  )
+  inspect(
+    @moondmn.feel_eval(
+      "@\"2024-11-03T02:00:00@America/New_York\" = @\"2024-11-03T07:00:00Z\"",
+    ),
+    content="true",
+  )
+  inspect(
+    @moondmn.feel_eval(
+      "@\"2024-03-10T03:00:00.1@America/New_York\" = @\"2024-03-10T07:00:00.2Z\"",
+    ),
+    content="false",
+  )
+  inspect(
+    @moondmn.feel_eval(
+      "time(\"10:30:00@Europe/Paris\") = time(\"10:30:00@Europe/Paris\")",
+    ),
+    content="true",
+  )
+  inspect(
+    @moondmn.feel_eval(
+      "string(@\"2024-03-10T03:00:00@America/New_York\".time offset)",
+    ),
+    content="\"-PT4H\"",
+  )
+}
+
+///|
+test "R1 I5 numeric time constructors keep fractional seconds" {
+  inspect(
+    @moondmn.feel_eval("string(time(12,59,1.3,duration(\"-PT1H\")))"),
+    content="\"12:59:01.3-01:00\"",
+  )
+  inspect(
+    @moondmn.feel_eval("@\"2024-01-01T12:00:00\".time offset"),
+    content="null",
+  )
+}

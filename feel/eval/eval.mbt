@@ -544,6 +544,17 @@ fn path(
     Time(t) => time_property(t, name)
     DateTime(dt) =>
       match name {
+        "time offset" =>
+          if dt.time.zone is Unzoned {
+            Null
+          } else {
+            DaysSeconds(
+              @types.duration_ds_of_nanos(
+                @bigint.BigInt::from_int(@types.datetime_zone_offset(dt)) *
+                1000000000N,
+              ),
+            )
+          }
         "date" => Date(dt.date)
         "time" => Time(dt.time)
         "year" => Number(@types.decimal_int(dt.date.year))
@@ -775,6 +786,13 @@ fn equal_value(
   }
   if !same_kind(a, b) {
     return Null
+  }
+  if a is Time(x) &&
+    b is Time(y) &&
+    x.zone is Named(first) &&
+    y.zone is Named(second) &&
+    first == second {
+    return Boolean(x.seconds() == y.seconds())
   }
   for value in [a, b] {
     match value {

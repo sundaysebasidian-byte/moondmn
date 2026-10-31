@@ -220,19 +220,21 @@ pub fn Value::equals(a : Value, b : Value) -> Bool {
 
 ///|
 fn time_equals(x : Time, y : Time) -> Bool {
-  let xs = x.seconds() / 1000000000L
-  let ys = y.seconds() / 1000000000L
+  if x.zone is Named(a) && y.zone is Named(b) && a == b {
+    return x.seconds() == y.seconds()
+  }
+  let xs = x.seconds()
+  let ys = y.seconds()
   match (standard_zone_offset(x.zone), standard_zone_offset(y.zone)) {
-    (Some(a), Some(b)) => xs - a.to_int64() == ys - b.to_int64()
+    (Some(a), Some(b)) =>
+      xs - a.to_int64() * 1000000000L == ys - b.to_int64() * 1000000000L
     _ => false
   }
 }
 
 ///|
 fn datetime_instant_seconds(dt : DateTime) -> Int64? {
-  let offset = zone_offset_seconds(dt.time.zone, dt.date) catch {
-    _ => return None
-  }
+  let offset = datetime_zone_offset(dt) catch { _ => return None }
   Some(
     dt.date.ordinal() * 86400L +
     dt.time.seconds() / 1000000000L -
@@ -243,7 +245,7 @@ fn datetime_instant_seconds(dt : DateTime) -> Int64? {
 ///|
 fn datetime_equals(x : DateTime, y : DateTime) -> Bool {
   match (datetime_instant_seconds(x), datetime_instant_seconds(y)) {
-    (Some(a), Some(b)) => a == b
+    (Some(a), Some(b)) => a == b && x.time.nanos == y.time.nanos
     _ => false
   }
 }

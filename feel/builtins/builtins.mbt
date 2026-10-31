@@ -490,12 +490,17 @@ fn dispatch(
       if xs.length() > 1 {
         let hour = index_of_value(xs[0], name)
         let minute = index_of_value(xs[1], name)
-        let second = if xs.length() > 2 {
-          index_of_value(xs[2], name)
+        let seconds = if xs.length() > 2 {
+          number(xs[2], name)
         } else {
-          0
+          @types.zero()
         }
-        let zone : @types.Zone = if xs.length() > 3 {
+        let second = seconds.floor().to_int()
+        let nanos = @types.decimal_to_scaled(
+          seconds.add(@types.decimal_int(second).negate()),
+          9,
+        ).to_int()
+        let zone : @types.Zone = if xs.length() > 3 && !(xs[3] is Null) {
           match xs[3] {
             DaysSeconds(d) =>
               @types.Fixed((d.total_nanos() / 1000000000N).to_int())
@@ -508,7 +513,7 @@ fn dispatch(
         } else {
           @types.Unzoned
         }
-        Time(@types.make_time(hour, minute, second, 0, zone))
+        Time(@types.make_time(hour, minute, second, nanos, zone))
       } else {
         match xs[0] {
           Time(_) => xs[0]
@@ -534,14 +539,19 @@ fn dispatch(
         } else {
           0
         }
-        let second = if xs.length() > 5 {
-          index_of_value(xs[5], name)
+        let seconds = if xs.length() > 5 {
+          number(xs[5], name)
         } else {
-          0
+          @types.zero()
         }
+        let second = seconds.floor().to_int()
+        let nanos = @types.decimal_to_scaled(
+          seconds.add(@types.decimal_int(second).negate()),
+          9,
+        ).to_int()
         @types.DateTime({
           date: @types.date_of(year, month, day),
-          time: @types.make_time(hour, minute, second, 0, @types.Unzoned),
+          time: @types.make_time(hour, minute, second, nanos, @types.Unzoned),
         })
       } else {
         match xs[0] {
