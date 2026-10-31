@@ -1,0 +1,11 @@
+{
+  "oracle": "Python decimal.Context",
+  "precision": 34,
+  "Emin": -6143,
+  "Emax": 6144,
+  "rounding": "ROUND_HALF_EVEN",
+  "clamp": 1,
+  "seed": 1439,
+  "cases": 120,
+  "passed": 120
+}
