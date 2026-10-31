@@ -87,22 +87,59 @@ text = path.read_text()
 for level, report in reports.items():
     text = re.sub(rf'\| Level {level} \| \d+ \| \d+ \| \d+ \| [\d.]+% \|', f"| Level {level} | {report['total']} | {report['passed']} | {report['failed']} | {100*report['passed']/report['total']:.2f}% |", text)
 start = text.index('| `E_TCK_MISMATCH`')
-end = text.index('\n\n说明', start)
+end = text.index('\n\n下表按引擎返回的状态码', start)
 text = text[:start] + '\n'.join(f'| `{code}` | {count} |' for code,count in sorted(reports[3]['failures'].items(), key=lambda pair:-pair[1])) + text[end:]
 for suite in {Path(c['file']).parent.name for c in reports[3]['cases']}:
     cases = [c for c in reports[3]['cases'] if Path(c['file']).parent.name == suite]
     passed = sum(c['status']=='PASS' for c in cases)
     text = re.sub(r'\| '+re.escape(suite)+r' \| \d+ \| \d+ \| \d+ \|',f'| {suite} | {len(cases)} | {passed} | {len(cases)-passed} |',text)
-marker = '\n## R1 剩余失败逐例语义清单'
-text = text.split(marker)[0].rstrip() + '\n'
-text += marker + '\n\n所有失败均保留，未改 runner、比较容差或上游期望值；分类不改变 pass/fail。\n'
-text += '“已知 bug”包含已确认的不一致；综合信贷链的直接根因尚未完全定位，已明确标注。\n'
-text += '机器可审计清单：`evidence/failure-classification.json`。每行以文件路径和 case ID 唯一标识。\n\n'
-text += '| 语义分类 | 失败数 |\n| --- | ---: |\n' + ''.join(f'| {name} | {count} |\n' for name,count in sorted(counts.items()))
-text += '\n| 套件 / 测试文件 | case ID | 分类 | 原因 |\n| --- | --- | --- | --- |\n'
 def cell(value): return value.replace('|','&#124;').replace('\n',' ').replace('<','&lt;').replace('>','&gt;')
+total = reports[3]['total']
+failed = len(rows)
+by_category = collections.Counter(r['category'] for r in rows)
+meaning = {
+    '已知 bug': '范围内的行为不正确，是待修的缺陷',
+    '未实现特性': '尚未实现或明确不做',
+    '覆盖边界': '实现主动拒绝，不猜测',
+    '规范/TCK 差异待确认': '实现依据规范文本，与 TCK 期望不一致；仍计为失败',
+    '驱动环境未提供': 'TCK 驱动不提供时钟；API 与 CLI 注入时钟后可用',
+}
+names = {'已知 bug': '已知缺陷', '未实现特性': '未实现', '覆盖边界': '覆盖边界', '规范/TCK 差异待确认': '规范与 TCK 存在差异', '驱动环境未提供': '驱动未提供时钟'}
+bugs = [r for r in rows if r['category'] == '已知 bug']
+by_suite = collections.Counter(r['suite'] for r in bugs)
+first_reason = {}
+for r in bugs:
+    first_reason.setdefault(r['suite'], r['reason'])
+out_of_scope = by_category['未实现特性'] + by_category['驱动环境未提供']
+summary = f"""## 结论
+
+Level 2 为 116/116。Level 3 为 {reports[3]['passed']}/{total}（{100*reports[3]['passed']/total:.2f}%），剩余 {failed} 个失败，没有跳过，也没有被隐藏的用例。
+
+这 {failed} 个失败里，{by_category['已知 bug']} 个（{100*by_category['已知 bug']/failed:.0f}%）是引擎自己的缺陷，只有 {out_of_scope} 个属于范围外或测试环境。通过率不能理解为“剩下的都是范围外”。
+
+| 分类 | 失败数 | 占失败比例 | 含义 |
+| --- | ---: | ---: | --- |
+""" + ''.join(f"| {names[c]} | {by_category[c]} | {100*by_category[c]/failed:.1f}% | {meaning[c]} |\n" for c in meaning) + f"""
+未实现的 {by_category['未实现特性']} 个中，Java 外部函数 {sum(1 for r in rows if r['suite']=='0076-feel-external-java')} 个，DMN `import` {sum(1 for r in rows if r['category']=='未实现特性' and r['suite']!='0076-feel-external-java')} 个。
+
+已知缺陷集中在下面这些套件（按失败数排序，只列前 10 个；全部明细见文末）：
+
+| 套件 | 失败数 | 症状举例 |
+| --- | ---: | --- |
+""" + ''.join(f"| {suite} | {count} | {cell(first_reason[suite])} |\n" for suite, count in by_suite.most_common(10)) + f"""
+数字的来源：
+
+- 全部 {total} 个用例都真实执行；runner、数值比较容差和上游期望值都没有为了提高通过率而修改。
+- 失败清单可机读：`evidence/failure-classification.json`，每行以测试文件路径加 case ID 唯一标识；逐例原始报告是 `evidence/tck-level-*.json`。
+- 任何一个套件都可以用下文“复现”一节的命令单独重跑。
+"""
+text = re.sub(r'<!-- summary:start -->.*<!-- summary:end -->', lambda _: '<!-- summary:start -->\n' + summary + '<!-- summary:end -->', text, flags=re.S)
+marker = '\n## 逐例明细'
+text = text.split(marker)[0].rstrip() + '\n'
+text += marker + '\n\n每一行是一个失败用例，共 ' + str(failed) + ' 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认的不一致，其中综合信贷链的直接根因尚未完全定位，已在原因里注明。\n\n'
+text += '| 套件 / 测试文件 | case ID | 分类 | 原因 |\n| --- | --- | --- | --- |\n'
 for row in sorted(rows,key=lambda r:(r['file'],r['id'])):
     label = row['suite'] + '/' + Path(row['file']).name
-    text += f"| {cell(label)} | `{cell(row['id'])}` | {row['category']} | {cell(row['reason'])} |\n"
+    text += f"| {cell(label)} | `{cell(row['id'])}` | {names[row['category']]} | {cell(row['reason'])} |\n"
 path.write_text(text)
 print(f"Level 3 {reports[3]['passed']}/{reports[3]['total']}; {len(rows)} failures classified",dict(counts))

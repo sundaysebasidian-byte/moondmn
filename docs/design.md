@@ -28,7 +28,8 @@ feel/types          Decimal、日期/时间/时长/时区、Value、Range、比�
 
 `Decimal` 由任意精度整数系数与十进制 `scale` 组成，最多 34 位有效数字（DMN number）。
 加减按较大 scale 对齐；乘法后归一化；除法与超范围结果以“半偶舍入”收敛，
-与 IEEE 754 decimal128 的默认舍入一致。`1.23e+4`、`-0`、`0.00` 等字面量保留语义。
+与 IEEE 754 decimal128 的默认舍入一致；scale 范围 [-6111, 6176]，溢出在库里抛 `E_DECIMAL_RANGE`，FEEL 四则的非有限结果为 null。
+`1.23e+4`、`-0`、`0.00` 等字面量保留语义。`sqrt`、`log`、`exp` 和非整数幂仍经过有限精度浮点，不是精确 Decimal128。
 
 ### 三值逻辑与相等
 
@@ -45,8 +46,9 @@ feel/types          Decimal、日期/时间/时长/时区、Value、Range、比�
 
 ### 时区与时间
 
-`Zone = Unzoned | Fixed(seconds) | Named(name)`。DateTime 的 instant 先由日期查
-IANA 风格的夏令时规则得到偏移，再换算为 UTC 纳秒。无时区时间在比较与日期-时间
+`Zone = Unzoned | Fixed(seconds) | Named(name)`。DateTime 的 instant 先由完整本地时刻查
+内置的 IANA 2026e 转换表得到偏移，再换算为 UTC 纳秒；表只含 39 个时区名，覆盖 1970–2100 年，
+名称和年份之外分别返回 `E_ZONE_UNSUPPORTED` 和 `E_ZONE_RANGE`，DST 的 gap 返回 `E_ZONE_GAP`，overlap 取较早时刻。运行时不读取本机 zoneinfo。无时区时间在比较与日期-时间
 算术中按 UTC 处理；两个命名时区按各自偏移比较；带偏移与无偏移的 date-time 混比是错误。
 `date - PT1H` 向上取整到前一日，符合规范对日期粒度的处理。
 
@@ -61,6 +63,9 @@ IANA 风格的夏令时规则得到偏移，再换算为 UTC 纳秒。无时区�
 4. 类型：itemDefinition 递归描述为结构化类型字符串（`context<a: number,...>`、
    `list<...>`），通过保留上下文键 `$types` 注入求值环境，供 `instance of` 使用。
 5. BKM/服务：BKM 参数绑定到调用环境；决策服务注入输入与内部决策后返回输出集合。
+6. lint：检查未定义引用、重复规则和可能的缺口。输入列的 `inputValues` 或 ItemDefinition 的 `allowedValues`
+   能推出有限域时（最多 4096 个输入组合）穷举验证覆盖，可证明完整就不告警；开放域、无法解析的谓词或超过上限时
+   仍报 `W_POSSIBLE_GAP`。lint 不证明规则之间不重叠。
 
 ### 命中规则
 
@@ -94,7 +99,7 @@ CLI 将其序列化为 JSON 并以退出码 1 结束。主要错误码：
 
 ## 测试与性能
 
-- 单元测试覆盖 Decimal、词法、语法、求值、模型、XML 与 lint，三后端均通过。
+- 224 个单元测试覆盖 Decimal、词法、语法、求值、模型、XML、时区与 lint，native、wasm-gc、js 各 224/224 通过；另有 12 项 CLI 进程级检查和 25 项 Playground 冒烟测试。
 - TCK 作为端到端回归：L2 116/116，L3 3170/3291（96.32%）。
 - 全部用例在单机 native 后端约 2 秒内完成；无全局可变状态，除求值缓存外若干分配均随表达式规模线性。
 - 安全边界：XML 解析拒绝 DTD/外部实体并限制嵌套深度；词法限制表达式长度；递归求值限制深度。
@@ -105,7 +110,6 @@ CLI 将其序列化为 JSON 并以退出码 1 结束。主要错误码：
 后续计划：DMN 1.5 import、外部函数桥接、正则标志完整支持、
 区间函数高级参数，以及更细的性能基准。
 
+## 输入边界与健壮性
 
-## R1 输入边界核验
-
-DMN/XML 层没有显式 abort/panic/unreachable。剩余 strip_prefix/strip_suffix unwrap 均在前缀/后缀判定后；XML 栈索引在非空检查后，relation 行宽、decision table 输入/输出列数、函数实参数量与 filter 索引均先检查再访问。conditional 原先的三个无条件 unwrap 已删除，并拒绝缺失或重复分支。另定位并修复负年份 weekday 的负数组下标与日历换算中间值溢出，以 49 组日期往返及 Web 负年份反例验证。新增测试用固定 LCG 种子对四类自编模型做 1200 次截断/变异，trap 不能被 EngineError catch 吞掉，因此会直接导致测试失败。XML 解析仍由受限 NamespaceReader 负责，DTD/超限输入被拒绝；这不等于完整 DMN XSD 验证或对所有资源耗尽情况的保证。
+DMN/XML 层没有显式 abort/panic/unreachable。剩余 strip_prefix/strip_suffix unwrap 均在前缀/后缀判定后；XML 栈索引在非空检查后，relation 行宽、decision table 输入/输出列数、函数实参数量与 filter 索引均先检查再访问。conditional 原先的三个无条件 unwrap 已删除，并拒绝缺失或重复分支。负年份 weekday 的负数组下标与日历换算中间值溢出已修复，用 49 组日期往返验证。测试用固定 LCG 种子对四类自编模型做 1200 次截断/变异，trap 不能被 EngineError catch 吞掉，因此会直接导致测试失败。XML 解析仍由受限 NamespaceReader 负责，DTD/超限输入被拒绝；这不等于完整 DMN XSD 验证或对所有资源耗尽情况的保证。

@@ -171,11 +171,12 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | --- | --- | --- |
 | FEEL 精确十进制 | 已支持 | 34 位、半偶舍入、scale [-6111,6176]；超越函数仍用有限精度浮点桥接 |
 | 三值逻辑与 null 相等 | 已支持 | `and`/`or`/`not`、FEEL 相等规则 |
-| 日期、时间、时长、时区 | 部分支持 | IANA 2026e 子集 39 名称、1970–2100 年；DST gap 报错、overlap 取较早时刻；详见 conformance |
+| 日期、时间、时长、时区 | 部分支持 | 时区只内置 IANA 2026e 的 39 个名称、1970–2100 年；范围外报错，DST gap 报错、overlap 取较早时刻；详见 conformance |
 | 列表、上下文、区间 | 部分支持 | 支持常用操作；开闭区间边界、重复键等仍有 TCK 失败 |
 | 过滤器、路径、迭代器 | 部分支持 | 路径按已知键识别多词名称；item 遮蔽、缺字段与非法 domain 处理仍有失败 |
 | 用户函数与 BKM | 部分支持 | 命名缺参绑定 null；部分类型/输出适配仍有失败 |
-| 决策表 | 部分支持 | 全部 hit policy 可用；复杂模型/变量匹配仍有失败，lint 可证明有限枚举覆盖 |
+| 决策表 | 部分支持 | 全部 hit policy 可用；复杂模型和 inputVariable 匹配仍有失败 |
+| lint | 部分支持 | 未定义引用、重复规则、可能的缺口；输入域有限（枚举 `allowedValues`，最多 4096 个组合）且被证明完整覆盖时不告警，开放域仍提示 |
 | 决策服务与 DRG | 部分支持 | 依赖求值与输出集合可用；服务参数顺序/类型适配仍有失败 |
 | 类型系统 | 部分支持 | 根包/CLI/Playground 共用声明时态 JSON 转换；结构类型/隐式转换仍有失败 |
 | 内置函数 | 部分支持（约 90 个） | 剩余逐例缺陷和受限函数见 docs/conformance.md |
@@ -193,13 +194,15 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | Level 2 | 116 | 116 | 100.0% |
 | Level 3 | 3291 | 3170 | 96.32% |
 
-目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。逐套件矩阵、失败分类和复现步骤见
-[docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。
+目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。Level 3 剩余 121 个失败：87 个是已知缺陷，26 个未实现
+（Java 外部函数 18、`import` 8），2 个覆盖边界，2 个规范与 TCK 存在差异，4 个因 TCK 驱动不提供时钟。
+也就是说，失败的大头是引擎自己的缺陷，不是范围外的用例。
+结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。
 
 ## 和同类实现的区别
 
 - 和 JVM 引擎（Camunda、Drools、KIE）比：MoonDMN 不依赖 JVM，可以编译到 wasm-gc 和 js；错误以结构化 JSON 返回，方便嵌入多语言服务。
-- 和脚本语言实现比：用精确十进制而不是浮点，金额计算和比较不会有舍入偏差；三值逻辑、null 相等和区间语义按 DMN 规范实现。
+- 和脚本语言实现比：四则运算和比较用精确十进制而不是浮点，金额计算不会有舍入偏差（`sqrt`、`log`、`exp` 仍经过浮点）；三值逻辑、null 相等和区间语义按 DMN 规范实现。
 - 和只覆盖语法的项目比：仓库带 TCK 驱动和逐例报告，结论可以复现、可以审计。
 
 ## 开发与测试
@@ -213,12 +216,16 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
+每个后端 224 个单元测试，另有 12 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 25 项 Playground 冒烟测试。
+
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
 
 ## 限制与路线图
 
 - 外部 Java 函数和 DMN 1.5 导入不在当前范围。
+- TCK Level 3 还有 121 个失败，其中 87 个是已知缺陷，逐例列在 [docs/conformance.md](docs/conformance.md)。
+- 时区只有 39 个名称，只覆盖 1970–2100 年。
 - `now()`、`today()` 没有隐含的系统时钟，必须由调用方注入。
 - 计划补齐正则标志和 `range()` 的高级参数。
 - 部分隐式转换和函数元数据（`0103-feel-is-function`）还有差距。
