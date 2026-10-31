@@ -41,6 +41,11 @@ pub fn evaluate(
         "-" =>
           match value {
             Number(n) => Number(n.negate())
+            DaysSeconds(d) => DaysSeconds(d.negate())
+            YearsMonths(d) =>
+              YearsMonths(
+                @types.DurationYM::canonical(!d.negative, d.years, d.months),
+              )
             Null => Null
             _ => raise err("E_TYPE", "unary minus requires a number")
           }
@@ -62,48 +67,30 @@ pub fn evaluate(
       let left = evaluate(a, ctx)
       match op {
         "and" =>
-          match left {
-            Boolean(false) => Boolean(false)
-            Boolean(true) => {
-              let right = evaluate(b, ctx)
-              match right {
-                Boolean(x) => Boolean(x)
-                Null => Null
-                _ => raise err("E_TYPE", "and requires booleans")
-              }
+          if left is Boolean(false) {
+            Boolean(false)
+          } else {
+            let right = evaluate(b, ctx)
+            if right is Boolean(false) {
+              Boolean(false)
+            } else if left is Boolean(true) && right is Boolean(true) {
+              Boolean(true)
+            } else {
+              Null
             }
-            Null => {
-              let right = evaluate(b, ctx)
-              match right {
-                Boolean(false) => Boolean(false)
-                Boolean(true) => Null
-                Null => Null
-                _ => raise err("E_TYPE", "and requires booleans")
-              }
-            }
-            _ => raise err("E_TYPE", "and requires booleans")
           }
         "or" =>
-          match left {
-            Boolean(true) => Boolean(true)
-            Boolean(false) => {
-              let right = evaluate(b, ctx)
-              match right {
-                Boolean(x) => Boolean(x)
-                Null => Null
-                _ => raise err("E_TYPE", "or requires booleans")
-              }
+          if left is Boolean(true) {
+            Boolean(true)
+          } else {
+            let right = evaluate(b, ctx)
+            if right is Boolean(true) {
+              Boolean(true)
+            } else if left is Boolean(false) && right is Boolean(false) {
+              Boolean(false)
+            } else {
+              Null
             }
-            Null => {
-              let right = evaluate(b, ctx)
-              match right {
-                Boolean(true) => Boolean(true)
-                Boolean(false) => Null
-                Null => Null
-                _ => raise err("E_TYPE", "or requires booleans")
-              }
-            }
-            _ => raise err("E_TYPE", "or requires booleans")
           }
         _ => binary(op, left, evaluate(b, ctx))
       }
@@ -112,8 +99,7 @@ pub fn evaluate(
       match evaluate(c, ctx) {
         Boolean(true) => evaluate(a, ctx)
         Boolean(false) => evaluate(b, ctx)
-        Null => Null
-        _ => raise err("E_TYPE", "if requires a boolean condition")
+        _ => evaluate(b, ctx)
       }
     ListLit(xs) => List(xs.map(x => evaluate(x, ctx)))
     ContextLit(entries) => {
@@ -514,7 +500,7 @@ fn instance_of_at(
     "range" => value is Range(_)
     "function" => value is Function(_)
     "null" => value is Null
-    "any" => true
+    "any" => !(value is Null)
     _ =>
       match ctx.get("$types") {
         Some(Context(types)) =>
@@ -704,11 +690,10 @@ fn filter_value(
     Null => return Null
     _ => [target]
   }
-  let probe = if items.is_empty() {
-    evaluate(filter, ctx)
-  } else {
-    evaluate(filter, scope_with(ctx, "item", items[0]))
+  if items.is_empty() {
+    return List([])
   }
+  let probe = evaluate(filter, filter_scope(ctx, items[0]))
   match probe {
     Number(n) => {
       if !n.is_integer() {
@@ -717,6 +702,7 @@ fn filter_value(
       let at = n.to_int() catch {
         _ => raise err("E_TYPE", "filter index out of range")
       }
+      let at = if at < 0 { items.length() + at + 1 } else { at }
       if at < 1 || at > items.length() {
         Null
       } else {
@@ -726,7 +712,7 @@ fn filter_value(
     _ => {
       let out = []
       for item in items {
-        let keep = evaluate(filter, scope_with(ctx, "item", item)) catch {
+        let keep = evaluate(filter, filter_scope(ctx, item)) catch {
           _ => Boolean(false)
         }
         match keep {
@@ -734,13 +720,7 @@ fn filter_value(
           _ => ()
         }
       }
-      if target is List(_) {
-        List(out)
-      } else if out.is_empty() {
-        Null
-      } else {
-        out[0]
-      }
+      List(out)
     }
   }
 }
@@ -779,7 +759,7 @@ fn equal_value(a : @types.Value, b : @types.Value) -> @types.Value {
 }
 
 ///|
-pub fn binary(
+fn binary(
   op : String,
   a : @types.Value,
   b : @types.Value,
@@ -1140,8 +1120,49 @@ pub fn feel_eval(
   ctx~ : Map[String, @types.Value] = Map([]),
 ) -> @types.Value raise @types.EngineError {
   let names = @builtins.names()
+  for name in @builtins.names() {
+    names.append(@builtins.params(name))
+  }
   for k, _ in ctx {
     names.push(k)
   }
   evaluate(@parser.compile(source, names~), ctx)
+}
+
+///|
+fn filter_scope(
+  ctx : Map[String, @types.Value],
+  item : @types.Value,
+) -> Map[String, @types.Value] {
+  let scope = ctx.copy()
+  if item is Context(fields) {
+    for k, v in fields {
+      scope[k] = v
+    }
+  }
+  scope["item"] = item
+  scope
+}
+
+///|
+/// Bind a caller clock to an isolated scope; captured functions retain this clock.
+/// No process-global clock is changed. Without injection now/today remain unsupported.
+pub fn with_clock(
+  ctx : Map[String, @types.Value],
+  clock : (() -> @types.DateTime)?,
+) -> Map[String, @types.Value] {
+  let scope = ctx.copy()
+  if clock is Some(read) {
+    scope["now"] = Function({
+      name: "now",
+      params: [],
+      callback: _ => DateTime(read()),
+    })
+    scope["today"] = Function({
+      name: "today",
+      params: [],
+      callback: _ => Date(read().date),
+    })
+  }
+  scope
 }

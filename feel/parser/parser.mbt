@@ -72,7 +72,7 @@ fn Parser::take(p : Parser) -> @lexer.Token {
 
 ///|
 fn Parser::at(p : Parser, text : String) -> Bool {
-  p.peek().text == text
+  p.peek().kind != "string" && p.peek().text == text
 }
 
 ///|
@@ -87,7 +87,7 @@ fn Parser::error(
 
 ///|
 fn Parser::expect(p : Parser, text : String) -> Unit raise @types.EngineError {
-  if p.peek().text != text {
+  if !p.at(text) {
     p.error("E_PARSE", "expected " + text + ", got " + p.peek().text)
   }
   ignore(p.take())
@@ -392,6 +392,9 @@ fn Parser::call(p : Parser, callee : Expr) -> Expr raise @types.EngineError {
 ///|
 fn Parser::atom(p : Parser) -> Expr raise @types.EngineError {
   let t = p.take()
+  if t.kind == "string" {
+    return Lit(Text(t.text))
+  }
   match t.text {
     "if" => {
       let condition = p.expr(1)

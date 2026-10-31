@@ -51,11 +51,7 @@ fn definition_descriptor(
 }
 
 ///|
-pub fn type_descriptor(
-  model : Model,
-  type_name : String,
-  depth : Int32,
-) -> String {
+fn type_descriptor(model : Model, type_name : String, depth : Int32) -> String {
   if depth > 32 {
     return "Any"
   }
@@ -73,7 +69,7 @@ pub fn type_descriptor(
 
 ///|
 /// Registry of named ItemDefinitions exposed to FEEL as `instance of` types.
-pub fn type_registry(model : Model) -> Map[String, @types.Value] {
+fn type_registry(model : Model) -> Map[String, @types.Value] {
   let out : Map[String, @types.Value] = Map([])
   for definition in model.root.all("itemDefinition") {
     out[definition.attr("name")] = Text(
@@ -204,5 +200,131 @@ fn validate_variable(
 ) -> Unit raise @types.EngineError {
   if node.child("variable") is Some(variable) {
     validate_type(model, variable.attr("typeRef"), value, 0)
+  }
+}
+
+///|
+/// Apply FEEL singleton adaptation before checking the declared type.
+fn coerce_type(
+  model : Model,
+  name : String,
+  value : @types.Value,
+  depth : Int32,
+) -> @types.Value raise @types.EngineError {
+  if depth > 32 {
+    raise @types.fail("E_TYPE_CYCLE", "recursive ItemDefinition")
+  }
+  if value is Null || name == "" || name == "Any" || name == "any" {
+    return value
+  }
+  for definition in model.root.all("itemDefinition") {
+    if definition.attr("name") == name {
+      return coerce_definition(model, definition, value, depth + 1, true)
+    }
+  }
+  let value = if name != "list" {
+    match value {
+      List([one]) => one
+      _ => value
+    }
+  } else {
+    value
+  }
+  let value = if (name == "date and time" || name == "dateTime") &&
+    value is Date(d) {
+    @types.DateTime({
+      date: d,
+      time: @types.make_time(0, 0, 0, 0, @types.Fixed(0)),
+    })
+  } else {
+    value
+  }
+  validate_type(model, name, value, depth)
+  value
+}
+
+///|
+fn coerce_definition(
+  model : Model,
+  node : @xml.Node,
+  value : @types.Value,
+  depth : Int32,
+  collection : Bool,
+) -> @types.Value raise @types.EngineError {
+  if depth > 32 {
+    raise @types.fail("E_TYPE_CYCLE", "recursive ItemDefinition")
+  }
+  if value is Null {
+    return value
+  }
+  if collection && node.attr("isCollection") == "true" {
+    let xs = match value {
+      List(xs) => xs
+      _ => [value]
+    }
+    return List(
+      xs.map(x => coerce_definition(model, node, x, depth + 1, false)),
+    )
+  }
+  if node.child("functionItem") is Some(item) {
+    if value is Function(f) {
+      return Function({
+        name: f.name,
+        params: f.params,
+        callback: args => {
+          coerce_type(
+            model,
+            item.attr("outputTypeRef"),
+            (f.callback)(args),
+            depth + 1,
+          )
+        },
+      })
+    }
+    raise @types.fail("E_TYPE", "expected function")
+  }
+  let value = match value {
+    List([one]) => one
+    _ => value
+  }
+  let components = node.all("itemComponent")
+  let result = if components.is_empty() {
+    coerce_type(model, item_type_name(node), value, depth + 1)
+  } else {
+    let ctx = match value {
+      Context(c) => c.copy()
+      _ => raise @types.fail("E_TYPE", "expected context")
+    }
+    for component in components {
+      let key = component.attr("name")
+      ctx[key] = coerce_definition(
+        model,
+        component,
+        ctx.get(key).unwrap_or(Null),
+        depth + 1,
+        true,
+      )
+    }
+    @types.Context(ctx)
+  }
+  if node.child("allowedValues") is Some(allowed) {
+    if !@eval.unary_test(allowed.content("text"), result, Map([])) {
+      raise @types.fail(
+        "E_ALLOWED_VALUES", "ItemDefinition allowedValues violation",
+      )
+    }
+  }
+  result
+}
+
+///|
+fn coerce_variable(
+  model : Model,
+  node : @xml.Node,
+  value : @types.Value,
+) -> @types.Value raise @types.EngineError {
+  match node.child("variable") {
+    Some(v) => coerce_type(model, v.attr("typeRef"), value, 0)
+    None => value
   }
 }

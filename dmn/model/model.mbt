@@ -99,9 +99,11 @@ pub fn evaluate_decision(
   name : String,
   inputs : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
+  let inputs = inputs.copy()
   for node in model.root.all("inputData") {
-    if inputs.get(node.attr("name")) is Some(value) {
-      validate_variable(model, node, value)
+    let key = node.attr("name")
+    if inputs.get(key) is Some(value) {
+      inputs[key] = coerce_variable(model, node, value)
     }
   }
   let cache = Map([])
@@ -186,15 +188,14 @@ fn evaluate_named(
       }
     }
   }
-  let value = boxed(expression(decision), ctx)
-  validate_variable(model, decision, value)
+  let value = coerce_variable(model, decision, boxed(expression(decision), ctx))
   ignore(visiting.pop())
   cache[name] = value
   value
 }
 
 ///|
-pub fn expression(node : @xml.Node) -> @xml.Node raise @types.EngineError {
+fn expression(node : @xml.Node) -> @xml.Node raise @types.EngineError {
   expression_child(node)
 }
 
@@ -248,9 +249,26 @@ fn bkm_function(
       }
       let scope = captured.copy()
       for i, param in params {
-        scope[param] = args[i]
+        scope[param] = coerce_type(
+          model,
+          logic.all("formalParameter")[i].attr("typeRef"),
+          args[i],
+          0,
+        )
       }
-      boxed(body, scope)
+      match
+        coerce_variable(
+          model,
+          node,
+          @types.Function({
+            name: "result",
+            params: [],
+            callback: _ => boxed(body, scope),
+          }),
+        ) {
+        Function(f) => (f.callback)([])
+        _ => boxed(body, scope)
+      }
     },
   })
 }
@@ -263,6 +281,7 @@ fn service_params(service : @xml.Node) -> Array[String] {
       out.push(node.attr("href"))
     }
   }
+  out.sort()
   out
 }
 
@@ -411,7 +430,7 @@ pub fn evaluate_service(
 }
 
 ///|
-pub fn boxed(
+fn boxed(
   node : @xml.Node,
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
@@ -513,16 +532,18 @@ pub fn boxed(
       match condition {
         Boolean(true) =>
           boxed(expression_child(node.child("then").unwrap()), ctx)
-        Boolean(false) =>
-          boxed(expression_child(node.child("else").unwrap()), ctx)
-        Null => Null
-        _ => raise @types.fail("E_DMN_CONDITIONAL", "condition is not boolean")
+        _ => boxed(expression_child(node.child("else").unwrap()), ctx)
       }
     }
     "filter" => {
-      let expressions = node.children.filter(n => {
-        n.uri == node.uri && is_expression_name(n.name)
-      })
+      let expressions = if node.child("in") is Some(domain) &&
+        node.child("match") is Some(predicate) {
+        [expression_child(domain), expression_child(predicate)]
+      } else {
+        node.children.filter(n => {
+          n.uri == node.uri && is_expression_name(n.name)
+        })
+      }
       if expressions.length() != 2 {
         raise @types.fail("E_DMN_FILTER", "filter needs a list and a predicate")
       }

@@ -1,4 +1,5 @@
 import {
+  "sundaysebasidian-byte/moondmn/feel/parser",
   "sundaysebasidian-byte/moondmn/feel/types",
   "moonbitlang/core/string",
 }

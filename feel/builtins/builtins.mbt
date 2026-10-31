@@ -42,9 +42,11 @@ fn list(
   v : @types.Value,
   name : String,
 ) -> Array[@types.Value] raise @types.EngineError {
+  ignore(name)
   match v {
     List(xs) => xs
-    _ => raise err("E_TYPE", name + " requires a list")
+    Null => raise err("E_TYPE", "expected list")
+    _ => [v]
   }
 }
 
@@ -145,15 +147,9 @@ pub fn has(name : String) -> Bool {
 /// Parameter names used for named arguments and function values.
 pub fn params(name : String) -> Array[String] {
   match name {
-    "not"
-    | "abs"
-    | "sqrt"
-    | "exp"
-    | "log"
-    | "odd"
-    | "even"
-    | "floor"
-    | "ceiling" => ["n"]
+    "not" | "abs" => ["n"]
+    "sqrt" | "exp" | "log" | "odd" | "even" => ["number"]
+    "floor" | "ceiling" => ["n", "scale"]
     "string" | "string length" | "upper case" | "lower case" | "trim" =>
       ["string"]
     "day of week"
@@ -161,7 +157,7 @@ pub fn params(name : String) -> Array[String] {
     | "week of year"
     | "month of year"
     | "day of month"
-    | "year" => ["value"]
+    | "year" => ["date"]
     "count"
     | "min"
     | "max"
@@ -170,7 +166,7 @@ pub fn params(name : String) -> Array[String] {
     | "reverse"
     | "distinct values"
     | "flatten" => [name]
-    "get entries" => ["context"]
+    "get entries" => ["m"]
     "duration" => ["from"]
     "date" => ["year", "month", "day"]
     "time" => ["hour", "minute", "second", "offset"]
@@ -201,9 +197,9 @@ pub fn params(name : String) -> Array[String] {
     "list replace" => ["list", "position", "newItem"]
     "remove" => ["list", "position"]
     "sort" => ["list", "precedes"]
-    "get value" => ["context", "key"]
+    "get value" => ["m", "key"]
     "is" => ["value1", "value2"]
-    "range" => ["value"]
+    "range" => ["from"]
     "context put" => ["context", "key", "value"]
     "context merge" => ["contexts"]
     "context" => ["entries"]
@@ -274,6 +270,9 @@ fn temporal_call(
       if at < 0 {
         raise err("E_ARITY", "unknown parameter " + key + " for " + name)
       }
+      if slots[at] is Some(_) {
+        raise err("E_ARITY", "duplicate argument: " + key)
+      }
       slots[at] = Some(value)
     }
   }
@@ -307,7 +306,19 @@ fn temporal_call(
 }
 
 ///|
+/// Bind named arguments; invalid signatures have the FEEL null result.
 pub fn call_args(
+  name : String,
+  args : Array[(String?, @types.Value)],
+) -> @types.Value raise @types.EngineError {
+  bind_args(name, args) catch {
+    @types.Failure("E_ARITY", _, _, _) => Null
+    e => raise e
+  }
+}
+
+///|
+fn bind_args(
   name : String,
   args : Array[(String?, @types.Value)],
 ) -> @types.Value raise @types.EngineError {
@@ -358,13 +369,7 @@ pub fn call_args(
         }
         if at < 0 {
           let target = match key {
-            "number" => "n"
-            "date" => "value"
-            "m" | "map" => "context"
-            "k" => "key"
-            "str" => "string"
             "keys" => "key"
-            "from" => "value"
             "match" => if name == "list replace" { "position" } else { "" }
             _ => ""
           }
@@ -376,6 +381,9 @@ pub fn call_args(
         }
         if at < 0 {
           raise err("E_ARITY", "unknown parameter " + key + " for " + name)
+        }
+        if slots[at] is Some(_) {
+          raise err("E_ARITY", "duplicate argument: " + key)
         }
         slots[at] = Some(arg.1)
       }
@@ -403,6 +411,24 @@ pub fn call_args(
 ///|
 /// Positional builtin dispatch.
 pub fn call(
+  name : String,
+  xs : Array[@types.Value],
+) -> @types.Value raise @types.EngineError {
+  dispatch(name, xs) catch {
+    @types.Failure(code, _, _, _) as e =>
+      if [
+          "E_TYPE", "E_ARITY", "E_NUMBER", "E_DECIMAL_SYNTAX", "E_DATE", "E_TIME",
+          "E_DURATION", "E_RANGE", "E_REGEX", "E_TEMPORAL",
+        ].contains(code) {
+        Null
+      } else {
+        raise e
+      }
+  }
+}
+
+///|
+fn dispatch(
   name : String,
   xs : Array[@types.Value],
 ) -> @types.Value raise @types.EngineError {
@@ -523,19 +549,28 @@ pub fn call(
     "number" => {
       arity(name, xs, 1, 3)
       match xs[0] {
-        Number(_) => xs[0]
         Text(s) => {
           let mut body = s
           if xs.length() > 1 {
-            let grouping = text(xs[1], name)
+            let grouping = if xs[1] is Null { "" } else { text(xs[1], name) }
+            if !["", ".", ",", " "].contains(grouping) {
+              return Null
+            }
             if grouping != "" {
-              body = body.replace(old=grouping, new="")
+              body = body.replace_all(old=grouping, new="")
             }
           }
           if xs.length() > 2 {
-            let decimal_sep = text(xs[2], name)
+            let decimal_sep = if xs[2] is Null {
+              "."
+            } else {
+              text(xs[2], name)
+            }
+            if ![".", ","].contains(decimal_sep) {
+              return Null
+            }
             if decimal_sep != "" && decimal_sep != "." {
-              body = body.replace(old=decimal_sep, new=".")
+              body = body.replace_all(old=decimal_sep, new=".")
             }
           }
           Number(@types.decimal(body))
@@ -628,9 +663,22 @@ pub fn call(
       arity(name, xs, 2, 3)
       let input = text(xs[0], name)
       let pattern = text(xs[1], name)
-      let flags = if xs.length() == 3 { text(xs[2], name) } else { "" }
+      let flags = if xs.length() == 3 && !(xs[2] is Null) {
+        text(xs[2], name)
+      } else {
+        ""
+      }
       let regex = compile_regex(pattern, flags)
-      Boolean(regex.execute(input) is Some(_))
+      Boolean(
+        if flags.contains("m") {
+          input
+          .split("\n")
+          .iter()
+          .any(line => regex.execute(line.to_owned()) is Some(_))
+        } else {
+          regex.execute(input) is Some(_)
+        },
+      )
     }
     "replace" => {
       arity(name, xs, 3, 4)
@@ -665,7 +713,9 @@ pub fn call(
       let suffix = if xs.length() > 3 { text(xs[3], name) } else { "" }
       let parts = []
       for item in items {
-        parts.push(text(item, name))
+        if !(item is Null) {
+          parts.push(text(item, name))
+        }
       }
       Text(prefix + parts.join(delimiter) + suffix)
     }
@@ -679,12 +729,42 @@ pub fn call(
       }
     }
     "floor" => {
-      arity(name, xs, 1, 1)
-      Number(number(xs[0], name).floor())
+      arity(name, xs, 1, 2)
+      let scale = if xs.length() > 1 { index_of_value(xs[1], name) } else { 0 }
+      let factor = @types.Decimal::power_of_ten(
+        if scale < 0 {
+          -scale
+        } else {
+          scale
+        },
+      )
+      let n = number(xs[0], name)
+      Number(
+        if scale < 0 {
+          n.divide(factor).floor().multiply(factor)
+        } else {
+          n.multiply(factor).floor().divide(factor)
+        },
+      )
     }
     "ceiling" => {
-      arity(name, xs, 1, 1)
-      Number(number(xs[0], name).ceiling())
+      arity(name, xs, 1, 2)
+      let scale = if xs.length() > 1 { index_of_value(xs[1], name) } else { 0 }
+      let factor = @types.Decimal::power_of_ten(
+        if scale < 0 {
+          -scale
+        } else {
+          scale
+        },
+      )
+      let n = number(xs[0], name)
+      Number(
+        if scale < 0 {
+          n.divide(factor).ceiling().multiply(factor)
+        } else {
+          n.multiply(factor).ceiling().divide(factor)
+        },
+      )
     }
     "round up" | "round down" | "round half up" | "round half down" => {
       arity(name, xs, 2, 2)
@@ -694,7 +774,12 @@ pub fn call(
     }
     "abs" => {
       arity(name, xs, 1, 1)
-      Number(number(xs[0], name).abs())
+      match xs[0] {
+        DaysSeconds(d) => DaysSeconds(if d.negative { d.negate() } else { d })
+        YearsMonths(d) =>
+          YearsMonths(@types.DurationYM::canonical(false, d.years, d.months))
+        _ => Number(number(xs[0], name).abs())
+      }
     }
     "modulo" => {
       arity(name, xs, 2, 2)
@@ -901,9 +986,11 @@ pub fn call(
     }
     "context put" => {
       arity(name, xs, 3, 3)
-      let ctx = context_of(xs[0], name).copy()
-      ctx[text(xs[1], name)] = xs[2]
-      Context(ctx)
+      let keys = match xs[1] {
+        List(keys) => keys
+        key => [key]
+      }
+      put_path(xs[0], keys, 0, xs[2])
     }
     "context merge" => {
       arity(name, xs, 1, 1)
@@ -921,13 +1008,20 @@ pub fn call(
       for entry in list(xs[0], name) {
         let ctx = context_of(entry, name)
         let key = text(ctx.get("key").unwrap_or(Null), name)
+        if out.contains(key) || !ctx.contains("value") {
+          raise err("E_TYPE", "duplicate key or missing value")
+        }
         out[key] = ctx.get("value").unwrap_or(Null)
       }
       Context(out)
     }
     "day of week" => {
       arity(name, xs, 1, 1)
-      num(date_value(xs[0], name).weekday())
+      Text(
+        [
+          "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+        ][date_value(xs[0], name).weekday() - 1],
+      )
     }
     "day of year" => {
       arity(name, xs, 1, 1)
@@ -939,7 +1033,12 @@ pub fn call(
     }
     "month of year" => {
       arity(name, xs, 1, 1)
-      num(date_value(xs[0], name).month)
+      Text(
+        [
+          "January", "February", "March", "April", "May", "June", "July", "August",
+          "September", "October", "November", "December",
+        ][date_value(xs[0], name).month - 1],
+      )
     }
     "day of month" => {
       arity(name, xs, 1, 1)
@@ -973,7 +1072,13 @@ pub fn call(
     }
     "is" => {
       arity(name, xs, 2, 2)
-      Boolean(xs[0].equals(xs[1]))
+      Boolean(
+        match (xs[0], xs[1]) {
+          (Time(a), Time(b)) => a.text() == b.text()
+          (DateTime(a), DateTime(b)) => a.text() == b.text()
+          _ => xs[0].equals(xs[1])
+        },
+      )
     }
     "range" => {
       arity(name, xs, 1, 1)
@@ -1023,6 +1128,21 @@ fn range_endpoint(
       Text(String::from_array(chars[1:chars.length() - 1].to_owned())),
     )
   }
+  for temporal_name in ["date", "date and time", "time", "duration"] {
+    if s.has_prefix(temporal_name + "(") {
+      match @parser.compile(s, names=[temporal_name]) {
+        Call(Name(n), [arg]) =>
+          match arg.value {
+            Lit(Text(value)) => return Some(dispatch(n, [Text(value)]))
+            _ =>
+              raise err(
+                "E_RANGE", "range constructor requires a string literal",
+              )
+          }
+        _ => raise err("E_RANGE", "invalid range constructor")
+      }
+    }
+  }
   if s == "true" {
     return Some(Boolean(true))
   }
@@ -1046,7 +1166,8 @@ fn parse_range_text(source : String) -> @types.Value raise @types.EngineError {
   }
   let first = chars[0]
   let last = chars[chars.length() - 1]
-  if (first != '[' && first != '(') || (last != ']' && last != ')') {
+  if (first != '[' && first != '(' && first != ']') ||
+    (last != ']' && last != ')' && last != '[') {
     raise err("E_RANGE", "range must be enclosed in brackets: " + source)
   }
   let body = String::from_array(chars[1:chars.length() - 1].to_owned())
@@ -1057,12 +1178,19 @@ fn parse_range_text(source : String) -> @types.Value raise @types.EngineError {
   let body_chars = body.to_array()
   let start_text = String::from_array(body_chars[0:at].to_owned())
   let end_text = String::from_array(body_chars[at + 2:].to_owned())
-  Range({
-    start: range_endpoint(start_text, source),
-    start_included: first == '[',
-    end: range_endpoint(end_text, source),
-    end_included: last == ']',
-  })
+  let start = range_endpoint(start_text, source)
+  let end = range_endpoint(end_text, source)
+  match (start, end) {
+    (Some(a), Some(b)) =>
+      if a is Null ||
+        b is Null ||
+        a.type_name() != b.type_name() ||
+        @types.compare_values(a, b) > 0 {
+        return Null
+      }
+    _ => return Null
+  }
+  Range({ start, start_included: first == '[', end, end_included: last == ']', })
 }
 
 ///|
@@ -1073,7 +1201,6 @@ fn date_value(
   match v {
     Date(d) => d
     DateTime(dt) => dt.date
-    Text(s) => @types.parse_date(s)
     _ => raise err("E_TYPE", name + " requires a date")
   }
 }
@@ -1112,7 +1239,15 @@ fn has_year_month(text : String) -> Bool {
 
 ///|
 fn ym_between(from : @types.Date, to : @types.Date) -> @types.Value {
-  let months = to.year * 12 + to.month - (from.year * 12 + from.month)
+  let raw = to.year * 12 + to.month - (from.year * 12 + from.month)
+  let months = raw +
+    (if raw > 0 && to.day < from.day {
+      -1
+    } else if raw < 0 && to.day > from.day {
+      1
+    } else {
+      0
+    })
   let negative = months < 0
   let abs = if negative { -months } else { months }
   YearsMonths(@types.DurationYM::canonical(negative, abs / 12, abs % 12))
@@ -1437,23 +1572,17 @@ fn round_to(
         if frac.is_zero() {
           down
         } else {
-          down.ceiling() catch {
-            _ => down
-          }
+          down.add(@types.decimal_int(1))
         }
       "round half up" =>
         if c >= 0 {
-          down.ceiling() catch {
-            _ => down
-          }
+          down.add(@types.decimal_int(1))
         } else {
           down
         }
       "round half down" =>
         if c > 0 {
-          down.ceiling() catch {
-            _ => down
-          }
+          down.add(@types.decimal_int(1))
         } else {
           down
         }
@@ -1486,15 +1615,38 @@ fn compile_regex(
   pattern : String,
   flags : String,
 ) -> @string.Regex raise @types.EngineError {
-  let mut body = translate_pattern(pattern)
+  let out = StringBuilder()
+  let mut escaped = false
+  let mut in_class = false
+  for ch in translate_pattern(pattern).to_array() {
+    if escaped {
+      out.write_char(ch)
+      escaped = false
+    } else if ch == '\\' {
+      out.write_char(ch)
+      escaped = true
+    } else if ch == '[' {
+      in_class = true
+      out.write_char(ch)
+    } else if ch == ']' {
+      in_class = false
+      out.write_char(ch)
+    } else if flags.contains("x") &&
+      !in_class &&
+      (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
+      ()
+    } else if ch == '.' && !in_class && !flags.contains("s") {
+      out.write_string("[^\n\r]")
+    } else {
+      out.write_char(ch)
+    }
+  }
+  let mut body = out.to_string()
   for ch in flags.to_array() {
     if ch == 'i' {
       body = "(?i:" + body + ")"
-    } else if ch == 's' || ch == 'm' || ch == 'x' || ch == 'q' {
-      raise err(
-        "E_BUILTIN_UNSUPPORTED",
-        "regular expression flag not supported: " + ch.to_string(),
-      )
+    } else if ch == 's' || ch == 'm' || ch == 'x' {
+      ()
     } else {
       raise err("E_REGEX", "unknown regular expression flag: " + ch.to_string())
     }
@@ -1593,36 +1745,42 @@ fn range_relation(
     "after" => range_relation("before", b, a)
     "meets" => {
       let c = bound_compare(a_end, b_start)
-      c == 0 && (!a_end_included || !b_start_included)
+      c == 0 && a_end_included && b_start_included
     }
     "met by" => range_relation("meets", b, a)
     "overlaps" => @types.Range::overlaps(as_range(a), as_range(b))
     "overlaps before" => {
       let starts = bound_compare(a_start, b_start)
       let ends = bound_compare(a_end, b_end)
-      starts < 0 && ends < 0 && @types.Range::overlaps(as_range(a), as_range(b))
+      (starts < 0 || (starts == 0 && a_start_included && !b_start_included)) &&
+      (ends < 0 || (ends == 0 && !a_end_included && b_end_included)) &&
+      @types.Range::overlaps(as_range(a), as_range(b))
     }
     "overlaps after" => range_relation("overlaps before", b, a)
     "finishes" => {
       let ends = bound_compare(a_end, b_end)
       let starts = bound_compare(a_start, b_start)
-      ends == 0 && a_end_included == b_end_included && starts > 0
+      ends == 0 &&
+      a_end_included == b_end_included &&
+      (starts > 0 || (starts == 0 && !a_start_included && b_start_included))
     }
     "finished by" => range_relation("finishes", b, a)
     "includes" => {
       let starts = bound_compare(b_start, a_start)
       let ends = bound_compare(a_end, b_end)
       let start_ok = starts > 0 ||
-        (starts == 0 && (b_start_included || !a_start_included))
+        (starts == 0 && (a_start_included || !b_start_included))
       let end_ok = ends > 0 ||
-        (ends == 0 && (b_end_included || !a_end_included))
+        (ends == 0 && (a_end_included || !b_end_included))
       start_ok && end_ok
     }
     "during" => range_relation("includes", b, a)
     "starts" => {
       let starts = bound_compare(a_start, b_start)
       let ends = bound_compare(a_end, b_end)
-      starts == 0 && a_start_included == b_start_included && ends < 0
+      starts == 0 &&
+      a_start_included == b_start_included &&
+      (ends < 0 || (ends == 0 && !a_end_included && b_end_included))
     }
     "started by" => range_relation("starts", b, a)
     "coincides" =>
@@ -1632,4 +1790,29 @@ fn range_relation(
       a_end_included == b_end_included
     _ => raise err("E_BUILTIN_UNSUPPORTED", name)
   }
+}
+
+///|
+fn put_path(
+  value : @types.Value,
+  keys : Array[@types.Value],
+  at : Int32,
+  replacement : @types.Value,
+) -> @types.Value raise @types.EngineError {
+  if keys.is_empty() {
+    raise err("E_TYPE", "empty context path")
+  }
+  let ctx = context_of(value, "context put").copy()
+  let key = text(keys[at], "context put")
+  ctx[key] = if at + 1 == keys.length() {
+    replacement
+  } else {
+    put_path(
+      ctx.get(key).unwrap_or(Context(Map([]))),
+      keys,
+      at + 1,
+      replacement,
+    )
+  }
+  Context(ctx)
 }
