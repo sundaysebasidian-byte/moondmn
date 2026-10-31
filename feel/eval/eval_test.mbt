@@ -18,14 +18,7 @@ test "arithmetic, scoped names, records and short circuit" {
 ///|
 test "null differs from runtime failure" {
   inspect(@eval.feel_eval("null + 1").json().stringify(), content="null")
-  assert_true(
-    try {
-      ignore(@eval.feel_eval("1 / 0"))
-      false
-    } catch {
-      _ => true
-    },
-  )
+  inspect(@eval.feel_eval("1 / 0").json().stringify(), content="null")
   assert_true(
     try {
       ignore(@eval.feel_eval("1 +\n )"))

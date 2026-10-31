@@ -1,116 +1,217 @@
 ///|
-/// Split only at top-level delimiters, preserving nested expressions and strings.
-pub fn split_tests(source : String) -> Array[String] raise @types.EngineError {
-  let out = []
-  let mut b = StringBuilder()
-  let mut depth = 0
-  let mut quoted = false
-  let mut escape = false
-  for ch in source.to_array() {
-    if escape {
-      b.write_char(ch)
-      escape = false
-      continue
-    }
-    if quoted && ch == '\\' {
-      b.write_char(ch)
-      escape = true
-      continue
-    }
-    if ch == '"' {
-      quoted = !quoted
-    }
-    if !quoted {
-      if ch == '(' || ch == '[' || ch == '{' {
-        depth = depth + 1
-      }
-      if ch == ')' || ch == ']' || ch == '}' {
-        depth = depth - 1
-      }
-      if ch == ',' && depth == 0 {
-        out.push(b.to_string().trim().to_owned())
-        b = StringBuilder()
-        continue
-      }
-    }
-    b.write_char(ch)
+/// Three-valued negation used by unary test evaluation.
+fn not3(value : @types.Value) -> @types.Value {
+  match value {
+    Boolean(b) => Boolean(!b)
+    _ => Null
   }
-  if quoted || depth != 0 {
-    raise @types.fail("E_UNARY_PARSE", "unbalanced unary test")
-  }
-  out.push(b.to_string().trim().to_owned())
-  out
 }
 
 ///|
+/// Three-valued conjunction used by unary test evaluation.
+fn and3(left : @types.Value, right : @types.Value) -> @types.Value {
+  match (left, right) {
+    (Boolean(false), _) | (_, Boolean(false)) => Boolean(false)
+    (Boolean(true), Boolean(true)) => Boolean(true)
+    _ => Null
+  }
+}
+
+///|
+/// Membership of an input in a list that may itself contain ranges and nested
+/// lists, as used by `x in [[1..3], [5..7]]`.
+fn membership(
+  input : @types.Value,
+  items : Array[@types.Value],
+) -> @types.Value raise @types.EngineError {
+  if input is Null {
+    return Null
+  }
+  let mut result : @types.Value = Boolean(false)
+  for item in items {
+    let hit : @types.Value = match item {
+      Range(r) => Boolean(r.contains(input)) catch { _ => Null }
+      List(inner) => membership(input, inner)
+      Null => Null
+      _ => Boolean(input.equals(item))
+    }
+    match hit {
+      Boolean(true) => return Boolean(true)
+      Boolean(false) => ()
+      _ => result = Null
+    }
+  }
+  result
+}
+
+///|
+/// Evaluate a unary test with FEEL three-valued logic. A result of `Null`
+/// means the test is indeterminate and must propagate as null.
+pub fn test_match_value(
+  check : @parser.Test,
+  input : @types.Value,
+  ctx : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  match check {
+    AnyTest => Boolean(true)
+    NotTest(inner) => not3(test_match_value(inner, input, ctx))
+    AnyOfTest(items) => {
+      let mut result : @types.Value = Boolean(false)
+      for item in items {
+        match test_match_value(item, input, ctx) {
+          Boolean(true) => return Boolean(true)
+          Boolean(false) => ()
+          _ => result = Null
+        }
+      }
+      result
+    }
+    CompareTest(op, expr) => {
+      let other = evaluate(expr, ctx)
+      if input is Null || other is Null {
+        return Null
+      }
+      match op {
+        "=" => Boolean(input.equals(other))
+        "!=" | "<>" => Boolean(!input.equals(other))
+        _ =>
+          match compare_or_null(op, input, other) {
+            Some(ok) => Boolean(ok)
+            None => Null
+          }
+      }
+    }
+    RangeTest(start, start_included, end, end_included) => {
+      let low : @types.Value = match start {
+        Some(expr) =>
+          match
+            compare_or_null(
+              if start_included {
+                ">="
+              } else {
+                ">"
+              },
+              input,
+              evaluate(expr, ctx),
+            ) {
+            Some(ok) => Boolean(ok)
+            None => Null
+          }
+        None => Boolean(true)
+      }
+      let high : @types.Value = match end {
+        Some(expr) =>
+          match
+            compare_or_null(
+              if end_included {
+                "<="
+              } else {
+                "<"
+              },
+              input,
+              evaluate(expr, ctx),
+            ) {
+            Some(ok) => Boolean(ok)
+            None => Null
+          }
+        None => Boolean(true)
+      }
+      and3(low, high)
+    }
+    ExprTest(expr) =>
+      if expr is Name("?") {
+        Boolean(true)
+      } else {
+        let value = evaluate(expr, scope_with(ctx, "?", input))
+        match value {
+          Boolean(b) => Boolean(b)
+          List(items) => membership(input, items)
+          Range(r) =>
+            if input is Null {
+              Null
+            } else {
+              Boolean(r.contains(input)) catch {
+                _ => Null
+              }
+            }
+          Null => Null
+          _ => if input is Null { Null } else { Boolean(input.equals(value)) }
+        }
+      }
+  }
+}
+
+///|
+/// Match a compiled unary test against an input value.
+pub fn test_matches(
+  check : @parser.Test,
+  input : @types.Value,
+  ctx : Map[String, @types.Value],
+) -> Bool raise @types.EngineError {
+  test_match_value(check, input, ctx) is Boolean(true)
+}
+
+///|
+fn compare_or_null(op : String, a : @types.Value, b : @types.Value) -> Bool? {
+  if a is Null || b is Null {
+    return None
+  }
+  try {
+    let order = @types.compare_values(a, b)
+    Some(
+      match op {
+        "<" => order < 0
+        ">" => order > 0
+        "<=" => order <= 0
+        ">=" => order >= 0
+        "=" => order == 0
+        _ => false
+      },
+    )
+  } catch {
+    _ => None
+  }
+}
+
+///|
+/// Priority index of a value inside an ordered comma-separated choice list.
+/// Returns -1 when the value is not present or the list is not enumerable.
+pub fn allowed_rank(
+  source : String,
+  value : @types.Value,
+  ctx : Map[String, @types.Value],
+) -> Int32 raise @types.EngineError {
+  let names = @builtins.names()
+  for key, _ in ctx {
+    names.push(key)
+  }
+  names.push("?")
+  let check = @parser.compile_test(source, names~)
+  match check {
+    AnyOfTest(items) => {
+      for i, item in items {
+        if test_matches(item, value, ctx) {
+          return i
+        }
+      }
+      -1
+    }
+    _ => if test_matches(check, value, ctx) { 0 } else { -1 }
+  }
+}
+
+///|
+/// Evaluate a decision table input entry or an `in` operand against an input.
 pub fn unary_test(
   source : String,
   input : @types.Value,
   ctx : Map[String, @types.Value],
 ) -> Bool raise @types.EngineError {
-  let source = source.trim().to_owned()
-  if source == "-" {
-    return true
+  let names = @builtins.names()
+  for key, _ in ctx {
+    names.push(key)
   }
-  let scope = ctx.copy()
-  scope["?"] = input
-  let tests = split_tests(source)
-  if tests.length() > 1 {
-    for item in tests {
-      if unary_test(item, input, ctx) {
-        return true
-      }
-    }
-    return false
-  }
-  if source.has_prefix("not(") && source.has_suffix(")") {
-    let inner = source
-      .strip_prefix("not(")
-      .unwrap()
-      .strip_suffix(")")
-      .unwrap()
-      .to_owned()
-    return !unary_test(inner, input, ctx)
-  }
-  if source.has_prefix("[") || source.has_prefix("(") {
-    let parts = source.split("..").to_array()
-    if parts.length() == 2 {
-      let left = parts[0].to_array()
-      let right = parts[1].to_array()
-      if left.length() < 2 || right.length() < 2 {
-        raise @types.fail("E_UNARY_PARSE", "invalid range")
-      }
-      let low = String::from_array(left[1:].to_owned())
-      let high = String::from_array(right[:right.length() - 1].to_owned())
-      let lo = binary(
-        if left[0] == '[' {
-          ">="
-        } else {
-          ">"
-        },
-        input,
-        feel_eval(low, ctx~),
-      )
-      let hi = binary(
-        if right[right.length() - 1] == ']' {
-          "<="
-        } else {
-          "<"
-        },
-        input,
-        feel_eval(high, ctx~),
-      )
-      return lo == Boolean(true) && hi == Boolean(true)
-    }
-  }
-  for op in ["<=", ">=", "<", ">", "="] {
-    if source.has_prefix(op) {
-      let other = feel_eval(source.strip_prefix(op).unwrap().to_owned(), ctx~)
-      return binary(op, input, other) == Boolean(true)
-    }
-  }
-  if source.contains("?") {
-    return feel_eval(source, ctx=scope) == Boolean(true)
-  }
-  input == feel_eval(source, ctx~)
+  names.push("?")
+  let check = @parser.compile_test(source, names~)
+  test_matches(check, input, scope_with(ctx, "?", input))
 }

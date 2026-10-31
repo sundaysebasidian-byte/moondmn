@@ -7,13 +7,19 @@ import {
 }
 
 // Values
+pub fn allowed_rank(String, @types.Value, Map[String, @types.Value]) -> Int32 raise @types.EngineError
+
 pub fn binary(String, @types.Value, @types.Value) -> @types.Value raise @types.EngineError
+
+pub fn call_function(@types.FunctionValue, Array[(String?, @types.Value)]) -> @types.Value raise @types.EngineError
 
 pub fn evaluate(@parser.Expr, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
 
 pub fn feel_eval(String, ctx? : Map[String, @types.Value]) -> @types.Value raise @types.EngineError
 
-pub fn split_tests(String) -> Array[String] raise @types.EngineError
+pub fn test_match_value(@parser.Test, @types.Value, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
+
+pub fn test_matches(@parser.Test, @types.Value, Map[String, @types.Value]) -> Bool raise @types.EngineError
 
 pub fn unary_test(String, @types.Value, Map[String, @types.Value]) -> Bool raise @types.EngineError
 

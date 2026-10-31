@@ -8,19 +8,45 @@ import {
 // Values
 pub fn compile(String, names? : Array[String]) -> Expr raise @types.EngineError
 
+pub fn compile_test(String, names? : Array[String]) -> Test raise @types.EngineError
+
 // Errors
 
 // Types and methods
+pub(all) struct Arg {
+  name : String?
+  value : Expr
+}
+
 pub(all) enum Expr {
-  Literal(@types.Value)
+  Lit(@types.Value)
   Name(String)
   Unary(String, Expr)
   Binary(String, Expr, Expr)
-  Conditional(Expr, Expr, Expr)
-  Sequence(Array[Expr])
-  Record(Array[(String, Expr)])
-  Call(String, Array[Expr])
+  IfThenElse(Expr, Expr, Expr)
+  ListLit(Array[Expr])
+  ContextLit(Array[(String, Expr)])
+  RangeLit(Expr?, Bool, Expr?, Bool)
+  Seq(Expr, Expr)
+  Call(Expr, Array[Arg])
   Path(Expr, String)
+  Filter(Expr, Expr)
+  For(Array[(String, Expr)], Expr)
+  SomeIn(Array[(String, Expr)], Expr)
+  EveryIn(Array[(String, Expr)], Expr)
+  FunctionDef(Array[String], Expr)
+  InstanceOf(Expr, String)
+  Between(Expr, Expr, Expr)
+  In(Expr, Test)
+}
+
+pub(all) enum Test {
+  AnyTest
+  NotTest(Test)
+  CompareTest(String, Expr)
+  RangeTest(Expr?, Bool, Expr?, Bool)
+  ExprTest(Expr)
+  AnyOfTest(Array[Test])
 }
 
 // Type aliases
