@@ -35,6 +35,10 @@ jobs:
           irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
           "$env:USERPROFILE\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
+      - name: Configure MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Toolchain version
         shell: bash
         run: moon version --all
@@ -65,6 +69,10 @@ jobs:
       - name: Test (js)
         shell: bash
         run: moon test --target js
+
+      - name: CLI integration
+        shell: bash
+        run: python scripts/test-cli.py
 
       - name: Interface drift
         shell: bash
