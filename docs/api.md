@@ -40,7 +40,7 @@ moon run cmd/main -- feel 'today()' --now 2024-02-29T23:30:00-05:00
 - `values` 是求值路径上每个决策的结果；`tables` 以决策名为键，给出命中策略和命中的规则下标（从 0 开始）。
   求值失败时 `tables` 仍随错误返回，例如 UNIQUE 多条命中时能看到是哪几条。
 - JSON 里的日期、时间、时长是字符串。`evaluate` 会按 InputData 声明的类型把它们转成对应的 FEEL 值，
-  根包的 `evaluate_decision` 不做这一步。
+  根包、CLI 与 Playground 共用 `@model.json_inputs`，递归处理 ItemDefinition、collection 和 null；非法字符串返回错误。
 
 ```js
 import * as dmn from "./moondmn.js";

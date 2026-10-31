@@ -177,7 +177,7 @@ pub fn evaluate(request : String) -> String {
     let model = @model.parse_model(xml)
     let input_text = object_text(req, "input")
     let clock = clock_field(req)
-    let supplied = typed_inputs(model, @types.json_context(input_text))
+    let supplied = @model.json_inputs(model, input_text)
     let scope = fn() { @eval.with_clock(supplied.copy(), clock) }
     let closure = dependency_closure(model, name, supplied)
     let values : Map[String, Json] = Map([])

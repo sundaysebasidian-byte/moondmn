@@ -328,3 +328,106 @@ fn coerce_variable(
     None => value
   }
 }
+
+///|
+/// Decode exact JSON input and convert declared temporal fields recursively.
+/// Conversion is confined to this JSON boundary, not FEEL string coercion.
+pub fn json_inputs(
+  model : Model,
+  json : String,
+) -> Map[String, @types.Value] raise @types.EngineError {
+  let out = @types.json_context(json)
+  for node in model.root.children {
+    if node.uri != model.root.uri ||
+      (node.name != "inputData" && node.name != "decision") {
+      continue
+    }
+    let name = node.attr("name")
+    if out.get(name) is Some(value) && node.child("variable") is Some(variable) {
+      out[name] = decode_declared(model, variable, value, 0, true)
+    }
+  }
+  out
+}
+
+///|
+fn decode_declared(
+  model : Model,
+  node : @xml.Node,
+  value : @types.Value,
+  depth : Int32,
+  collection : Bool,
+) -> @types.Value raise @types.EngineError {
+  if depth > 32 {
+    raise @types.fail("E_TYPE_CYCLE", "recursive JSON ItemDefinition")
+  }
+  if value is Null {
+    return value
+  }
+  if collection && node.attr("isCollection") == "true" {
+    let items = match value {
+      List(xs) => xs
+      _ => [value]
+    }
+    return List(
+      items.map(x => decode_declared(model, node, x, depth + 1, false)),
+    )
+  }
+  let fields = node.all("itemComponent")
+  if !fields.is_empty() {
+    let values = match value {
+      Context(c) => c.copy()
+      _ => raise @types.fail("E_TYPE", "JSON field must be an object")
+    }
+    for field in fields {
+      let key = field.attr("name")
+      if values.get(key) is Some(v) {
+        values[key] = decode_declared(model, field, v, depth + 1, true)
+      }
+    }
+    return Context(values)
+  }
+  let name = item_type_name(node)
+  for definition in model.root.all("itemDefinition") {
+    if definition.attr("name") == name {
+      return decode_declared(model, definition, value, depth + 1, true)
+    }
+  }
+  if value is List(items) {
+    return List(
+      items.map(x => decode_declared(model, node, x, depth + 1, false)),
+    )
+  }
+  if value is Text(text) {
+    match name {
+      "date" => return Date(@types.parse_date(text))
+      "time" => return Time(@types.parse_time(text))
+      "dateTime" | "date and time" =>
+        return DateTime(@types.parse_datetime(text))
+      "dayTimeDuration"
+      | "days and time duration"
+      | "yearMonthDuration"
+      | "years and months duration"
+      | "duration" => {
+        let (days, months) = @types.parse_duration(text)
+        let ym = text.contains("Y") ||
+          text.split("T").to_array()[0].contains("M")
+        if name == "dayTimeDuration" || name == "days and time duration" {
+          if ym {
+            raise @types.fail("E_TYPE", "expected days and time duration")
+          }
+          return DaysSeconds(days)
+        }
+        if name == "yearMonthDuration" || name == "years and months duration" {
+          if !ym {
+            raise @types.fail("E_TYPE", "expected years and months duration")
+          }
+          return YearsMonths(months)
+        }
+        return if ym { YearsMonths(months) } else { DaysSeconds(days) }
+      }
+      _ => ()
+    }
+  }
+  value
+}

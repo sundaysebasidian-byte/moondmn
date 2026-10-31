@@ -30,7 +30,7 @@ pub fn evaluate_decision(
   @model.evaluate_decision(
     model,
     name,
-    @eval.with_clock(@types.json_context(input), clock),
+    @eval.with_clock(@model.json_inputs(model, input), clock),
   )
   .json()
   .stringify()
