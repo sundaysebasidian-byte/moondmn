@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "sundaysebasidian-byte/moondmn/playground"
+
+// Values
+pub fn evaluate(String) -> String
+
+pub fn feel_eval(String) -> String
+
+pub fn lint(String) -> String
+
+pub fn parse_dmn(String) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

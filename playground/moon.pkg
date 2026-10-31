@@ -1,0 +1,16 @@
+import {
+  "moonbitlang/core/json",
+  "sundaysebasidian-byte/moondmn/dmn/model",
+  "sundaysebasidian-byte/moondmn/dmn/xml",
+  "sundaysebasidian-byte/moondmn/feel/eval",
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
+
+options(
+  link: {
+    "js": {
+      "exports": [ "feel_eval", "parse_dmn", "evaluate", "lint" ],
+      "format": "esm",
+    },
+  },
+)
