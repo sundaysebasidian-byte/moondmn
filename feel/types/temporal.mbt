@@ -540,9 +540,16 @@ pub fn date_add_days(date : Date, days : Int64) -> Date {
 ///|
 /// Add signed months, clamping the day to the destination month.
 pub fn date_add_months(date : Date, months : Int32) -> Date raise EngineError {
-  let total = date.year * 12 + (date.month - 1) + months
-  let year = if total >= 0 { total / 12 } else { (total - 11) / 12 }
-  let month = total - year * 12 + 1
+  let total = date.year.to_int64() * 12L +
+    date.month.to_int64() -
+    1L +
+    months.to_int64()
+  let year = total / 12L - (if total % 12L < 0L { 1L } else { 0L })
+  if year < -999999999L || year > 999999999L {
+    raise fail("E_DATE_RANGE", "month arithmetic exceeds supported years")
+  }
+  let month = (total - year * 12L + 1L).to_int()
+  let year = year.to_int()
   let day = if date.day > days_in_month(year, month) {
     days_in_month(year, month)
   } else {
