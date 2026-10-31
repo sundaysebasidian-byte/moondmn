@@ -1119,10 +1119,7 @@ pub fn feel_eval(
   source : String,
   ctx~ : Map[String, @types.Value] = Map([]),
 ) -> @types.Value raise @types.EngineError {
-  let names = @builtins.names()
-  for name in @builtins.names() {
-    names.append(@builtins.params(name))
-  }
+  let names = @builtins.lexer_names()
   for k, _ in ctx {
     names.push(k)
   }

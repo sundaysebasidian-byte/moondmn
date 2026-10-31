@@ -12,6 +12,8 @@ pub fn call_args(String, Array[(String?, @types.Value)]) -> @types.Value raise @
 
 pub fn has(String) -> Bool
 
+pub fn lexer_names() -> Array[String]
+
 pub fn names() -> Array[String]
 
 pub fn params(String) -> Array[String]

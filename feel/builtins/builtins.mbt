@@ -119,28 +119,51 @@ fn call_function(
 ///|
 /// Names recognised by the FEEL lexer and evaluator. Multi-word entries must
 /// stay in this list so that names with spaces are tokenised as one unit.
+let builtin_names : Array[String] = [
+  "date", "time", "date and time", "duration", "years and months duration", "not",
+  "number", "string", "string length", "upper case", "lower case", "substring", "substring before",
+  "substring after", "contains", "starts with", "ends with", "matches", "replace",
+  "split", "string join", "trim", "decimal", "floor", "ceiling", "round up", "round down",
+  "round half up", "round half down", "abs", "modulo", "sqrt", "log", "exp", "odd",
+  "even", "count", "min", "max", "sum", "mean", "median", "stddev", "mode", "product",
+  "all", "any", "list contains", "sublist", "append", "concatenate", "insert before",
+  "remove", "list replace", "reverse", "index of", "union", "distinct values", "flatten",
+  "sort", "not", "get value", "get entries", "context put", "context merge", "context",
+  "day of week", "day of year", "week of year", "month of year", "day of month",
+  "year", "today", "now", "before", "after", "meets", "met by", "overlaps", "overlaps before",
+  "overlaps after", "finishes", "finished by", "includes", "during", "starts", "started by",
+  "coincides", "start included", "end included", "time offset", "weekday", "timezone",
+  "is", "range",
+]
+
+///|
+let lexical_names : Array[String] = {
+  let out = builtin_names.copy()
+  for name in builtin_names {
+    for param in params(name) {
+      if !out.contains(param) {
+        out.push(param)
+      }
+    }
+  }
+  out
+}
+
+///|
+/// Return an independent builtin name list; callers may append scoped names.
 pub fn names() -> Array[String] {
-  [
-    "date", "time", "date and time", "duration", "years and months duration", "not",
-    "number", "string", "string length", "upper case", "lower case", "substring",
-    "substring before", "substring after", "contains", "starts with", "ends with",
-    "matches", "replace", "split", "string join", "trim", "decimal", "floor", "ceiling",
-    "round up", "round down", "round half up", "round half down", "abs", "modulo",
-    "sqrt", "log", "exp", "odd", "even", "count", "min", "max", "sum", "mean", "median",
-    "stddev", "mode", "product", "all", "any", "list contains", "sublist", "append",
-    "concatenate", "insert before", "remove", "list replace", "reverse", "index of",
-    "union", "distinct values", "flatten", "sort", "not", "get value", "get entries",
-    "context put", "context merge", "context", "day of week", "day of year", "week of year",
-    "month of year", "day of month", "year", "today", "now", "before", "after", "meets",
-    "met by", "overlaps", "overlaps before", "overlaps after", "finishes", "finished by",
-    "includes", "during", "starts", "started by", "coincides", "start included",
-    "end included", "time offset", "weekday", "timezone", "is", "range",
-  ]
+  builtin_names.copy()
+}
+
+///|
+/// Cached lexical vocabulary including multi-word named parameters.
+pub fn lexer_names() -> Array[String] {
+  lexical_names.copy()
 }
 
 ///|
 pub fn has(name : String) -> Bool {
-  params(name).length() >= 0 && names().contains(name)
+  builtin_names.contains(name)
 }
 
 ///|

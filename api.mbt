@@ -42,7 +42,7 @@ pub fn compile(
   source : String,
   names~ : Array[String] = [],
 ) -> @parser.Expr raise @types.EngineError {
-  let scope = @builtins.names()
+  let scope = @builtins.lexer_names()
   scope.append(names)
   @parser.compile(source, names=scope)
 }
