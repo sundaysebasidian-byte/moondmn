@@ -1,5 +1,5 @@
 ///|
-fn r1_model(
+fn json_model(
   type_name : String,
   expression : String,
   definitions~ : String = "",
@@ -16,10 +16,10 @@ fn r1_model(
 }
 
 ///|
-test "R1 I2 JSON temporal inputs share the declared conversion boundary" {
+test "JSON temporal inputs share the declared conversion boundary" {
   inspect(
     @moondmn.evaluate_decision(
-      r1_model("date", "x + duration(\"P1D\")"),
+      json_model("date", "x + duration(\"P1D\")"),
       "d",
       "{\"x\":\"2024-02-28\"}",
     ),
@@ -27,7 +27,7 @@ test "R1 I2 JSON temporal inputs share the declared conversion boundary" {
   )
   inspect(
     @moondmn.evaluate_decision(
-      r1_model("time", "x.hour"),
+      json_model("time", "x.hour"),
       "d",
       "{\"x\":\"12:30:00Z\"}",
     ),
@@ -35,7 +35,7 @@ test "R1 I2 JSON temporal inputs share the declared conversion boundary" {
   )
   inspect(
     @moondmn.evaluate_decision(
-      r1_model("date and time", "x.year"),
+      json_model("date and time", "x.year"),
       "d",
       "{\"x\":\"2024-02-29T12:30:00Z\"}",
     ),
@@ -43,7 +43,7 @@ test "R1 I2 JSON temporal inputs share the declared conversion boundary" {
   )
   inspect(
     @moondmn.evaluate_decision(
-      r1_model("days and time duration", "x.days"),
+      json_model("days and time duration", "x.days"),
       "d",
       "{\"x\":\"P2D\"}",
     ),
@@ -51,20 +51,20 @@ test "R1 I2 JSON temporal inputs share the declared conversion boundary" {
   )
   inspect(
     @moondmn.evaluate_decision(
-      r1_model("years and months duration", "x.months"),
+      json_model("years and months duration", "x.months"),
       "d",
       "{\"x\":\"P1Y2M\"}",
     ),
     content="2",
   )
   inspect(
-    @moondmn.evaluate_decision(r1_model("date", "x"), "d", "{\"x\":null}"),
+    @moondmn.evaluate_decision(json_model("date", "x"), "d", "{\"x\":null}"),
     content="null",
   )
   let code = try {
     ignore(
       @moondmn.evaluate_decision(
-        r1_model("date", "x"),
+        json_model("date", "x"),
         "d",
         "{\"x\":\"2023-02-29\"}",
       ),
@@ -77,9 +77,13 @@ test "R1 I2 JSON temporal inputs share the declared conversion boundary" {
 }
 
 ///|
-test "R1 I2 nested collections aliases and precise numbers" {
+test "nested collections aliases and precise numbers" {
   let definitions = "<itemDefinition name='Dates' isCollection='true'><typeRef>date</typeRef></itemDefinition><itemDefinition name='T'><itemComponent name='Business Dates' typeRef='Dates'/><itemComponent name='Amount' typeRef='number'/></itemDefinition>"
-  let model = r1_model("T", "[x.Business Dates[1].day, x.Amount]", definitions~)
+  let model = json_model(
+    "T",
+    "[x.Business Dates[1].day, x.Amount]",
+    definitions~,
+  )
   inspect(
     @moondmn.evaluate_decision(
       model, "d", "{\"x\":{\"Business Dates\":[\"2024-02-29\",null],\"Amount\":1234567890123456789012345678901234}}",

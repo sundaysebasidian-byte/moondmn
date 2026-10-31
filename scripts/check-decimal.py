@@ -24,5 +24,5 @@ actual = json.loads(process.stdout, parse_float=d.Decimal, parse_int=d.Decimal)
 assert len(actual) == len(expected)
 for expression, want, got in zip(expressions, expected, actual):
     assert want == got, (expression, str(want), str(got))
-Path('evidence/r1-decimal-oracle.json').write_text(json.dumps({'oracle':'Python decimal.Context', 'precision':34, 'Emin':-6143, 'Emax':6144, 'rounding':'ROUND_HALF_EVEN', 'clamp':1, 'seed':1439, 'cases':len(expected), 'passed':len(expected)}, indent=2)+'\n')
+Path('evidence/decimal-oracle.json').write_text(json.dumps({'oracle':'Python decimal.Context', 'precision':34, 'Emin':-6143, 'Emax':6144, 'rounding':'ROUND_HALF_EVEN', 'clamp':1, 'seed':1439, 'cases':len(expected), 'passed':len(expected)}, indent=2)+'\n')
 print(f'decimal128 oracle: {len(expected)} arithmetic cases passed')

@@ -81,7 +81,7 @@ for case in reports[3]['cases']:
 assert len(rows) == reports[3]['failed']
 assert len({(r['file'], r['id']) for r in rows}) == len(rows)
 counts = collections.Counter(r['category'] for r in rows)
-(root / 'evidence/r1-failure-classification.json').write_text(json.dumps({'total':len(rows), 'categories':dict(counts), 'cases':rows}, ensure_ascii=False, indent=2)+'\n')
+(root / 'evidence/failure-classification.json').write_text(json.dumps({'total':len(rows), 'categories':dict(counts), 'cases':rows}, ensure_ascii=False, indent=2)+'\n')
 path = root / 'docs/conformance.md'
 text = path.read_text()
 for level, report in reports.items():
@@ -97,7 +97,7 @@ marker = '\n## R1 剩余失败逐例语义清单'
 text = text.split(marker)[0].rstrip() + '\n'
 text += marker + '\n\n所有失败均保留，未改 runner、比较容差或上游期望值；分类不改变 pass/fail。\n'
 text += '“已知 bug”包含已确认的不一致；综合信贷链的直接根因尚未完全定位，已明确标注。\n'
-text += '机器可审计清单：`evidence/r1-failure-classification.json`。每行以文件路径和 case ID 唯一标识。\n\n'
+text += '机器可审计清单：`evidence/failure-classification.json`。每行以文件路径和 case ID 唯一标识。\n\n'
 text += '| 语义分类 | 失败数 |\n| --- | ---: |\n' + ''.join(f'| {name} | {count} |\n' for name,count in sorted(counts.items()))
 text += '\n| 套件 / 测试文件 | case ID | 分类 | 原因 |\n| --- | --- | --- | --- |\n'
 def cell(value): return value.replace('|','&#124;').replace('\n',' ').replace('<','&lt;').replace('>','&gt;')
