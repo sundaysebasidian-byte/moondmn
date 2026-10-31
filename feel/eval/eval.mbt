@@ -60,7 +60,7 @@ pub fn evaluate(
           )
         _ => Null
       }
-    Call(name, args) => builtin(name, args.map(a => evaluate(a, ctx)))
+    Call(name, args) => @builtins.call(name, args.map(a => evaluate(a, ctx)))
   }
 }
 
@@ -117,27 +117,11 @@ pub fn binary(
 }
 
 ///|
-fn builtin(
-  name : String,
-  xs : Array[@types.Value],
-) -> @types.Value raise @types.EngineError {
-  match (name, xs) {
-    ("not", [Boolean(b)]) => Boolean(!b)
-    ("not", [Null]) => Null
-    _ =>
-      raise @types.fail(
-        "E_BUILTIN_UNSUPPORTED",
-        "unsupported function or arguments: " + name,
-      )
-  }
-}
-
-///|
 pub fn feel_eval(
   source : String,
   ctx~ : Map[String, @types.Value] = Map([]),
 ) -> @types.Value raise @types.EngineError {
-  let names = ["not"]
+  let names = @builtins.names()
   for k, _ in ctx {
     names.push(k)
   }
