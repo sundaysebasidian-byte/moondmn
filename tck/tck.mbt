@@ -16,9 +16,10 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     Some(v) => v
     None => raise @types.fail("E_TCK_VALUE", "missing value")
   }
-  if v.attributes.values().any(x => x == "true") &&
-    v.attributes.keys().any(k => k.has_suffix(":nil")) {
-    return Null
+  for k, att in v.attributes {
+    if k.has_suffix(":nil") && att == "true" {
+      return Null
+    }
   }
   let mut kind = "xsd:string"
   for k, v in v.attributes {
@@ -41,17 +42,49 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     | "xs:decimal"
     | "xsd:double"
     | "xs:double"
+    | "xsd:float"
+    | "xs:float"
     | "xsd:integer"
-    | "xs:integer" => Number(@types.decimal(text))
+    | "xs:integer"
+    | "xsd:int"
+    | "xs:int"
+    | "xsd:long"
+    | "xs:long"
+    | "xsd:short"
+    | "xs:short"
+    | "xsd:byte"
+    | "xs:byte"
+    | "xsd:nonNegativeInteger"
+    | "xs:nonNegativeInteger" => Number(@types.decimal(text))
+    "xsd:date" | "xs:date" => Date(@types.parse_date(text))
+    "xsd:time" | "xs:time" => Time(@types.parse_time(text))
+    "xsd:dateTime" | "xs:dateTime" | "xsd:date-time" | "xs:date-time" =>
+      DateTime(@types.parse_datetime(text))
+    "xsd:duration" | "xs:duration" => {
+      let (days, months) = @types.parse_duration(text)
+      if text.contains("Y") || (text.contains("M") && !text.contains("T")) {
+        YearsMonths(months)
+      } else {
+        DaysSeconds(days)
+      }
+    }
+    "xsd:dayTimeDuration" | "xs:dayTimeDuration" =>
+      DaysSeconds(@types.parse_duration(text).0)
+    "xsd:yearMonthDuration" | "xs:yearMonthDuration" =>
+      YearsMonths(@types.parse_duration(text).1)
     other => raise @types.fail("E_TCK_TYPE_UNSUPPORTED", other)
   }
 }
 
 ///|
-/// Strict recursive comparison. Temporal equivalence and tolerance remain unsupported.
-pub fn equal(a : @types.Value, b : @types.Value) -> Bool {
+/// Recursive comparison with the TCK numeric tolerance of 1e-8.
+pub fn equal(
+  a : @types.Value,
+  b : @types.Value,
+) -> Bool raise @types.EngineError {
   match (a, b) {
-    (Number(x), Number(y)) => x.compare(y) == 0
+    (Number(x), Number(y)) =>
+      x.add(y.negate()).abs().compare(@types.decimal("0.00000001")) <= 0
     (List(xs), List(ys)) => {
       if xs.length() != ys.length() {
         return false
@@ -73,7 +106,7 @@ pub fn equal(a : @types.Value, b : @types.Value) -> Bool {
           None => false
         }
       })
-    _ => a == b
+    _ => a.equals(b)
   }
 }
 
@@ -85,13 +118,66 @@ fn error_code(e : @types.EngineError) -> String {
 }
 
 ///|
+fn sole_output(
+  outputs : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  for _, v in outputs {
+    return v
+  }
+  raise @types.fail("E_DMN_SERVICE", "decision service has no outputs")
+}
+
+///|
+fn case_value(
+  model : @model.Model,
+  kind : String,
+  invocable : String,
+  result : @xml.Node,
+  inputs : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  if kind == "bkm" {
+    @model.evaluate_bkm(model, invocable, inputs)
+  } else if kind == "decisionService" {
+    let outputs = @model.evaluate_service(model, invocable, inputs)
+    match outputs.get(result.attr("name")) {
+      Some(v) => v
+      None =>
+        if outputs.length() == 1 {
+          sole_output(outputs)
+        } else {
+          raise @types.fail(
+            "E_TCK_RESULT",
+            "unknown output decision: " + result.attr("name"),
+          )
+        }
+    }
+  } else {
+    @model.evaluate_decision(model, result.attr("name"), inputs)
+  }
+}
+
+///|
+/// Error codes that represent a genuine semantic failure, as opposed to an
+/// implementation limitation that must never satisfy an expected error.
+fn semantic_error(code : String) -> Bool {
+  [
+    "E_HIT_UNIQUE", "E_HIT_ANY", "E_INPUT_VALUES", "E_OUTPUT_VALUES", "E_DIV_ZERO",
+    "E_NUMBER", "E_DECIMAL_RANGE", "E_DECIMAL_SYNTAX", "E_TYPE", "E_ARITY", "E_INPUT_MISSING",
+    "E_DMN_SERVICE", "E_DATE_INVALID", "E_TIME_INVALID", "E_DATETIME_INVALID", "E_DURATION_INVALID",
+    "E_DATE_RANGE", "E_TEMPORAL", "E_RANGE", "E_REGEX",
+  ].contains(code)
+}
+
+///|
 fn check_case(
   model : @model.Model,
   case : @xml.Node,
 ) -> Unit raise @types.EngineError {
-  if case.attr("type") != "" && case.attr("type") != "decision" {
-    raise @types.fail("E_TCK_CASE_UNSUPPORTED", case.attr("type"))
+  let kind = case.attr("type")
+  if !["", "decision", "bkm", "decisionService"].contains(kind) {
+    raise @types.fail("E_TCK_CASE_UNSUPPORTED", kind)
   }
+  let invocable = case.attr("invocableName")
   let inputs = Map([])
   for input in case.all("inputNode") {
     inputs[input.attr("name")] = value(input)
@@ -101,21 +187,27 @@ fn check_case(
     raise @types.fail("E_TCK_RESULT", "no result nodes")
   }
   for result in results {
-    let actual = Ok(
-      @model.evaluate_decision(model, result.attr("name"), inputs),
-    ) catch {
+    let actual = Ok(case_value(model, kind, invocable, result, inputs)) catch {
       e => Err(e)
     }
     if result.attr("errorResult") == "true" {
       // Unsupported implementation paths must never satisfy an expected semantic error.
+      // A null result is also accepted when the expected node is null: FEEL defines
+      // many invalid operations (division by zero, bad argument types) as null.
+      let expects_null = try {
+        match result.child("expected") {
+          Some(n) => value(n) is Null
+          None => true
+        }
+      } catch {
+        _ => false
+      }
       match actual {
-        Err(e) =>
-          if ![
-              "E_HIT_UNIQUE", "E_HIT_ANY", "E_INPUT_VALUES", "E_OUTPUT_VALUES", "E_DIV_ZERO",
-            ].contains(error_code(e)) {
-            raise e
+        Err(e) => if !semantic_error(error_code(e)) { raise e }
+        Ok(v) =>
+          if !(expects_null && v is Null) {
+            raise @types.fail("E_TCK_EXPECTED_ERROR", "expected error")
           }
-        Ok(_) => raise @types.fail("E_TCK_EXPECTED_ERROR", "expected error")
       }
     } else {
       let expected = match result.child("expected") {
@@ -184,6 +276,7 @@ pub fn run(directory : String) -> Json raise Error {
     }
     for case in cases {
       total = total + 1
+      let mut detail = ""
       let outcome = try {
         match model {
           Ok(m) => check_case(m, case)
@@ -191,7 +284,10 @@ pub fn run(directory : String) -> Json raise Error {
         }
         "PASS"
       } catch {
-        @types.Failure(code, _, _, _) => code
+        @types.Failure(code, _, _, message) => {
+          detail = message
+          code
+        }
         _ => "E_IO"
       }
       if outcome == "PASS" {
@@ -205,6 +301,7 @@ pub fn run(directory : String) -> Json raise Error {
             ("file", Json(path)),
             ("id", Json(case.attr("id"))),
             ("status", Json(outcome)),
+            ("detail", Json(detail)),
           ]),
         ),
       )
