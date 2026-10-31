@@ -1,0 +1,23 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "sundaysebasidian-byte/moondmn/feel/lexer"
+
+import {
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
+
+// Values
+pub fn lex(String, Array[String]) -> Array[Token] raise @types.EngineError
+
+// Errors
+
+// Types and methods
+pub struct Token {
+  text : String
+  kind : String
+  line : Int32
+  column : Int32
+}
+
+// Type aliases
+
+// Traits
