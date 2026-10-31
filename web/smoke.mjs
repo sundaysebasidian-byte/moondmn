@@ -172,4 +172,15 @@ test("errors come back as JSON and never throw", () => {
   assert.equal(call("feel_eval", { expression: "1", now: "yesterday" }).ok, false);
 });
 
+test("malformed boxed conditional stays inside the JSON boundary", () => {
+  const parts = ["<if><literalExpression><text>false</text></literalExpression></if>", "<then><literalExpression><text>1</text></literalExpression></then>", "<else><literalExpression><text>2</text></literalExpression></else>"];
+  for (let missing = 0; missing < 3; missing++) {
+    const xml = `<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/"><decision id="D" name="D"><conditional>${parts.filter((_, i) => i !== missing).join("")}</conditional></decision></definitions>`;
+    const response = call("evaluate", { xml, decision: "D", input: {} });
+    assert.equal(response.ok, false);
+    assert.equal(response.error.code, "E_DMN_SHAPE");
+    assert.ok(response.error.line >= 1 && response.error.column >= 1);
+  }
+});
+
 console.log(`${passed} passed`);

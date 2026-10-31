@@ -531,11 +531,13 @@ fn boxed(
       })
     }
     "conditional" => {
-      let condition = boxed(expression_child(node.child("if").unwrap()), ctx)
-      match condition {
-        Boolean(true) =>
-          boxed(expression_child(node.child("then").unwrap()), ctx)
-        _ => boxed(expression_child(node.child("else").unwrap()), ctx)
+      let condition = expression_child(required_child(node, "if"))
+      let yes = expression_child(required_child(node, "then"))
+      let no = expression_child(required_child(node, "else"))
+      match boxed(condition, ctx) {
+        Boolean(true) => boxed(yes, ctx)
+        Boolean(false) => boxed(no, ctx)
+        _ => Null
       }
     }
     "filter" => {
@@ -757,4 +759,21 @@ fn iterator_envs(
     out.append(iterator_envs(bindings, index + 1, inner, count + out.length()))
   }
   out
+}
+
+///|
+fn required_child(
+  node : @xml.Node,
+  name : String,
+) -> @xml.Node raise @types.EngineError {
+  let children = node.all(name)
+  if children.length() != 1 {
+    raise @types.Failure(
+      "E_DMN_SHAPE",
+      node.line,
+      node.column,
+      "expected exactly one " + name + " in " + node.name,
+    )
+  }
+  children[0]
 }
