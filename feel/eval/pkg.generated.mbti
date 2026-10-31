@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "sundaysebasidian-byte/moondmn/feel/eval"
+
+import {
+  "sundaysebasidian-byte/moondmn/feel/parser",
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
+
+// Values
+pub fn binary(String, @types.Value, @types.Value) -> @types.Value raise @types.EngineError
+
+pub fn evaluate(@parser.Expr, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
+
+pub fn feel_eval(String, ctx? : Map[String, @types.Value]) -> @types.Value raise @types.EngineError
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
