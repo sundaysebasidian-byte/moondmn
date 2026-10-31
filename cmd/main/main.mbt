@@ -15,8 +15,14 @@ fn option(
 fn run(args : Array[String]) -> Unit raise Error {
   if args.length() < 3 {
     raise @types.fail(
-      "E_CLI_USAGE", "usage: moondmn feel <expr> [--context file] | eval <model> --decision name --input file | lint <model> | tck <dir> [--json out]",
+      "E_CLI_USAGE", "usage: moondmn feel <expr> [--context file] [--now ISO-datetime] | eval <model> --decision name --input file | lint <model> | tck <dir> [--json out]",
     )
+  }
+  let clock = if args.contains("--now") {
+    let fixed = @types.parse_datetime(option(args, "--now"))
+    Some(fn() { fixed })
+  } else {
+    None
   }
   match args[1] {
     "lint" =>
@@ -39,7 +45,7 @@ fn run(args : Array[String]) -> Unit raise Error {
       } else {
         "{}"
       }
-      println(@lib.feel_eval(args[2], context~))
+      println(@lib.feel_eval(args[2], context~, clock~))
     }
     "eval" => {
       let model = @lib.parse_model(@fs.read_file_to_string(args[2]))
@@ -48,6 +54,7 @@ fn run(args : Array[String]) -> Unit raise Error {
           model,
           option(args, "--decision"),
           @fs.read_file_to_string(option(args, "--input")),
+          clock~,
         ),
       )
     }

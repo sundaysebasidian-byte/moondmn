@@ -10,11 +10,11 @@ import {
 // Values
 pub fn compile(String, names? : Array[String]) -> @parser.Expr raise @types.EngineError
 
-pub fn evaluate_compiled(@parser.Expr, String) -> String raise @types.EngineError
+pub fn evaluate_compiled(@parser.Expr, String, clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
 
-pub fn evaluate_decision(@model.Model, String, String) -> String raise @types.EngineError
+pub fn evaluate_decision(@model.Model, String, String, clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
 
-pub fn feel_eval(String, context? : String) -> String raise @types.EngineError
+pub fn feel_eval(String, context? : String, clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
 
 pub fn parse_model(String) -> @model.Model raise @types.EngineError
 
