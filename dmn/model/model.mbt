@@ -155,6 +155,7 @@ pub fn boxed(
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
   match node.name {
+    "decisionTable" => table(node, ctx)
     "literalExpression" => {
       let language = node.attr("expressionLanguage")
       if language != "" && !language.contains("FEEL") {
