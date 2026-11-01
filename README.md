@@ -66,7 +66,7 @@ moon build
 在已有 MoonBit 模块中安装：
 
 ```bash
-moon add sundaysebasidian-byte/moondmn@0.1.0
+moon add sundaysebasidian-byte/moondmn
 ```
 
 从源码构建并运行 CLI：
@@ -84,8 +84,7 @@ moon run cmd/main -- feel 'sum([1, 2, 3]) * 2'
 12
 ```
 
-发布后计划支持 `moon add sundaysebasidian-byte/moondmn@0.1.0`。现在要在自己的 MoonBit 项目里用，
-把本仓库放进同一个 workspace，并在包里添加：
+也可以把本仓库放进同一个 workspace 使用。无论哪种方式，都在包里添加：
 
 ```text
 import {

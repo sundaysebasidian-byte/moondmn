@@ -20,7 +20,9 @@ Level 3 剩余 40 个失败：Java 外部函数 18、跨文件 import 7、Unicod
 | `now()` / `today()`；正则 Unicode、开闭区间关系、部分隐式转换 | 需调用方注入时钟；其余部分支持 |
 | DMN 1.5 `import`、外部 Java 函数 | 明确不支持 |
 `import` 要做多文件解析和命名空间合并，计划后续补。Java 外部函数依赖 JVM，与 wasm-gc / js 的目标冲突，不会实现。引擎不读系统时钟，时间由调用方注入。
+## 基础与本期工作
+2026-10-31 新建仓库从零开发，此前没有代码基础；仓库全部提交均为本期工作。技术路线：命名空间感知 XML 解析 → 作用域感知的 FEEL 词法/语法 → Decimal128 精确数值求值 → DRG 依赖图求值，同一库编译到 native、wasm-gc、js。
 ## 测试与文档计划
-三后端 `moon check --deny-warn`、`moon test`、`moon fmt --check`，接口 `.mbti` 漂移检查，CLI 与 Playground 冒烟测试，独立 TCK 任务；文档为 README、API、设计、一致性、性能和变更记录。
+四后端 `moon check --deny-warn`、`moon test`、`moon fmt --check`，接口 `.mbti` 漂移检查，CLI 与 Playground 冒烟测试，独立 TCK 任务；文档为 README、API、设计、一致性、性能和变更记录。
 ## 原创与参考
 实现、测试、示例模型均为原创。参考：OMG DMN 1.5 规范；dmn-tck 测试用例（https://github.com/dmn-tck/tck，Apache-2.0，用例采用 CC 署名-相同方式共享），只在运行时下载，不入库；IANA tzdata 2026e（公有领域）生成时区子集。
