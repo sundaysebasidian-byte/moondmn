@@ -130,7 +130,7 @@ pub fn test_match_value(
         let value = evaluate(expr, scope_with(ctx, "?", input))
         match value {
           Boolean(b) =>
-            if expr is Lit(Boolean(_)) || expr is Name(_) || expr is Path(_, _) {
+            if !uses_input(expr) {
               Boolean(input.equals(Boolean(b)))
             } else {
               Boolean(b)
@@ -229,4 +229,45 @@ pub fn unary_test(
   names.push("?")
   let check = @parser.compile_test(source, names~)
   test_matches(check, input, scope_with(ctx, "?", input))
+}
+
+///|
+// Predicate syntax depends on a reference to ?, including nested expressions.
+fn uses_input(expr : @parser.Expr) -> Bool {
+  match expr {
+    Name(name) => name == "?"
+    Lit(_) => false
+    Unary(_, value)
+    | Path(value, _)
+    | InstanceOf(value, _)
+    | FunctionDef(_, value)
+    | TypedFunctionDef(_, value) => uses_input(value)
+    Binary(_, left, right) | Seq(left, right) | Filter(left, right) =>
+      uses_input(left) || uses_input(right)
+    IfThenElse(a, b, c) | Between(a, b, c) =>
+      uses_input(a) || uses_input(b) || uses_input(c)
+    ListLit(items) => items.iter().any(uses_input)
+    ContextLit(items) => items.iter().any(item => uses_input(item.1))
+    RangeLit(start, _, end, _) =>
+      (start is Some(value) && uses_input(value)) ||
+      (end is Some(value) && uses_input(value))
+    Call(function, args) =>
+      uses_input(function) || args.iter().any(arg => uses_input(arg.value))
+    For(bindings, body) | SomeIn(bindings, body) | EveryIn(bindings, body) =>
+      bindings.iter().any(binding => uses_input(binding.1)) || uses_input(body)
+    In(value, check) => uses_input(value) || test_uses_input(check)
+  }
+}
+
+///|
+fn test_uses_input(check : @parser.Test) -> Bool {
+  match check {
+    AnyTest => false
+    NotTest(inner) => test_uses_input(inner)
+    CompareTest(_, expr) | ExprTest(expr) => uses_input(expr)
+    AnyOfTest(items) => items.iter().any(test_uses_input)
+    RangeTest(start, _, end, _) =>
+      (start is Some(value) && uses_input(value)) ||
+      (end is Some(value) && uses_input(value))
+  }
 }
