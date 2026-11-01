@@ -15,10 +15,10 @@
   "checks": {
     "moon check --deny-warn --target all": "PASS",
     "moon test --target all": {
-      "wasm": 271,
-      "wasm-gc": 271,
-      "js": 271,
-      "native": 271
+      "wasm": 273,
+      "wasm-gc": 273,
+      "js": 273,
+      "native": 273
     },
     "moon fmt --check": "PASS",
     "moon info; git diff --exit-code -- *.mbti": "PASS",
@@ -32,12 +32,13 @@
     "evidence/tck-level-3.json": "ab1871ffcc0093e205e9285a615251825eaa21a4c148d1fc0d16d4111bbc0d76",
     "evidence/failure-classification.json": "24347df27c2da9837df8e8de80de3983e1d445586abb404d3addf37d794f9923"
   },
-  "non_test_mbt_lines": 14525,
+  "non_test_mbt_lines": 14581,
   "generated_tzdata_lines": 4394,
   "whitebox_test_lines": 38,
-  "handwritten_non_test_lines": 10093,
+  "handwritten_non_test_lines": 10149,
   "not_run": [
     "push",
     "publish"
-  ]
+  ],
+  "supplement": "evidence/invocation-unary-validation/commands.json"
 }

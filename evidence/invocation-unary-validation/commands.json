@@ -1,0 +1,158 @@
+[
+  {
+    "name": "check",
+    "command": [
+      "moon",
+      "check",
+      "--deny-warn",
+      "--target",
+      "all"
+    ],
+    "exit_code": 0,
+    "output": "Finished. moon: ran 53 tasks, now up to date\n"
+  },
+  {
+    "name": "test",
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "all"
+    ],
+    "exit_code": 0,
+    "output": "Total tests: 273, passed: 273, failed: 0. [wasm]\nTotal tests: 273, passed: 273, failed: 0. [wasm-gc]\nTotal tests: 273, passed: 273, failed: 0. [js]\nTotal tests: 273, passed: 273, failed: 0. [native]\n"
+  },
+  {
+    "name": "fmt",
+    "command": [
+      "moon",
+      "fmt",
+      "--check"
+    ],
+    "exit_code": 0,
+    "output": "Finished. moon: ran 70 tasks, now up to date\n"
+  },
+  {
+    "name": "info",
+    "command": [
+      "moon",
+      "info"
+    ],
+    "exit_code": 0,
+    "output": "Finished. moon: ran 17 tasks, now up to date\n"
+  },
+  {
+    "name": "interfaces",
+    "command": [
+      "git",
+      "diff",
+      "--exit-code",
+      "--",
+      "*.mbti"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "name": "tck-level-2",
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--target",
+      "native",
+      "--",
+      "tck",
+      ".tck/TestCases/compliance-level-2",
+      "--json",
+      "evidence/tck-level-2.json"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "name": "tck-level-3",
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--target",
+      "native",
+      "--",
+      "tck",
+      ".tck/TestCases/compliance-level-3",
+      "--json",
+      "evidence/tck-level-3.json"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "name": "cli",
+    "command": [
+      "python3",
+      "scripts/test-cli.py"
+    ],
+    "exit_code": 0,
+    "output": "CLI integration: 16 checks passed\n"
+  },
+  {
+    "name": "web-build",
+    "command": [
+      "scripts/build-web.sh"
+    ],
+    "exit_code": 0,
+    "output": "Finished. moon: ran 4 tasks, now up to date\nArtifacts:\n  sundaysebasidian-byte/moondmn/playground  js  /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/_build/js/release/build/playground/playground.js\nbuilt web/dist\n"
+  },
+  {
+    "name": "web-smoke",
+    "command": [
+      "node",
+      "web/smoke.mjs"
+    ],
+    "exit_code": 0,
+    "output": "ok   loan: model summary\nok   loan: lint\nok   loan: graph layers follow requirements\nok   loan: form round trip keeps the example input\nok   loan: evaluate Offer\nok   insurance: model summary\nok   insurance: lint\nok   insurance: graph layers follow requirements\nok   insurance: form round trip keeps the example input\nok   insurance: evaluate Quote\nok   subscription: model summary\nok   subscription: lint\nok   subscription: graph layers follow requirements\nok   subscription: form round trip keeps the example input\nok   subscription: evaluate Reminder\nok   insurance: every hit policy reports its hits\nok   loan: a failed UNIQUE table still reports the rules that matched\nok   loan: input values come back typed through the declared item definitions\nok   form: decimals stay exact and empty fields are left out\nok   feel: exact decimals, types and context\nok   feel: multi-word names work after a dot\nok   feel: the clock is injected\nok   errors come back as JSON and never throw\nok   malformed boxed conditional stays inside the JSON boundary\nok   core typed JSON bridge serves browser evaluation too\nok   extreme month arithmetic retains identity and returns JSON range errors\n26 passed\n"
+  },
+  {
+    "name": "list-example",
+    "command": [
+      "moon",
+      "run",
+      "--quiet",
+      "cmd/main",
+      "--",
+      "feel",
+      "(function(x:list<number>) x)(1)"
+    ],
+    "exit_code": 0,
+    "output": "[1]\n"
+  },
+  {
+    "name": "date-example",
+    "command": [
+      "moon",
+      "run",
+      "--quiet",
+      "cmd/main",
+      "--",
+      "feel",
+      "(function(x:date and time) x)(date(\"2020-01-01\"))"
+    ],
+    "exit_code": 0,
+    "output": "\"2020-01-01T00:00:00Z\"\n"
+  },
+  {
+    "name": "unary-example",
+    "command": [
+      "moon",
+      "run",
+      "--quiet",
+      "cmd/main",
+      "--",
+      "feel",
+      "false in (1=2)"
+    ],
+    "exit_code": 0,
+    "output": "true\n"
+  }
+]

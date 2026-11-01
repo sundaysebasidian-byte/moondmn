@@ -39,7 +39,9 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 
 ## 0.1.1 语义修正与边界
 
-依据 [DMN 1.5](https://www.omg.org/spec/DMN/1.5/PDF) §10.3.2、§10.3.4、§10.4 的求值、内建函数和 invocable 语义，补充 29 个独立测试块。测试不依赖 TCK 文件，期望值为固定的规范结果。
+依据 [DMN 1.5](https://www.omg.org/spec/DMN/1.5/PDF) §10.3.2、§10.3.4、§10.4 的求值、内建函数和 invocable 语义，补充 31 个独立测试块。测试不依赖 TCK 文件，期望值为固定的规范结果。
+
+补充类型化函数的单元素列表包装、date 到 UTC 午夜转换，以及按 AST 中 `?` 引用判定布尔一元谓词；新增 2 个回归测试块包含无 `?` 的比较与函数调用、嵌套 `?`、不兼容参数、已有列表及嵌套列表。验收命令及输出见 `evidence/invocation-unary-validation/commands.json`。
 
 L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失败。runner 的比较规则、容差及错误白名单完全未改。
 
@@ -74,8 +76,8 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 ## 测试规模
 
-- 单元测试 271 个 test block，native、wasm-gc、js、wasm 四个目标各 271/271 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
-- MoonBit 代码共 14525 行，其中自动生成的 tzdata 4394 行、whitebox 测试 38 行；排除这两部分后为 10093 行。
+- 单元测试 273 个 test block，native、wasm-gc、js、wasm 四个目标各 273/273 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- MoonBit 代码共 14581 行，其中自动生成的 tzdata 4394 行、whitebox 测试 38 行；排除这两部分后为 10149 行。
 - 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 26 项。
 - 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。
 
