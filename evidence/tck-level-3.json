@@ -1,13 +1,13 @@
 {
   "total": 3291,
-  "passed": 3251,
-  "failed": 40,
+  "passed": 3258,
+  "failed": 33,
   "skipped": 0,
   "empty_files": 0,
   "failures": {
     "E_TYPE_UNSUPPORTED": 2,
     "E_ZONE_UNSUPPORTED": 2,
-    "E_TCK_MISMATCH": 10,
+    "E_TCK_MISMATCH": 3,
     "E_IMPORT_UNSUPPORTED": 5,
     "E_BUILTIN_UNSUPPORTED": 4,
     "E_UNSUPPORTED_SYNTAX": 17
@@ -10300,8 +10300,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
       "id": "range_010",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
@@ -16504,32 +16504,32 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch07",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual false, expected true"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch08",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected true"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch09",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected true"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch10",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "caselessmatch11",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected false"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
@@ -16672,8 +16672,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
       "id": "K2-MatchesFunc-17",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected true"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1145-feel-context-function/1145-feel-context-function-test-01.xml",

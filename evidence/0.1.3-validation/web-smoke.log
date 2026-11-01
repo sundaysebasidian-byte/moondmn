@@ -1,0 +1,27 @@
+ok   loan: model summary
+ok   loan: lint
+ok   loan: graph layers follow requirements
+ok   loan: form round trip keeps the example input
+ok   loan: evaluate Offer
+ok   insurance: model summary
+ok   insurance: lint
+ok   insurance: graph layers follow requirements
+ok   insurance: form round trip keeps the example input
+ok   insurance: evaluate Quote
+ok   subscription: model summary
+ok   subscription: lint
+ok   subscription: graph layers follow requirements
+ok   subscription: form round trip keeps the example input
+ok   subscription: evaluate Reminder
+ok   insurance: every hit policy reports its hits
+ok   loan: a failed UNIQUE table still reports the rules that matched
+ok   loan: input values come back typed through the declared item definitions
+ok   form: decimals stay exact and empty fields are left out
+ok   feel: exact decimals, types and context
+ok   feel: multi-word names work after a dot
+ok   feel: the clock is injected
+ok   errors come back as JSON and never throw
+ok   malformed boxed conditional stays inside the JSON boundary
+ok   core typed JSON bridge serves browser evaluation too
+ok   extreme month arithmetic retains identity and returns JSON range errors
+26 passed

@@ -5,26 +5,21 @@
 <!-- summary:start -->
 ## 结论
 
-Level 2 为 116/116。Level 3 为 3251/3291（98.78%），剩余 40 个失败，没有跳过，也没有被隐藏的用例。
+Level 2 为 116/116。Level 3 为 3258/3291（99.00%），剩余 33 个失败，没有跳过，也没有被隐藏的用例。
 
-这 40 个失败里，7 个（18%）是引擎自己的缺陷，29 个属于范围外或测试环境。通过率不能理解为“剩下的都是范围外”。
+当前失败分类中，未实现特性或测试环境占 29 个，覆盖边界和规范/TCK 差异占 4 个；没有剩余的已归类已知缺陷。这不代表引擎没有其他缺陷。
 
 | 分类 | 失败数 | 占失败比例 | 含义 |
 | --- | ---: | ---: | --- |
-| 已知缺陷 | 7 | 17.5% | 范围内的行为不正确，是待修的缺陷 |
-| 未实现 | 25 | 62.5% | 尚未实现或明确不做 |
-| 覆盖边界 | 2 | 5.0% | 实现主动拒绝，不猜测 |
-| 规范与 TCK 存在差异 | 2 | 5.0% | 实现依据规范文本，与 TCK 期望不一致；仍计为失败 |
-| 驱动未提供时钟 | 4 | 10.0% | TCK 驱动不提供时钟；API 与 CLI 注入时钟后可用 |
+| 已知缺陷 | 0 | 0.0% | 范围内的行为不正确，是待修的缺陷 |
+| 未实现 | 25 | 75.8% | 尚未实现或明确不做 |
+| 覆盖边界 | 2 | 6.1% | 实现主动拒绝，不猜测 |
+| 规范与 TCK 存在差异 | 2 | 6.1% | 实现依据规范文本，与 TCK 期望不一致；仍计为失败 |
+| 驱动未提供时钟 | 4 | 12.1% | TCK 驱动不提供时钟；API 与 CLI 注入时钟后可用 |
 
 未实现的 25 个中，Java 外部函数 18 个，DMN `import` 7 个。
 
-已知缺陷集中在下面这些套件（按失败数排序，只列前 10 个；全部明细见文末）：
-
-| 套件 | 失败数 | 症状举例 |
-| --- | ---: | --- |
-| 1111-feel-matches-function | 6 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
-| 0068-feel-equality | 1 | 比较式 (=x) 被表示为双闭点区间，丢失一元测试与双端区间的类型区别；需扩展值表示和相等规则。 |
+本次修复的七个已知缺陷已全部通过；剩余四个边界/规范差异仍计失败。
 
 数字的来源：
 
@@ -32,6 +27,14 @@ Level 2 为 116/116。Level 3 为 3251/3291（98.78%），剩余 40 个失败，
 - 失败清单可机读：`evidence/failure-classification.json`，每行以测试文件路径加 case ID 唯一标识；逐例原始报告是 `evidence/tck-level-*.json`。
 - 任何一个套件都可以用下文“复现”一节的命令单独重跑。
 <!-- summary:end -->
+
+## 0.1.3 修复与实测
+
+L2 保持 116/116；L3 从 3251/3291（40 个失败）提高到 3258/3291（33 个失败），无新增失败、无跳过。`1111-feel-matches-function` 从 34/40 到 40/40；`0068-feel-equality` 从 111/114 到 112/114。
+
+六个正则失败分别是 Kelvin 单码点折叠（1）、大小写扩展后的字符类相减（4）、大小写不敏感反向引用（1）。比较式区间依据 DMN 1.5 表 53 保留比较运算符，`(=3) = [3..3]` 为 false，`(=3) = (=3)` 为 true。最小反例及扩展边界测试在 `feel/eval/xpath_test.mbt`；修复前四组反例在四后端均失败，修复后全部通过。实现范围见 [设计文档](design.md)。
+
+实际命令、退出码、日志、接口前后指纹及逐例增量见 `evidence/0.1.3-validation/`。runner、容差和错误白名单未改；未实现 Java 外部函数或跨文件 import。CI 的 L3 最低通过数提高到 3258，并固定总数为 3291。
 
 ## 时态算术边界核验（0.1.0 记录）
 
@@ -45,7 +48,7 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 
 L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失败。runner 的比较规则、容差及错误白名单完全未改。
 
-剩余项暂不修复的原因：
+0.1.1 当时剩余项的处理原因（正则和比较式区间已在 0.1.3 修复）：
 
 - Java 外部函数 18：需要 JVM/宿主调用桥，当前纯 MoonBit 引擎不提供。
 - 跨文件 import 7：需要文件解析接口、目录内相对模型引用、别名与命名空间隔离；本版本只支持本模型 namespace 的绝对 href，不把它当成跨文件 import 支持。
@@ -61,7 +64,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 - TCK 仓库：https://github.com/dmn-tck/tck
 - 固定提交：`1e349176e5ae689d924a2a2c7a8df25c220d8b07`（由 `scripts/fetch-tck.sh` 拉取到被忽略的 `.tck/`）
-- 工具链：MoonBit 0.1.20261028，native 后端
+- 工具链：MoonBit 0.1.20261028；本轮 TCK 使用 `moon run` 默认 wasm 后端，单元回归另覆盖四后端
 - 驱动：`moondmn tck <目录> --json <文件>`，读取 `<modelName>` 指向的模型并按 `resultNode/@type` 分派
 - 判定：number 使用绝对差 ≤ 1e-8，list/context 递归比较，其他值使用引擎结构/时态相等；errorResult 只接受现有白名单错误或期望 null 时的 null。未改 runner 或容差
 
@@ -70,14 +73,14 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 级别 | 用例总数 | 通过 | 失败 | 通过率 | 原始报告 |
 | --- | --- | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 0 | 100.00% | `evidence/tck-level-2.json` |
-| Level 3 | 3291 | 3251 | 40 | 98.78% | `evidence/tck-level-3.json` |
+| Level 3 | 3291 | 3258 | 33 | 99.00% | `evidence/tck-level-3.json` |
 
 目标为 Level 2 ≥ 95%、Level 3 ≥ 80%，两项均已达到。
 
 ## 测试规模
 
-- 单元测试 273 个 test block，native、wasm-gc、js、wasm 四个目标各 273/273 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
-- MoonBit 代码共 14581 行，其中自动生成的 tzdata 4394 行、whitebox 测试 38 行；排除这两部分后为 10149 行。
+- 单元测试 281 个 test block，native、wasm-gc、js、wasm 四个目标各 281/281 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- 正则新增独立解析/匹配实现和自动生成的 Unicode C/S 表；生成输入与许可一并保留。
 - 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 26 项。
 - 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。
 
@@ -86,9 +89,9 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 状态码 | 用例数 |
 | --- | --- |
 | `E_UNSUPPORTED_SYNTAX` | 17 |
-| `E_TCK_MISMATCH` | 10 |
 | `E_IMPORT_UNSUPPORTED` | 5 |
 | `E_BUILTIN_UNSUPPORTED` | 4 |
+| `E_TCK_MISMATCH` | 3 |
 | `E_TYPE_UNSUPPORTED` | 2 |
 | `E_ZONE_UNSUPPORTED` | 2 |
 
@@ -98,9 +101,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 - 外部 Java 函数（`0076-feel-external-java`）需要 JVM 回调，明确不实现。
 - DMN 1.5 导入（`0086-import`、`1160-multiple-imports`、`0089-nested-inputdata-imports`）尚未实现。
-- Unicode 正则与部分匹配语义（`1111-feel-matches-function`）。
 - 动态时间 TCK 未注入运行时钟，仍报不支持；库 API 可注入 clock，CLI 可使用 `--now`。
-- 比较式区间与双端区间的值表示差异（`0068-feel-equality/range_010`）。
 
 ## Level 2 全量矩阵（28 个套件，116 例）
 
@@ -187,7 +188,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 0065-feel-disjunction | 19 | 19 | 0 |
 | 0066-feel-negation | 6 | 6 | 0 |
 | 0067-feel-split-function | 9 | 9 | 0 |
-| 0068-feel-equality | 114 | 111 | 3 |
+| 0068-feel-equality | 114 | 112 | 2 |
 | 0069-feel-list | 35 | 35 | 0 |
 | 0070-feel-instance-of | 142 | 142 | 0 |
 | 0071-feel-between | 38 | 38 | 0 |
@@ -231,7 +232,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 1108-feel-substring-after-function | 10 | 10 | 0 |
 | 1109-feel-replace-function | 28 | 28 | 0 |
 | 1110-feel-contains-function | 10 | 10 | 0 |
-| 1111-feel-matches-function | 40 | 34 | 6 |
+| 1111-feel-matches-function | 40 | 40 | 0 |
 | 1115-feel-date-function | 52 | 52 | 0 |
 | 1116-feel-time-function | 83 | 83 | 0 |
 | 1117-feel-date-and-time-function | 88 | 88 | 0 |
@@ -302,12 +303,11 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 ## 逐例明细
 
-每一行是一个失败用例，共 40 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。
+每一行是一个失败用例，共 33 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。
 
 | 套件 / 测试文件 | case ID | 分类 | 原因 |
 | --- | --- | --- | --- |
 | 0068-feel-equality/0068-feel-equality-test-01.xml | `datetime_003_a` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。 |
-| 0068-feel-equality/0068-feel-equality-test-01.xml | `range_010` | 已知缺陷 | 比较式 (=x) 被表示为双闭点区间，丢失一元测试与双端区间的类型区别；需扩展值表示和相等规则。 |
 | 0068-feel-equality/0068-feel-equality-test-01.xml | `time_005` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `boxed_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
@@ -332,12 +332,6 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 0089-nested-inputdata-imports/0089-nested-inputdata-imports-test-01.xml | `001` | 未实现 | 嵌套导入的 InputData/href 解析未实现。 |
 | 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_time_minus_rhs_time_005` | 覆盖边界 | time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。 |
 | 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_time_minus_rhs_time_006` | 覆盖边界 | time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `K2-MatchesFunc-17` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch07` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch08` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch09` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch10` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch11` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
 | 1148-feel-now-function/1148-feel-now-function-test-01.xml | `001` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
 | 1148-feel-now-function/1148-feel-now-function-test-01.xml | `002` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
 | 1149-feel-today-function/1149-feel-today-function-test-01.xml | `001` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |

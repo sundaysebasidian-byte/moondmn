@@ -1,10 +1,9 @@
 {
-  "total": 40,
+  "total": 33,
   "categories": {
     "未实现特性": 25,
     "覆盖边界": 2,
     "规范/TCK 差异待确认": 2,
-    "已知 bug": 7,
     "驱动环境未提供": 4
   },
   "cases": [
@@ -61,15 +60,6 @@
       "suite": "0068-feel-equality",
       "category": "规范/TCK 差异待确认",
       "reason": "TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
-      "id": "range_010",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual true, expected false",
-      "suite": "0068-feel-equality",
-      "category": "已知 bug",
-      "reason": "比较式 (=x) 被表示为双闭点区间，丢失一元测试与双端区间的类型区别；需扩展值表示和相等规则。"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-01.xml",
@@ -304,60 +294,6 @@
       "suite": "1149-feel-today-function",
       "category": "驱动环境未提供",
       "reason": "库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
-      "id": "caselessmatch07",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual false, expected true",
-      "suite": "1111-feel-matches-function",
-      "category": "已知 bug",
-      "reason": "剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
-      "id": "caselessmatch08",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected true",
-      "suite": "1111-feel-matches-function",
-      "category": "已知 bug",
-      "reason": "剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
-      "id": "caselessmatch09",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected true",
-      "suite": "1111-feel-matches-function",
-      "category": "已知 bug",
-      "reason": "剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
-      "id": "caselessmatch10",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected false",
-      "suite": "1111-feel-matches-function",
-      "category": "已知 bug",
-      "reason": "剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
-      "id": "caselessmatch11",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected false",
-      "suite": "1111-feel-matches-function",
-      "category": "已知 bug",
-      "reason": "剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
-      "id": "K2-MatchesFunc-17",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual null, expected true",
-      "suite": "1111-feel-matches-function",
-      "category": "已知 bug",
-      "reason": "剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0089-nested-inputdata-imports/0089-nested-inputdata-imports-test-01.xml",

@@ -1,0 +1,132 @@
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:2 ("Unicode simple folding in regex literals and ranges") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:3:3-3:82
+Diff: (- expected, + actual)
+----
+-true
++false
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:10 ("XPath subtraction after case expansion") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:11:3-11:87
+Diff: (- expected, + actual)
+----
+-true
++null
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:18 ("XPath captures and case blind backreferences") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:19:3-19:88
+Diff: (- expected, + actual)
+----
+-true
++null
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:26 ("comparison range preserves operator") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:27:3-27:68
+Diff: (- expected, + actual)
+----
+-false
++true
+----
+
+Total tests: 4, passed: 0, failed: 4. [wasm]
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:2 ("Unicode simple folding in regex literals and ranges") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:3:3-3:82
+Diff: (- expected, + actual)
+----
+-true
++false
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:10 ("XPath subtraction after case expansion") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:11:3-11:87
+Diff: (- expected, + actual)
+----
+-true
++null
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:18 ("XPath captures and case blind backreferences") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:19:3-19:88
+Diff: (- expected, + actual)
+----
+-true
++null
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:26 ("comparison range preserves operator") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:27:3-27:68
+Diff: (- expected, + actual)
+----
+-false
++true
+----
+
+Total tests: 4, passed: 0, failed: 4. [wasm-gc]
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:2 ("Unicode simple folding in regex literals and ranges") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:3:3-3:82
+Diff: (- expected, + actual)
+----
+-true
++false
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:10 ("XPath subtraction after case expansion") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:11:3-11:87
+Diff: (- expected, + actual)
+----
+-true
++null
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:18 ("XPath captures and case blind backreferences") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:19:3-19:88
+Diff: (- expected, + actual)
+----
+-true
++null
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:26 ("comparison range preserves operator") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:27:3-27:68
+Diff: (- expected, + actual)
+----
+-false
++true
+----
+
+Total tests: 4, passed: 0, failed: 4. [js]
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:2 ("Unicode simple folding in regex literals and ranges") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:3:3-3:82
+Diff: (- expected, + actual)
+----
+-true
++false
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:10 ("XPath subtraction after case expansion") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:11:3-11:87
+Diff: (- expected, + actual)
+----
+-true
++null
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:18 ("XPath captures and case blind backreferences") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:19:3-19:88
+Diff: (- expected, + actual)
+----
+-true
++null
+----
+
+[sundaysebasidian-byte/moondmn] test feel/eval/xpath_test.mbt:26 ("comparison range preserves operator") failed
+expect test failed at /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/feel/eval/xpath_test.mbt:27:3-27:68
+Diff: (- expected, + actual)
+----
+-false
++true
+----
+
+Total tests: 4, passed: 0, failed: 4. [native]

@@ -1,0 +1,132 @@
+{
+  "before": {
+    "total": 3291,
+    "passed": 3251,
+    "failed": 40,
+    "skipped": 0,
+    "empty_files": 0,
+    "failures": {
+      "E_TYPE_UNSUPPORTED": 2,
+      "E_ZONE_UNSUPPORTED": 2,
+      "E_TCK_MISMATCH": 10,
+      "E_IMPORT_UNSUPPORTED": 5,
+      "E_BUILTIN_UNSUPPORTED": 4,
+      "E_UNSUPPORTED_SYNTAX": 17
+    }
+  },
+  "after": {
+    "total": 3291,
+    "passed": 3258,
+    "failed": 33,
+    "skipped": 0,
+    "empty_files": 0,
+    "failures": {
+      "E_TYPE_UNSUPPORTED": 2,
+      "E_ZONE_UNSUPPORTED": 2,
+      "E_TCK_MISMATCH": 3,
+      "E_IMPORT_UNSUPPORTED": 5,
+      "E_BUILTIN_UNSUPPORTED": 4,
+      "E_UNSUPPORTED_SYNTAX": 17
+    }
+  },
+  "changes": [
+    {
+      "before": {
+        "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
+        "id": "range_010",
+        "status": "E_TCK_MISMATCH",
+        "detail": "actual true, expected false"
+      },
+      "after": {
+        "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
+        "id": "range_010",
+        "status": "PASS",
+        "detail": ""
+      }
+    },
+    {
+      "before": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch07",
+        "status": "E_TCK_MISMATCH",
+        "detail": "actual false, expected true"
+      },
+      "after": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch07",
+        "status": "PASS",
+        "detail": ""
+      }
+    },
+    {
+      "before": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch08",
+        "status": "E_TCK_MISMATCH",
+        "detail": "actual null, expected true"
+      },
+      "after": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch08",
+        "status": "PASS",
+        "detail": ""
+      }
+    },
+    {
+      "before": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch09",
+        "status": "E_TCK_MISMATCH",
+        "detail": "actual null, expected true"
+      },
+      "after": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch09",
+        "status": "PASS",
+        "detail": ""
+      }
+    },
+    {
+      "before": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch10",
+        "status": "E_TCK_MISMATCH",
+        "detail": "actual null, expected false"
+      },
+      "after": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch10",
+        "status": "PASS",
+        "detail": ""
+      }
+    },
+    {
+      "before": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch11",
+        "status": "E_TCK_MISMATCH",
+        "detail": "actual null, expected false"
+      },
+      "after": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "caselessmatch11",
+        "status": "PASS",
+        "detail": ""
+      }
+    },
+    {
+      "before": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "K2-MatchesFunc-17",
+        "status": "E_TCK_MISMATCH",
+        "detail": "actual null, expected true"
+      },
+      "after": {
+        "file": ".tck/TestCases/compliance-level-3/1111-feel-matches-function/1111-feel-matches-function-test-01.xml",
+        "id": "K2-MatchesFunc-17",
+        "status": "PASS",
+        "detail": ""
+      }
+    }
+  ]
+}

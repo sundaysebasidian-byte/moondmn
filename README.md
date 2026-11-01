@@ -12,7 +12,9 @@ MoonDMN 是用 MoonBit 从零写的 OMG DMN 1.5 决策引擎和 FEEL 表达式�
 
 English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. It runs without a JVM,
 compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
-(Level 2: 116/116, Level 3: 3251/3291).
+(Level 2: 116/116, Level 3: 3258/3291).
+
+当前本地开发版本为 0.1.3，尚未推送或发布；下表的 0.1.2 是既有公开版本。
 
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
@@ -211,7 +213,7 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 类型系统 | 部分支持 | 根包/CLI/Playground 共用声明时态 JSON 转换；结构类型/隐式转换仍有失败 |
 | 内置函数 | 部分支持（约 90 个） | 剩余逐例缺陷和受限函数见 docs/conformance.md |
 | `now()` / `today()` | 已支持（需注入时钟） | API 的 clock 参数、CLI 的 `--now`；不注入则报不支持 |
-| 正则 `s`/`x`/`m` 标志 | 部分支持 | 基础匹配可用，仍有 Unicode 折叠和 XPath 正则语法差异 |
+| 正则 `s`/`x`/`m` 标志 | 部分支持 | `matches` 支持 Unicode simple folding、递归字符类相减和反向引用；完整范围见设计文档 |
 | 外部 Java 函数 | 明确不支持 | 需要 JVM |
 | DMN 1.5 `import` | 明确不支持 | 多文件导入尚未实现 |
 
@@ -222,11 +224,11 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 级别 | 用例数 | 通过 | 通过率 |
 | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 100.0% |
-| Level 3 | 3291 | 3251 | 98.78% |
+| Level 3 | 3291 | 3258 | 99.00% |
 
-目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。Level 3 剩余 40 个失败：7 个是已知缺陷，25 个未实现
+目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。Level 3 剩余 33 个失败：25 个未实现
 （Java 外部函数 18、`import` 7），2 个覆盖边界，2 个规范与 TCK 存在差异，4 个因 TCK 驱动不提供时钟。
-也就是说，失败的大头是引擎自己的缺陷，不是范围外的用例。
+0.1.3 修复此前的七个已知缺陷；这些数字不代表完整 DMN 兼容。
 结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。
 
 ## 和同类实现的区别
@@ -247,7 +249,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 273 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
+每个后端 281 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
@@ -255,7 +257,7 @@ CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任�
 ## 限制与路线图
 
 - 外部 Java 函数和 DMN 1.5 导入不在当前范围。
-- TCK Level 3 还有 40 个失败，其中 7 个是已知缺陷，逐例列在 [docs/conformance.md](docs/conformance.md)。
+- TCK Level 3 还有 33 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
 - 时区只有 39 个名称，只覆盖 1970–2100 年。
 - `now()`、`today()` 没有隐含的系统时钟，必须由调用方注入。
 - 计划补齐正则标志和 `range()` 的高级参数。

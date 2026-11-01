@@ -160,8 +160,9 @@ jobs:
                   report = json.load(handle)
               print(f"Level {level}: {report['passed']}/{report['total']} passed")
               assert report['skipped'] == 0 and report['total'] > 0
-              minimum = 1.0 if level == 2 else 0.96
-              assert report['passed'] / report['total'] >= minimum
+              expected_total, minimum = (116, 116) if level == 2 else (3291, 3258)
+              assert report['total'] == expected_total
+              assert report['passed'] >= minimum
           EOF
 
       - name: Upload reports

@@ -1,0 +1,126 @@
+[
+  {
+    "command": [
+      "moon",
+      "version",
+      "--all"
+    ],
+    "started": "2026-11-01T06:11:24.021661+00:00",
+    "exit_code": 0,
+    "log": "toolchain.log"
+  },
+  {
+    "command": [
+      "moon",
+      "check",
+      "--deny-warn",
+      "--target",
+      "all"
+    ],
+    "started": "2026-11-01T06:11:24.083980+00:00",
+    "exit_code": 0,
+    "log": "check.log"
+  },
+  {
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "all"
+    ],
+    "started": "2026-11-01T06:11:24.985938+00:00",
+    "exit_code": 0,
+    "log": "test.log"
+  },
+  {
+    "command": [
+      "moon",
+      "fmt",
+      "--check"
+    ],
+    "started": "2026-11-01T06:11:42.102069+00:00",
+    "exit_code": 0,
+    "log": "format.log"
+  },
+  {
+    "command": [
+      "moon",
+      "info"
+    ],
+    "started": "2026-11-01T06:11:42.917860+00:00",
+    "exit_code": 0,
+    "log": "info.log"
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--",
+      "tck",
+      ".tck/TestCases/compliance-level-2",
+      "--json",
+      "evidence/tck-level-2.json"
+    ],
+    "started": "2026-11-01T06:11:43.459698+00:00",
+    "exit_code": 0,
+    "log": "tck-level-2.log"
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--",
+      "tck",
+      ".tck/TestCases/compliance-level-3",
+      "--json",
+      "evidence/tck-level-3.json"
+    ],
+    "started": "2026-11-01T06:11:46.223491+00:00",
+    "exit_code": 0,
+    "log": "tck-level-3.log"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test-cli.py"
+    ],
+    "started": "2026-11-01T06:11:56.197021+00:00",
+    "exit_code": 0,
+    "log": "cli.log"
+  },
+  {
+    "command": [
+      "scripts/build-web.sh"
+    ],
+    "started": "2026-11-01T06:12:03.665510+00:00",
+    "exit_code": 0,
+    "log": "build-web.log"
+  },
+  {
+    "command": [
+      "node",
+      "web/smoke.mjs"
+    ],
+    "started": "2026-11-01T06:12:05.286768+00:00",
+    "exit_code": 0,
+    "log": "web-smoke.log"
+  },
+  {
+    "command": [
+      "moon",
+      "info"
+    ],
+    "exit_code": 0,
+    "log": "interface-git.log",
+    "followed_by": [
+      "git",
+      "diff",
+      "--exit-code",
+      "--",
+      "*.mbti"
+    ],
+    "interface_diff_exit_code": 0
+  }
+]

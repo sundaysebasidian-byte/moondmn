@@ -9,8 +9,8 @@
 FEEL 求值，决策表全部命中策略，InputData / ItemDefinition / BKM / 决策服务 / DRG，lint，CLI，库 API，以及浏览器 Playground
 （编辑模型、生成输入表单、依赖图、命中规则高亮）。
 ## 证据
-官方 DMN TCK（固定提交 `1e349176`，无跳过）：Level 2 为 116/116，Level 3 为 3251/3291（98.78%）；native、wasm-gc、wasm、js 四个后端各 273 个单元测试通过。
-Level 3 剩余 40 个失败：Java 外部函数 18、跨文件 import 7、Unicode/XPath 正则 6、时钟注入 4、其他边界 5，逐例原因见 docs/conformance.md。
+官方 DMN TCK（固定提交 `1e349176`，无跳过）：Level 2 为 116/116，Level 3 为 3258/3291（99.00%）；native、wasm-gc、wasm、js 四个后端各 281 个单元测试通过。
+Level 3 剩余 33 个失败：Java 外部函数 18、跨文件 import 7、时钟注入 4、其他边界 4；0.1.3 修复原有七个已知缺陷，逐例原因见 docs/conformance.md。
 ## 覆盖矩阵
 | 范围 | 状态 |
 | --- | --- |
