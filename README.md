@@ -14,8 +14,6 @@ English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. I
 compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
 (Level 2: 116/116, Level 3: 3258/3291).
 
-当前本地开发版本为 0.1.3，尚未推送或发布；下表的 0.1.2 是既有公开版本。
-
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
 - 一致性结果：[docs/conformance.md](docs/conformance.md)
@@ -25,20 +23,20 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 源码 | tag `v0.1.2` | mooncakes 0.1.2 的打包内容与该 tag 指向的提交一致 |
-| mooncakes | `sundaysebasidian-byte/moondmn@0.1.2` | 包内容固定，不随 main 变化 |
-| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.1.2 |
+| 源码 | tag `v0.1.3` | mooncakes 0.1.3 的打包内容与该 tag 指向的提交一致 |
+| mooncakes | `sundaysebasidian-byte/moondmn@0.1.3` | 包内容固定，不随 main 变化 |
+| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.1.3 |
 
-定位发布提交：`git rev-list -n 1 v0.1.2`。下面三条命令分别复现三个面：
+定位发布提交：`git rev-list -n 1 v0.1.3`。下面三条命令分别复现三个面：
 
 ```bash
 # 源码测试
-git checkout v0.1.2
+git checkout v0.1.3
 moon test --target all
 
 # 安装包调用：在仓库外新建模块，把“安装与接入”中的 import 和示例原样放入 cmd/main
 moon new consumer && cd consumer
-moon add sundaysebasidian-byte/moondmn@0.1.2
+moon add sundaysebasidian-byte/moondmn@0.1.3
 moon run cmd/main
 
 # 线上引擎：打开 Pages；对应的构建见 Actions 中 Pages 工作流的运行记录
