@@ -1,6 +1,6 @@
 # MoonDMN 提案
 - 项目名称：MoonDMN；仓库：https://github.com/sundaysebasidian-byte/moondmn
-- 在线演示：https://sundaysebasidian-byte.github.io/moondmn/；Gitlink：TODO(用户填写)
+- 在线演示：https://sundaysebasidian-byte.github.io/moondmn/
 ## 解决什么问题，给谁用
 审批、定价、风控、保险核保的规则常散落在代码里：改一次要发一次版，也说不清哪条规则起了作用。DMN 是标准的决策建模语言，
 但现有引擎几乎都跑在 JVM 上。MoonDMN 是 MoonBit 上的 DMN 1.5 / FEEL 实现，同一份模型可跑在 native、wasm-gc 和 js，
@@ -9,8 +9,8 @@
 FEEL 求值，决策表全部命中策略，InputData / ItemDefinition / BKM / 决策服务 / DRG，lint，CLI，库 API，以及浏览器 Playground
 （编辑模型、生成输入表单、依赖图、命中规则高亮）。
 ## 证据
-官方 DMN TCK（固定提交 `1e349176`，无跳过）：Level 2 为 116/116，Level 3 为 3170/3291（96.32%）；三个后端各 242 个单元测试通过。
-Level 3 剩余 121 个失败，其中 87 个是已知缺陷，26 个未实现，逐例原因见 docs/conformance.md。
+官方 DMN TCK（固定提交 `1e349176`，无跳过）：Level 2 为 116/116，Level 3 为 3251/3291（98.78%）；native、wasm-gc、wasm、js 四个后端各 273 个单元测试通过。
+Level 3 剩余 40 个失败：Java 外部函数 18、跨文件 import 7、Unicode/XPath 正则 6、时钟注入 4、其他边界 5，逐例原因见 docs/conformance.md。
 ## 覆盖矩阵
 | 范围 | 状态 |
 | --- | --- |
