@@ -41,7 +41,7 @@ Level 2 为 116/116。Level 3 为 3170/3291（96.32%），剩余 121 个失败�
 - 任何一个套件都可以用下文“复现”一节的命令单独重跑。
 <!-- summary:end -->
 
-## R2 时态边界返工
+## 时态算术边界核验
 
 N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，duration/epoch 纳秒在 BigInt 中计算，越界返回 E_DATE_RANGE 或 E_DURATION_RANGE。三个后端各 242/242、CLI 16 项、Web 26 项通过；两级 TCK 数字未变。逐项排查依据、容量范围和测试见 [时态算术核验](temporal-arithmetic.md)。这不改变下述剩余 121 个 TCK 失败的披露。
 

@@ -1,6 +1,6 @@
 # 时态算术边界与溢出核验
 
-本次核验对应 R2 的 N1，并覆盖 `feel/types`、求值器和内置函数中的时态算术调用链。
+本次核验覆盖 `feel/types`、求值器和内置函数中的时态算术调用链。
 日期范围为 -999999999..999999999 年；公开 Date/Time/Duration 记录应通过解析器或校验构造器创建，字段满足各类型的规范化约束。这里的溢出检查不等于完整 FEEL/DMN 合规证明。
 
 | 排查项 | 原风险、修复或安全依据 | 回归证据 |
@@ -19,7 +19,7 @@
 | IANA epoch → 日期时间 | 原有 BigInt UTC 窗口检查保留，只有 [0,4133980800000000000) 纳秒会进入 Int64 秒转换；再加 offset 也远小于 Int64 上限。最终仍校验本地年份 1970–2100。未改变 tzdata 范围。 | 窗口两侧拒绝；现有 DST gap/overlap、南半球与纳秒边界回归 |
 | decimal → 时间单位 | 目标 scale 先限制在 Decimal128 的 [-6111,6176]；scale 相减最大 12287，不会 Int32 回绕；中间乘除为 BigInt，进入具体时长前再校验容量。 | Int32 极端 scale 明确错误、纳秒 half-even 舍入 |
 
-主要测试：`feel/types/calendar_bounds_test.mbt`、`duration_bounds_test.mbt`、`epoch_bounds_test.mbt`，以及根包 `temporal_arithmetic_test.mbt`。CLI 与 Web 另固定了 N1 的四个反例。
+主要测试：`feel/types/calendar_bounds_test.mbt`、`duration_bounds_test.mbt`、`epoch_bounds_test.mbt`，以及根包 `temporal_arithmetic_test.mbt`。CLI 与 Web 另固定了极端年份的四个反例。
 
 底层 `.mbti` 的相关变化：月份增量与 `DurationYM::total_months` 使用 Int64；日期/时长的受检转换、规范化和加减可抛 EngineError；新增 `date_from_ordinal`、`duration_ym_of_months`、`DateTime::epoch_nanos`。调用方应处理 E_DATE_RANGE / E_DURATION_RANGE。根包 JSON API 的签名未改变。
 
