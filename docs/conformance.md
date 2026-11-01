@@ -422,3 +422,7 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 1160-multiple-imports/1160-multiple-imports-test-02.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
 | 1160-multiple-imports/1160-multiple-imports-test-03.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
 | 1160-multiple-imports/1160-multiple-imports-test-04.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
+
+## 发布验证
+
+2026-11-01，GitHub [CI](https://github.com/sundaysebasidian-byte/moondmn/actions/runs/41272099552) 的 Ubuntu、macOS、Windows、TCK 和 Playground 均通过；[Pages](https://github.com/sundaysebasidian-byte/moondmn/actions/runs/41272099573) 部署通过。线上静态资源与本地构建 SHA-256 一致，下载后的 bundle 26/26 冒烟检查通过。

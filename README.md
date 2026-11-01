@@ -63,7 +63,13 @@ moon build
 
 ## 安装与接入
 
-目前还没有发布到 mooncakes，先克隆仓库使用：
+在已有 MoonBit 模块中安装：
+
+```bash
+moon add sundaysebasidian-byte/moondmn@0.1.0
+```
+
+从源码构建并运行 CLI：
 
 ```bash
 git clone https://github.com/sundaysebasidian-byte/moondmn.git
