@@ -1162,7 +1162,11 @@ fn dispatch(
     | "started by"
     | "coincides" => {
       arity(name, xs, 2, 2)
-      Boolean(range_relation(name, xs[0], xs[1]))
+      if xs.iter().any(v => v is Range(r) && r.comparison == Some("!=")) {
+        Null
+      } else {
+        Boolean(range_relation(name, xs[0], xs[1]))
+      }
     }
     "is" => {
       arity(name, xs, 2, 2)
@@ -1282,7 +1286,9 @@ fn parse_range_text(source : String) -> @types.Value raise @types.EngineError {
         @types.compare_values(a, b) > 0 {
         return Null
       }
-    _ => return Null
+    (None, Some(b)) => if first == '[' || b is Null { return Null }
+    (Some(a), None) => if last == ']' || a is Null { return Null }
+    (None, None) => return Null
   }
   Range({
     comparison: None,
