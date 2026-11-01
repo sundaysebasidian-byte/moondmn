@@ -589,8 +589,8 @@ fn Parser::paren_atom(p : Parser) -> Expr raise @types.EngineError {
       "<=" => RangeLit(None, false, Some(bound), true)
       ">" => RangeLit(Some(bound), false, None, false)
       ">=" => RangeLit(Some(bound), true, None, false)
-      "=" => RangeLit(Some(bound), true, Some(bound), true)
-      _ => RangeLit(Some(bound), false, Some(bound), false)
+      "=" => Unary("=", bound)
+      _ => Unary("!=", bound)
     }
   }
   let first = p.expr(1)

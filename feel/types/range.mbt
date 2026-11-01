@@ -1,6 +1,7 @@
 ///|
 /// FEEL interval. Missing endpoints are unbounded.
 pub(all) struct Range {
+  comparison : String?
   start : Value?
   start_included : Bool
   end : Value?
@@ -10,7 +11,13 @@ pub(all) struct Range {
 ///|
 /// Construct a range with neither a lower nor an upper bound.
 pub fn Range::unbounded() -> Range {
-  { start: None, start_included: false, end: None, end_included: false, }
+  {
+    comparison: None,
+    start: None,
+    start_included: false,
+    end: None,
+    end_included: false,
+  }
 }
 
 ///|
@@ -18,6 +25,13 @@ pub fn Range::unbounded() -> Range {
 pub fn Range::contains(range : Range, value : Value) -> Bool raise EngineError {
   if value is Null {
     return false
+  }
+  if range.comparison is Some(op) && range.start is Some(bound) {
+    return match op {
+      "=" => value.equals(bound)
+      "!=" => !value.equals(bound)
+      _ => raise fail("E_RANGE", "unsupported range comparison: " + op)
+    }
   }
   if range.start is Some(low) {
     let c = compare_values(value, low)
@@ -65,6 +79,9 @@ pub fn Range::overlaps(a : Range, b : Range) -> Bool raise EngineError {
 ///|
 /// Format range endpoints and inclusion brackets.
 pub fn Range::text(range : Range) -> String {
+  if range.comparison is Some(op) && range.start is Some(bound) {
+    return "(" + op + bound.text() + ")"
+  }
   let low = match range.start {
     Some(v) => v.text()
     None => ""
@@ -89,12 +106,14 @@ pub fn Range::json(range : Range) -> Json raise EngineError {
     Some(v) => v.json()
     None => Json::null()
   }
-  Json::object(
-    Map([
-      ("start", start),
-      ("startIncluded", Json(range.start_included)),
-      ("end", end),
-      ("endIncluded", Json(range.end_included)),
-    ]),
-  )
+  let fields = Map([
+    ("start", start),
+    ("startIncluded", Json(range.start_included)),
+    ("end", end),
+    ("endIncluded", Json(range.end_included)),
+  ])
+  if range.comparison is Some(op) {
+    fields["comparison"] = Json(op)
+  }
+  Json::object(fields)
 }

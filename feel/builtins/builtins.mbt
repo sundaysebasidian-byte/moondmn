@@ -736,17 +736,7 @@ fn dispatch(
       } else {
         ""
       }
-      let regex = compile_regex(pattern, flags)
-      Boolean(
-        if flags.contains("m") {
-          input
-          .split("\n")
-          .iter()
-          .any(line => regex.execute(line.to_owned()) is Some(_))
-        } else {
-          regex.execute(input) is Some(_)
-        },
-      )
+      Boolean(xpath_matches(input, pattern, flags))
     }
     "replace" => {
       arity(name, xs, 3, 4)
@@ -1294,7 +1284,13 @@ fn parse_range_text(source : String) -> @types.Value raise @types.EngineError {
       }
     _ => return Null
   }
-  Range({ start, start_included: first == '[', end, end_included: last == ']', })
+  Range({
+    comparison: None,
+    start,
+    start_included: first == '[',
+    end,
+    end_included: last == ']',
+  })
 }
 
 ///|
@@ -1835,6 +1831,7 @@ fn as_range(v : @types.Value) -> @types.Range {
     _ =>
       {
         start: Some(v),
+        comparison: None,
         start_included: true,
         end: Some(v),
         end_included: true,

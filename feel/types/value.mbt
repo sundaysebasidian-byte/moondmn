@@ -222,6 +222,7 @@ pub fn Value::equals(a : Value, b : Value) -> Bool {
       same
     }
     (Range(x), Range(y)) =>
+      x.comparison == y.comparison &&
       x.start_included == y.start_included &&
       x.end_included == y.end_included &&
       eq_bound(x.start, y.start) &&

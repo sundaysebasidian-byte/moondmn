@@ -4,7 +4,7 @@ Copyright 2026 sundaysebasidian-byte
 This product is licensed under the Apache License, Version 2.0 (see LICENSE).
 
 It builds upon and references the following third-party projects and
-specifications. No third-party source code is copied into this repository.
+specifications. Unicode case-folding data is redistributed as noted below.
 
 1. DMN Technology Compatibility Kit (TCK)
    Project:  https://github.com/dmn-tck/tck
@@ -53,3 +53,9 @@ All trademarks and copyrights remain the property of their respective owners.
              scripts/generate-tzdata.py; input fingerprints are recorded in
              scripts/tzdata-sources.json. No platform time-zone API is used
              at runtime. Upstream attribution is retained in generated data.
+
+5. Unicode Character Database 17.0.0
+   Source: https://www.unicode.org/Public/17.0.0/ucd/CaseFolding.txt
+   License: Unicode License V3 (scripts/UNICODE-LICENSE.txt).
+   Scope: scripts/CaseFolding-17.0.0.txt and generated simple-fold tables
+          in feel/builtins/unicode_fold.mbt (C/S mappings only).

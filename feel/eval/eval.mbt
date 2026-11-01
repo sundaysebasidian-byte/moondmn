@@ -39,6 +39,18 @@ pub fn evaluate(
     Unary(op, e) => {
       let value = evaluate(e, ctx)
       match op {
+        "=" | "!=" =>
+          if value is Null {
+            Null
+          } else {
+            Range({
+              comparison: Some(op),
+              start: Some(value),
+              start_included: op == "=",
+              end: Some(value),
+              end_included: op == "=",
+            })
+          }
         "-" =>
           match value {
             Number(n) => Number(n.negate())
@@ -134,7 +146,13 @@ pub fn evaluate(
       if (lower is Some(l) && l is Null) || (upper is Some(u) && u is Null) {
         Null
       } else {
-        @types.Range({ start: lower, start_included, end: upper, end_included, })
+        @types.Range({
+          comparison: None,
+          start: lower,
+          start_included,
+          end: upper,
+          end_included,
+        })
       }
     }
     Seq(low, high) => {
