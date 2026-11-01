@@ -52,13 +52,13 @@ feel/types          Decimal、日期/时间/时长/时区、Value、Range、比�
 `matches`、`replace` 和 `split` 使用同一套项目内 AST 解析和带捕获状态的指令匹配器，不依赖宿主 JS/JVM 正则。
 依据 [XPath/XQuery Functions 3.1 §5.6](https://www.w3.org/TR/xpath-functions-31/#regex-syntax)：
 
-- 支持字面量、点、首尾锚、串接、分支、捕获组和 `(?:...)`、`?/*/+/{m,n}`（含非贪婪语法）、`i/s/m/x`。
+- 支持字面量、点、首尾锚、串接、分支、捕获组和 `(?:...)`、`?/*/+/{m,n}`（含非贪婪语法）、`i/s/m/x/q`。
 - 字符集合支持字面量、范围、否定和递归相减，如 `[a-z-[aeiou]]`。先扩展每个范围的直接大小写变体，再取补集或差集。
-- `i` 按 F&O 定义直接比较 `lower-case(C1) = lower-case(C2)` 或 `upper-case(C1) = upper-case(C2)`，只考虑单字符映射；不作传递闭包。使用 Unicode 17.0.0 `UnicodeData.txt` 与 `SpecialCasing.txt` 的无条件映射，不展开多字符、不作区域设置转换。原始数据、许可和离线生成脚本位于 `scripts/`，运行 `python3 scripts/generate-unicode-fold.py` 后 `moon fmt` 可再生表。属性和字符类别不会被 `i` 扩展。
+- `i` 按 F&O 定义直接比较 `lower-case(C1) = lower-case(C2)` 或 `upper-case(C1) = upper-case(C2)`，变体限单字符，比较完整大小写结果（包括多字符结果相等的字符对）；不作传递闭包。使用 Unicode 17.0.0 `UnicodeData.txt` 与 `SpecialCasing.txt` 的无条件映射，匹配时不把单字符展开成多字符、不作区域设置转换。原始数据、许可和离线生成脚本位于 `scripts/`，运行 `python3 scripts/generate-unicode-fold.py` 后 `moon fmt` 可再生表。属性和字符类别不会被 `i` 扩展。
 - `\N` 引用已闭合的捕获组；分支未参与时按空串匹配，重复捕获保留最后一次，大小写不敏感时逐码点比较；多位编号按已打开的组数消费。前向、自引用、缺失组及类内数字转义返回 `E_REGEX`。
-- `m` 的锚按 LF 处理且不创建尾 LF 后的空行；`s` 允许点跨 CR/LF。`x` 只删除类外的 XML 空白。
+- `m` 的锚按 LF 处理且不创建尾 LF 后的空行；`s` 允许点跨 CR/LF。`x` 在解析前删除字符类外的全部 XML 空白（TAB、LF、CR、空格），反斜杠不能保护这些空白；字符类内的空白保留。[F&O 3.1 §5.6.2](https://www.w3.org/TR/xpath-functions-31/#flags) 的示例 `matches("hello world", "hello\ sworld", "x")` 为 true，因为删除空白后模式为 `hello\sworld`。`matches("hello world", "hello\ world", "x")` 则为 false，因为模式变成 `hello\world`，其中 `\w` 不匹配空格。
 
-范围边界：这是 `matches` 的子集实现，不宣称完整 XPath 正则兼容。`q`、XML 名称转义、完整 Unicode 属性/块名称尚未支持；`\p{IsBasicLatin}`、`\d/\D/\w/\W` 仍委托已有底层字符类别实现，未知属性明确返回 `E_REGEX`。`replace` 支持 F&O 的 `$0`、`$N`（多位组号按已存在捕获组回退）、`\$` 和 `\\` 替换语义，保留分支优先级、贪婪及非贪婪选择；`replace` 和非空分隔符的 `split` 拒绝能匹配空串的模式。FEEL 的空分隔符 `split` 保留逐字符拆分。FEEL 层按现有调用失败规则把 `E_REGEX` 转为 null。
+范围边界：这是 `matches` 的子集实现，不宣称完整 XPath 正则兼容。XML 名称转义、完整 Unicode 属性/块名称尚未支持；`\p{IsBasicLatin}`、`\d/\D/\w/\W` 仍委托已有底层字符类别实现，未知属性明确返回 `E_REGEX`。`q` 将模式的每个字符按字面量匹配，替换串中的 `$` 和 `\` 也按字面量处理；可与 `i` 组合，与 `m/s/x` 组合时后三者不起作用。`replace` 支持 F&O 的 `$0`、`$N`（多位组号按已存在捕获组回退）、`\$` 和 `\\` 替换语义，保留分支优先级、贪婪及非贪婪选择；`replace` 和非空分隔符的 `split` 拒绝能匹配空串的模式。FEEL 的空分隔符 `split` 保留逐字符拆分。FEEL 层按现有调用失败规则把 `E_REGEX` 转为 null。
 
 限制：模式至多 4096 个 Unicode 码点，组/字符类嵌套至多 128 层，重复计数至多 10000，编译指令至多 100000 条；每个起始位置至多执行 10000000 条指令，超限确定返回 `E_REGEX`（FEEL 为 null）。无反向引用时按（指令位置、输入位置）去重，消除嵌套空量词的重复搜索；带反向引用时将捕获值及捕获起点纳入去重状态，可能组合式回溯，不承诺线性时间。
 

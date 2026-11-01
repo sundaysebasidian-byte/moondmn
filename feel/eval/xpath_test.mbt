@@ -287,3 +287,229 @@ test "Nested nullable repetition terminates with a boolean result" {
     )
   }
 }
+
+///|
+test "XPath variants compare complete Unicode case mappings" {
+  inspect(
+    @eval.feel_eval("matches(\"ﬅ\", \"ﬆ\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ﬅ\", \"[ﬆ]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ﬅ\", \"[^ﬆ]\", \"i\")").text(),
+    content="false",
+  )
+  inspect(@eval.feel_eval("matches(\"ﬅ\", \"ﬆ\")").text(), content="false")
+  inspect(
+    @eval.feel_eval("matches(\"ﬆ\", \"ﬅ\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ﬆ\", \"[ﬅ]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ﬆ\", \"[^ﬅ]\", \"i\")").text(),
+    content="false",
+  )
+  inspect(@eval.feel_eval("matches(\"ﬆ\", \"ﬅ\")").text(), content="false")
+  inspect(
+    @eval.feel_eval("matches(\"ΐ\", \"ΐ\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ΐ\", \"[ΐ]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ΐ\", \"[^ΐ]\", \"i\")").text(),
+    content="false",
+  )
+  inspect(@eval.feel_eval("matches(\"ΐ\", \"ΐ\")").text(), content="false")
+  inspect(
+    @eval.feel_eval("matches(\"ΐ\", \"ΐ\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ΐ\", \"[ΐ]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ΐ\", \"[^ΐ]\", \"i\")").text(),
+    content="false",
+  )
+  inspect(@eval.feel_eval("matches(\"ΐ\", \"ΐ\")").text(), content="false")
+  inspect(
+    @eval.feel_eval("matches(\"ΰ\", \"ΰ\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ΰ\", \"[ΰ]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ΰ\", \"[^ΰ]\", \"i\")").text(),
+    content="false",
+  )
+  inspect(@eval.feel_eval("matches(\"ΰ\", \"ΰ\")").text(), content="false")
+  inspect(
+    @eval.feel_eval("matches(\"ΰ\", \"ΰ\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ΰ\", \"[ΰ]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ΰ\", \"[^ΰ]\", \"i\")").text(),
+    content="false",
+  )
+  inspect(@eval.feel_eval("matches(\"ΰ\", \"ΰ\")").text(), content="false")
+  inspect(
+    @eval.feel_eval("matches(\"ST\", \"ﬅ\", \"i\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ss\", \"ß\", \"i\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ϑ\", \"θ\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"θ\", \"ϴ\", \"i\")").text(),
+    content="true",
+  )
+}
+
+///|
+test "XPath quoted patterns and literal replacements" {
+  inspect(
+    @eval.feel_eval("matches(\"abcd\", \".*\", \"q\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"Mr. B. Obama\", \"B. OBAMA\", \"iq\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"a/b/c\", \"/\", \"$\", \"q\")").text(),
+    content="a$b$c",
+  )
+  inspect(
+    @eval.feel_eval(
+      "matches(\"a.*[b](c){2}|^$?+\\\\\", \"a.*[b](c){2}|^$?+\\\\\", \"q\")",
+    ).text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a b\", \"a b\", \"qmxs\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ab\", \"a b\", \"qmxs\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a\\nb\", \"a.b\", \"qs\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a\\nb\", \"^b\", \"qm\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a b\", \"A B\", \"qixms\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"a/b/c\", \"/\", \"$1\\\\q\", \"q\")").text(),
+    content="a$1\\qb$1\\qc",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"abc\", \"z\", \"$\", \"q\")").text(),
+    content="abc",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"abc\", \"\", \"$\", \"q\")").text(),
+    content="null",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"abc\", \"\", \"q\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"abc\", \"a\", \"qz\")").text(),
+    content="null",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ﬅ\", \"ﬆ\", \"qi\")").text(),
+    content="true",
+  )
+}
+
+///|
+test "XPath free spacing removes XML whitespace before escape parsing" {
+  inspect(
+    @eval.feel_eval("matches(\"hello world\", \"hello\\\\ world\", \"x\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"hello\\tworld\", \"hello\\\\ sworld\", \"x\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a x\", \"a\\\\ .\", \"x\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a.\", \"a\\\\ .\", \"x\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a \", \"a\\\\ \", \"x\")").text(),
+    content="null",
+  )
+  inspect(
+    @eval.feel_eval(
+      "replace(\"hello\\tworld\", \"hello\\\\ sworld\", \"X\", \"ix\")",
+    ).text(),
+    content="X",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ab\", \"a b\", \"x\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a b\", \"a[ ]b\", \"x\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ab\", \"a[ ]b\", \"x\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"AB\", \"a b\", \"ix\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a\\nb\", \"a . b\", \"sx\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"a\\nb\", \"^ b\", \"mx\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"hello world\", \"hello\\\\ sworld\", \"x\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"hello world\", \"hello world\", \"x\")").text(),
+    content="false",
+  )
+}
