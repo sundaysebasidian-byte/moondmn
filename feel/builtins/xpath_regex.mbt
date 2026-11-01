@@ -562,9 +562,15 @@ fn xpath_program(
     raise err("E_REGEX", "pattern length limit exceeded")
   }
   for c in flags.to_array() {
-    if !"ismx".contains(c.to_string()) {
+    if !"ismxq".contains(c.to_string()) {
       raise err("E_REGEX", "unknown regular expression flag")
     }
+  }
+  if flags.contains("q") {
+    let literals = pattern.to_array().map(c => Character(xpath_literal(c)))
+    let code = [Accept]
+    let entry = xpath_compile(Sequence(literals), 0, code)
+    return (code, entry, 0)
   }
   // Normalize free spacing and dot before parsing, preserving nested classes.
   let chars : Array[Char] = []
@@ -607,7 +613,7 @@ fn xpath_context(input : String, flags : String) -> XPathMatch {
   {
     input: input.to_array(),
     insensitive: flags.contains("i"),
-    multiline: flags.contains("m"),
+    multiline: flags.contains("m") && !flags.contains("q"),
     budget: 10000000,
   }
 }
@@ -634,7 +640,7 @@ fn xpath_parts(
     raise err("E_REGEX", "pattern matches zero length string")
   }
   // Validate replacement even when the input has no match.
-  if replacement is Some(r) {
+  if !flags.contains("q") && replacement is Some(r) {
     ignore(xpath_replacement(r, {}, groups))
   }
   let ctx = xpath_context(input, flags)
@@ -651,7 +657,13 @@ fn xpath_parts(
         if replacement is Some(r) {
           let captures = state.captures.copy()
           captures[0] = ctx.input[start:state.pos].to_owned()
-          out.push(xpath_replacement(r, captures, groups))
+          out.push(
+            if flags.contains("q") {
+              r
+            } else {
+              xpath_replacement(r, captures, groups)
+            },
+          )
         }
         from = state.pos
       }
