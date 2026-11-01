@@ -1,0 +1,62 @@
+[
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"hello world\", \"hello\\\\ world\", \"x\")'",
+    "stdout": "false",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"hello\\tworld\", \"hello\\\\ sworld\", \"x\")'",
+    "stdout": "true",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"a x\", \"a\\\\ .\", \"x\")'",
+    "stdout": "false",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"a.\", \"a\\\\ .\", \"x\")'",
+    "stdout": "true",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"a \", \"a\\\\ \", \"x\")'",
+    "stdout": "null",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'replace(\"hello\\tworld\", \"hello\\\\ sworld\", \"X\", \"ix\")'",
+    "stdout": "\"X\"",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"\\uFB05\", \"\\uFB06\", \"i\")'",
+    "stdout": "true",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"\\u0390\", \"\\u1FD3\", \"i\")'",
+    "stdout": "true",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"\\u03B0\", \"\\u1FE3\", \"i\")'",
+    "stdout": "true",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"abcd\", \".*\", \"q\")'",
+    "stdout": "false",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'matches(\"Mr. B. Obama\", \"B. OBAMA\", \"iq\")'",
+    "stdout": "true",
+    "exit_code": 0
+  },
+  {
+    "command": "moon run --quiet cmd/main -- feel 'replace(\"a/b/c\", \"/\", \"$\", \"q\")'",
+    "stdout": "\"a$b$c\"",
+    "exit_code": 0
+  }
+]

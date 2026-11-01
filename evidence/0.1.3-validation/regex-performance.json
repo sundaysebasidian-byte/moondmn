@@ -1,0 +1,72 @@
+{
+  "backend": "native debug",
+  "timing": "seconds including process startup",
+  "measurements": [
+    {
+      "pattern": "(a*)*b",
+      "input_length": 10000,
+      "result": false,
+      "seconds": 0.0316
+    },
+    {
+      "pattern": "(a*)*b",
+      "input_length": 10001,
+      "result": true,
+      "seconds": 0.0066
+    },
+    {
+      "pattern": "(a+)+b",
+      "input_length": 10000,
+      "result": false,
+      "seconds": 0.0452
+    },
+    {
+      "pattern": "(a+)+b",
+      "input_length": 10001,
+      "result": true,
+      "seconds": 0.0067
+    },
+    {
+      "pattern": "a*a*a*a*a*b",
+      "input_length": 10000,
+      "result": false,
+      "seconds": 0.0259
+    },
+    {
+      "pattern": "[a-z]*",
+      "input_length": 10000,
+      "result": true,
+      "seconds": 0.0069
+    },
+    {
+      "pattern": "^(a+)\\1$",
+      "input_length": 100,
+      "result": true,
+      "seconds": 0.0027
+    },
+    {
+      "pattern": "^(a+)\\1$",
+      "input_length": 1000,
+      "result": true,
+      "seconds": 0.0084
+    },
+    {
+      "pattern": "^(a+)\\1$",
+      "input_length": 4000,
+      "result": true,
+      "seconds": 0.082
+    },
+    {
+      "pattern": "^(a+)\\1$",
+      "input_length": 10000,
+      "result": true,
+      "seconds": 0.4835
+    },
+    {
+      "pattern": "replace each a with X",
+      "input_length": 10000,
+      "output_length": 10000,
+      "seconds": 0.0092
+    }
+  ]
+}

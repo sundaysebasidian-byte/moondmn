@@ -249,7 +249,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 286 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
+每个后端 289 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。

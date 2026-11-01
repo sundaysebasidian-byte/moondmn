@@ -1,5 +1,5 @@
-Command stdout: empty; exit code: 0
-Report JSON summary:
+command: moon run cmd/main -- tck .tck/TestCases/compliance-level-2 --json evidence/tck-level-2.json
+report summary:
 {
   "total": 116,
   "passed": 116,

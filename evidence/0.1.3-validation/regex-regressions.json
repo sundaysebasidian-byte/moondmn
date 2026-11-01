@@ -1,0 +1,169 @@
+[
+  {
+    "expression": "replace(\"a\", \"(a)\", \"$2\")",
+    "actual": ""
+  },
+  {
+    "expression": "replace(\"a\", \"(a)\", \"$9\")",
+    "actual": ""
+  },
+  {
+    "expression": "replace(\"a\", \"(a)\", \"$10\")",
+    "actual": "a0"
+  },
+  {
+    "expression": "replace(\"a\", \"(a)\", \"$12\")",
+    "actual": "a2"
+  },
+  {
+    "expression": "replace(\"a\", \"(a)\", \"$123\")",
+    "actual": "a23"
+  },
+  {
+    "expression": "replace(\"a\", \"a\", \"$0\")",
+    "actual": "a"
+  },
+  {
+    "expression": "replace(\"a\", \"a\", \"$1\")",
+    "actual": ""
+  },
+  {
+    "expression": "replace(\"a\", \"a\", \"$10\")",
+    "actual": "0"
+  },
+  {
+    "expression": "replace(\"abcdefghijkl\", \"(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)(l)\", \"$12:$10:$13\")",
+    "actual": "l:j:a3"
+  },
+  {
+    "expression": "replace(\"b\", \"(a)|(b)\", \"[$1][$2]\")",
+    "actual": "[][b]"
+  },
+  {
+    "expression": "replace(\"abc\", \"b\", \"$\")",
+    "actual": null
+  },
+  {
+    "expression": "replace(\"abc\", \"b\", \"$x\")",
+    "actual": null
+  },
+  {
+    "expression": "replace(\"abc\", \"b\", \"\\\\q\")",
+    "actual": null
+  },
+  {
+    "expression": "replace(\"abc\", \"b\", \"\\\\$\")",
+    "actual": "a$c"
+  },
+  {
+    "expression": "replace(\"abc\", \"b\", \"\\\\\\\\\")",
+    "actual": "a\\c"
+  },
+  {
+    "expression": "replace(\"abc\", \"x*\", \"-\")",
+    "actual": null
+  },
+  {
+    "expression": "replace(\"abc\", \"a*\", \"-\")",
+    "actual": null
+  },
+  {
+    "expression": "replace(\"abc\", \"b?\", \"X\")",
+    "actual": null
+  },
+  {
+    "expression": "replace(\"abc\", \"^\", \"X\")",
+    "actual": null
+  },
+  {
+    "expression": "split(\"abc\", \"a*\")",
+    "actual": null
+  },
+  {
+    "expression": "replace(\"\", \"a\", \"X\")",
+    "actual": ""
+  },
+  {
+    "expression": "split(\",a,b,\", \",\")",
+    "actual": [
+      "",
+      "a",
+      "b",
+      ""
+    ]
+  },
+  {
+    "expression": "split(\"a,,b\", \",\")",
+    "actual": [
+      "a",
+      "",
+      "b"
+    ]
+  },
+  {
+    "expression": "split(\"abc\", \"z\")",
+    "actual": [
+      "abc"
+    ]
+  },
+  {
+    "expression": "split(\"abc\", \"\")",
+    "actual": [
+      "a",
+      "b",
+      "c"
+    ]
+  },
+  {
+    "expression": "split(\"\", \"\")",
+    "actual": []
+  },
+  {
+    "expression": "split(\"\", \",\")",
+    "actual": [
+      ""
+    ]
+  },
+  {
+    "expression": "split(\"abracadabra\", \"(ab)|(a)\")",
+    "actual": [
+      "",
+      "r",
+      "c",
+      "d",
+      "r",
+      ""
+    ]
+  },
+  {
+    "expression": "split(\"abracadabra\", \"(a)|(ab)\")",
+    "actual": [
+      "",
+      "br",
+      "c",
+      "d",
+      "br",
+      ""
+    ]
+  },
+  {
+    "expression": "replace(\"abcd\", \"(a|ab)(c|bcd)(d*)\", \"[$1][$2][$3]\")",
+    "actual": "[a][bcd][]"
+  },
+  {
+    "expression": "matches(\"abb\", \"^(a|ab)b$\")",
+    "actual": true
+  },
+  {
+    "expression": "matches(\"ab\", \"^(a|ab)*$\")",
+    "actual": true
+  },
+  {
+    "expression": "replace(\"ab\", \"(a)|(b)\", \"[$1]\")",
+    "actual": "[a][]"
+  },
+  {
+    "expression": "replace(\"xxb\", \"a*b\", \"Z\")",
+    "actual": "xxZ"
+  }
+]
