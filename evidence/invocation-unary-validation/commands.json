@@ -102,7 +102,7 @@
       "scripts/build-web.sh"
     ],
     "exit_code": 0,
-    "output": "Finished. moon: ran 4 tasks, now up to date\nArtifacts:\n  sundaysebasidian-byte/moondmn/playground  js  /Users/sebasidian/.t3/projects/moonbit-nov/moondmn/_build/js/release/build/playground/playground.js\nbuilt web/dist\n"
+    "output": "Finished. moon: ran 4 tasks, now up to date\nArtifacts:\n  sundaysebasidian-byte/moondmn/playground  js  ./_build/js/release/build/playground/playground.js\nbuilt web/dist\n"
   },
   {
     "name": "web-smoke",
