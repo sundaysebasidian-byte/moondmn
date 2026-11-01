@@ -20,8 +20,7 @@ groups = []
 for mapping in (lower, upper):
     inverse = {}
     for c, value in mapping.items():
-        if len(value) == 1:
-            inverse.setdefault(value, []).append(c)
+        inverse.setdefault(value, []).append(c)
     groups.append(inverse)
 text = '// Generated from Unicode 17.0.0 UnicodeData.txt and unconditional SpecialCasing.txt.\n'
 for path in paths:
@@ -30,8 +29,7 @@ text += '///|\nlet xpath_variants : Map[Int, Array[Int]] = {\n'
 for c in sorted(lower):
     variants = {c}
     for mapping, inverse in zip((lower, upper), groups):
-        if len(mapping[c]) == 1:
-            variants.update(inverse[mapping[c]])
+        variants.update(inverse[mapping[c]])
     if len(variants) > 1:
         text += f'  {c}: {sorted(variants)},\n'
 text += '}\n'
