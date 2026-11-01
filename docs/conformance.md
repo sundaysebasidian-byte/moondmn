@@ -35,7 +35,7 @@ Level 2 为 116/116。Level 3 为 3251/3291（98.78%），剩余 40 个失败，
 
 ## 时态算术边界核验（0.1.0 记录）
 
-N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，duration/epoch 纳秒在 BigInt 中计算，越界返回 E_DATE_RANGE 或 E_DURATION_RANGE。三个后端各 242/242、CLI 16 项、Web 26 项通过；两级 TCK 数字未变。逐项排查依据、容量范围和测试见 [时态算术核验](temporal-arithmetic.md)。0.1.1 的语义修正和当前 TCK 数字见上文。
+N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，duration/epoch 纳秒在 BigInt 中计算，越界返回 E_DATE_RANGE 或 E_DURATION_RANGE。相关回归测试已并入各后端的测试集；两级 TCK 数字未变。逐项排查依据、容量范围和测试见 [时态算术核验](temporal-arithmetic.md)。0.1.1 的语义修正和当前 TCK 数字见上文。
 
 ## 0.1.1 语义修正与边界
 

@@ -19,6 +19,30 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 - 一致性结果：[docs/conformance.md](docs/conformance.md)
 - 设计说明：[docs/design.md](docs/design.md)
 
+## 版本对应
+
+| 面 | 对应 | 说明 |
+| --- | --- | --- |
+| 源码 | tag `v0.1.1`（提交 `49bb4e7`） | mooncakes 0.1.1 的打包内容与该提交一致 |
+| mooncakes | `sundaysebasidian-byte/moondmn@0.1.1` | 包内容固定，不随 main 变化 |
+| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.1.1 |
+
+定位发布提交：`git rev-list -n 1 v0.1.1`。tag 尚未推送时，直接用上表中的提交。下面三条命令分别复现三个面：
+
+```bash
+# 源码测试
+git checkout v0.1.1
+moon test --target all
+
+# 安装包调用：在仓库外新建模块，把“安装与接入”中的 import 和示例原样放入 cmd/main
+moon new consumer && cd consumer
+moon add sundaysebasidian-byte/moondmn@0.1.1
+moon run cmd/main
+
+# 线上引擎：打开 Pages；对应的构建见 Actions 中 Pages 工作流的运行记录
+gh run list --workflow pages.yml --limit 1
+```
+
 ## 适用场景
 
 - 业务规则：审批、定价、风控、资格判定这类需要审计、需要版本管理的决策逻辑。
@@ -84,15 +108,16 @@ moon run cmd/main -- feel 'sum([1, 2, 3]) * 2'
 12
 ```
 
-也可以把本仓库放进同一个 workspace 使用。无论哪种方式，都在包里添加：
+也可以把本仓库放进同一个 workspace 使用。无论哪种方式，都在使用它的包（例如 `moon new` 生成的 `cmd/main/moon.pkg`）里添加：
 
 ```text
 import {
   "sundaysebasidian-byte/moondmn",
+  "sundaysebasidian-byte/moondmn/feel/types",
 }
 ```
 
-之后就能调用 `@moondmn.feel_eval`、`@moondmn.parse_model` 等。完整示例见 [`examples/api-demo`](examples/api-demo)：
+之后就能调用 `@moondmn.feel_eval`、`@moondmn.parse_model` 等；`feel/types` 提供错误类型 `@types.Failure`。完整示例见 [`examples/api-demo`](examples/api-demo)：
 
 ```moonbit
 fn main {
@@ -217,6 +242,7 @@ moon fmt --check
 moon check --deny-warn
 moon test                 # native
 moon test --target wasm-gc
+moon test --target wasm
 moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```

@@ -41,4 +41,4 @@ scripts/build-web.sh
 node web/smoke.mjs
 ```
 
-实测：三个后端各 242/242 测试、CLI 16 项、Web smoke 26 项；TCK L2 116/116、L3 3170/3291。原始 TCK 与逐例失败分类见 `evidence/`；未修改 TCK 比较器、容差、用例或跳过规则。
+测试数量与 TCK 结果以 [一致性报告](conformance.md) 和 README 为准。原始 TCK 与逐例失败分类见 `evidence/`；未修改 TCK 比较器、容差、用例或跳过规则。
