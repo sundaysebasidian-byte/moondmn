@@ -1,5 +1,5 @@
 ///|
-fn wrap_r1(body : String) -> String {
+fn wrap(body : String) -> String {
   "<definitions xmlns='https://www.omg.org/spec/DMN/20230324/MODEL/'><decision id='D' name='D'>" +
   body +
   "</decision></definitions>"
@@ -18,7 +18,7 @@ test "conditional requires all three unique branches before evaluation" {
       ignore(
         @model.evaluate_decision(
           @model.parse_model(
-            wrap_r1("<conditional>" + parts.join("") + "</conditional>"),
+            wrap("<conditional>" + parts.join("") + "</conditional>"),
           ),
           "D",
           Map([]),
@@ -38,16 +38,16 @@ test "conditional requires all three unique branches before evaluation" {
 ///|
 test "truncated and mutated DMN never trap" {
   let seeds = [
-    wrap_r1(
+    wrap(
       "<conditional><if><literalExpression><text>false</text></literalExpression></if><then><literalExpression><text>1</text></literalExpression></then></conditional>",
     ),
-    wrap_r1(
+    wrap(
       "<relation><column name='x'/><row><literalExpression><text>1</text></literalExpression></row></relation>",
     ),
-    wrap_r1(
+    wrap(
       "<decisionTable><input><inputExpression><text>1</text></inputExpression></input><output/><rule><inputEntry><text>-</text></inputEntry><outputEntry><text>1</text></outputEntry></rule></decisionTable>",
     ),
-    wrap_r1(
+    wrap(
       "<invocation><literalExpression><text>1</text></literalExpression><binding/></invocation>",
     ),
   ]

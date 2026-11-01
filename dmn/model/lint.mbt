@@ -50,7 +50,7 @@ pub fn lint(model : Model) -> Json {
       if !wildcard && !proves_coverage(model, expr) {
         findings.push(
           finding(
-            "W_POSSIBLE_GAP", name, "no catch-all rule; domain coverage requires review",
+            "W_POSSIBLE_GAP", name, "no catch-all rule; domain coverage requires manual inspection",
             expr,
           ),
         )

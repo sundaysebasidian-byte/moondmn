@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reconcile reports and the reviewed semantic inventory; never change TCK results."""
+"""Reconcile reports and the documented semantic inventory; never change TCK results."""
 import collections
 import json
 from pathlib import Path
@@ -7,7 +7,7 @@ import re
 
 root = Path(__file__).resolve().parent.parent
 reports = {n: json.loads((root / f'evidence/tck-level-{n}.json').read_text()) for n in (2, 3)}
-# These are reviewed semantic themes, not inferred excuses for counting a pass.
+# These are documented semantic themes, not inferred excuses for counting a pass.
 reasons = {
  '0004-lending': '综合信贷决策链给出 DECLINE 而非 ACCEPT；直接根因尚未完全定位，保留为已知结果错误。',
  '0013-sort': '字符串比较/排序未达到 TCK 要求的字典序，列表排序结果按长度分组。',

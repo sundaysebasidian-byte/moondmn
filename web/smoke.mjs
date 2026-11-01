@@ -99,7 +99,7 @@ test("insurance: every hit policy reports its hits", () => {
     Surcharges: "COLLECT",
     "Discount Rate": "COLLECT",
     "Risk Class": "PRIORITY",
-    "Manual Review": "ANY",
+    "Manual Inspection": "ANY",
     Notes: "RULE ORDER",
   });
 });

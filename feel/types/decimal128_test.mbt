@@ -1,5 +1,5 @@
 ///|
-test "R1 I3 signed exponent and decimal128 limits" {
+test "signed exponent and decimal128 limits" {
   inspect(
     @types.decimal("1e34").text(),
     content="10000000000000000000000000000000000",
@@ -29,7 +29,7 @@ test "R1 I3 signed exponent and decimal128 limits" {
 }
 
 ///|
-test "R1 I3 subnormal half even rounding and arithmetic" {
+test "subnormal half even rounding and arithmetic" {
   inspect(@types.decimal("5e-6177").text(), content="0")
   inspect(
     @types.decimal("15e-6177").compare(@types.decimal("2e-6176")),
@@ -66,7 +66,7 @@ test "R1 I3 subnormal half even rounding and arithmetic" {
 }
 
 ///|
-test "R1 I3 34 digits and invalid exponent" {
+test "34 digits and invalid exponent" {
   inspect(
     @types.decimal("1").divide(@types.decimal("3")).text(),
     content="0.3333333333333333333333333333333333",

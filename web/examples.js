@@ -177,8 +177,8 @@ const insurance = `<?xml version="1.0" encoding="UTF-8"?>
     </decisionTable>
   </decision>
 
-  <decision id="review" name="Manual Review">
-    <variable name="Manual Review" typeRef="boolean"/>
+  <decision id="inspection" name="Manual Inspection">
+    <variable name="Manual Inspection" typeRef="boolean"/>
     <informationRequirement><requiredInput href="#age"/></informationRequirement>
     <informationRequirement><requiredInput href="#licensed"/></informationRequirement>
     <informationRequirement><requiredInput href="#claims"/></informationRequirement>
@@ -186,7 +186,7 @@ const insurance = `<?xml version="1.0" encoding="UTF-8"?>
       <input label="Driver Age"><inputExpression typeRef="number"><text>Driver Age</text></inputExpression></input>
       <input label="Years Licensed"><inputExpression typeRef="number"><text>Years Licensed</text></inputExpression></input>
       <input label="Claims"><inputExpression typeRef="number"><text>Claims Last 3 Years</text></inputExpression></input>
-      <output name="review" typeRef="boolean"><defaultOutputEntry><text>false</text></defaultOutputEntry></output>
+      <output name="inspection" typeRef="boolean"><defaultOutputEntry><text>false</text></defaultOutputEntry></output>
       <rule><inputEntry><text>&lt; 18</text></inputEntry><inputEntry><text>-</text></inputEntry><inputEntry><text>-</text></inputEntry><outputEntry><text>true</text></outputEntry></rule>
       <rule><inputEntry><text>-</text></inputEntry><inputEntry><text>&lt; 1</text></inputEntry><inputEntry><text>-</text></inputEntry><outputEntry><text>true</text></outputEntry></rule>
       <rule><inputEntry><text>-</text></inputEntry><inputEntry><text>-</text></inputEntry><inputEntry><text>&gt;= 3</text></inputEntry><outputEntry><text>true</text></outputEntry></rule>
@@ -221,11 +221,11 @@ const insurance = `<?xml version="1.0" encoding="UTF-8"?>
     <variable name="Quote" typeRef="context"/>
     <informationRequirement><requiredDecision href="#premium"/></informationRequirement>
     <informationRequirement><requiredDecision href="#risk"/></informationRequirement>
-    <informationRequirement><requiredDecision href="#review"/></informationRequirement>
+    <informationRequirement><requiredDecision href="#inspection"/></informationRequirement>
     <informationRequirement><requiredDecision href="#notes"/></informationRequirement>
     <context>
       <contextEntry>
-        <literalExpression><text>{ premium: Premium, risk: Risk Class, review: Manual Review, notes: Notes }</text></literalExpression>
+        <literalExpression><text>{ premium: Premium, risk: Risk Class, inspection: Manual Inspection, notes: Notes }</text></literalExpression>
       </contextEntry>
     </context>
   </decision>
@@ -330,7 +330,7 @@ export const examples = [
       value: {
         premium: 1500,
         risk: "Medium",
-        review: false,
+        inspection: false,
         notes: ["Young driver surcharge", "High mileage surcharge"],
       },
       hits: {
@@ -338,7 +338,7 @@ export const examples = [
         Surcharges: [0, 2, 4],
         "Discount Rate": [3],
         "Risk Class": [1, 2, 3],
-        "Manual Review": [],
+        "Manual Inspection": [],
         Notes: [0, 1],
       },
     },

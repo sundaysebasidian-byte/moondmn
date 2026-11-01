@@ -1,5 +1,5 @@
 ///|
-fn enum_table_r1(
+fn enum_table(
   rules : String,
   domain~ : String = "<inputValues><text>\"M\",\"F\"</text></inputValues>",
   definitions~ : String = "",
@@ -19,30 +19,30 @@ fn enum_table_r1(
 }
 
 ///|
-fn enum_rule_r1(predicate : String) -> String {
+fn enum_rule(predicate : String) -> String {
   "<rule><inputEntry><text>" +
   predicate +
   "</text></inputEntry><outputEntry><text>1</text></outputEntry></rule>"
 }
 
 ///|
-test "R1 I6 complete enum has no gap; missing and open domains retain warning" {
-  let rules = enum_rule_r1("\"M\"") + enum_rule_r1("\"F\"")
-  inspect(@model.lint(enum_table_r1(rules)).stringify(), content="[]")
+test "complete enum has no gap; missing and open domains retain warning" {
+  let rules = enum_rule("\"M\"") + enum_rule("\"F\"")
+  inspect(@model.lint(enum_table(rules)).stringify(), content="[]")
   inspect(
-    @model.lint(enum_table_r1(enum_rule_r1("\"M\"")))
+    @model.lint(enum_table(enum_rule("\"M\"")))
     .stringify()
     .contains("W_POSSIBLE_GAP"),
     content="true",
   )
   inspect(
-    @model.lint(enum_table_r1(rules, domain=""))
+    @model.lint(enum_table(rules, domain=""))
     .stringify()
     .contains("W_POSSIBLE_GAP"),
     content="true",
   )
   inspect(
-    @model.lint(enum_table_r1(enum_rule_r1("\"M\"") + enum_rule_r1("\"M\"")))
+    @model.lint(enum_table(enum_rule("\"M\"") + enum_rule("\"M\"")))
     .stringify()
     .contains("W_IDENTICAL_RULE_OVERLAP"),
     content="true",
@@ -50,12 +50,12 @@ test "R1 I6 complete enum has no gap; missing and open domains retain warning" {
 }
 
 ///|
-test "R1 I6 ItemDefinition alias allowedValues prove range coverage" {
+test "ItemDefinition alias allowedValues prove range coverage" {
   let definitions = "<itemDefinition name='Base'><typeRef>number</typeRef><allowedValues><text>1,2,3</text></allowedValues></itemDefinition><itemDefinition name='Alias'><typeRef>Base</typeRef></itemDefinition>"
   inspect(
     @model.lint(
-      enum_table_r1(
-        enum_rule_r1("[1..3]"),
+      enum_table(
+        enum_rule("[1..3]"),
         definitions~,
         type_name="Alias",
         domain="",
@@ -65,8 +65,8 @@ test "R1 I6 ItemDefinition alias allowedValues prove range coverage" {
   )
   inspect(
     @model.lint(
-      enum_table_r1(
-        enum_rule_r1("[1..2]"),
+      enum_table(
+        enum_rule("[1..2]"),
         definitions~,
         type_name="Alias",
         domain="",
