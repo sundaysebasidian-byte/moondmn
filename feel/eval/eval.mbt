@@ -223,11 +223,26 @@ pub fn evaluate(
           let scope = captured.copy()
           for i, parameter in parameters {
             let value = args[i]
-            let value = if !instance_of(value, parameter.1, captured) {
-              match value {
-                List([one]) => one
-                _ => value
+            let name = parameter.1.trim().to_owned().to_lower()
+            let value = if !(value is Null) &&
+              !instance_of(value, parameter.1, captured) {
+              if name == "list" || name.has_prefix("list<") {
+                @types.List([value])
+              } else {
+                match value {
+                  List([one]) => one
+                  _ => value
+                }
               }
+            } else {
+              value
+            }
+            let value = if (name == "date and time" || name == "datetime") &&
+              value is Date(d) {
+              @types.DateTime({
+                date: d,
+                time: @types.make_time(0, 0, 0, 0, @types.Fixed(0)),
+              })
             } else {
               value
             }

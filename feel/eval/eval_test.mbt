@@ -28,3 +28,33 @@ test "null differs from runtime failure" {
     },
   )
 }
+
+///|
+test "typed function invocation implicit conversions" {
+  for
+    (source, expected) in [
+      ("(function(x:list<number>) x)(1)", "[1]"),
+      ("(function(x:list<number>) x)([1,2])", "[1,2]"),
+      ("(function(x:list<number>) x)([1])", "[1]"),
+      ("(function(x:list<number>) x)([])", "[]"),
+      ("(function(x:list<list<number>>) x)([1,2])", "[[1,2]]"),
+      ("(function(x:list<number>) 1)(null)", "1"),
+      ("(function(x:list<number>) x)(true)", "null"),
+      ("(function(x:list<number>) x)([1,true])", "null"),
+      ("(function(x:number) x)([1])", "1"),
+      ("(function(x:number) x)([true])", "null"),
+      (
+        "(function(x:date and time) x)(date(\"2020-01-01\"))", "\"2020-01-01T00:00:00Z\"",
+      ),
+      (
+        "(function(x:date and time) x)([date(\"2020-01-01\")])", "\"2020-01-01T00:00:00Z\"",
+      ),
+      (
+        "(function(x:date and time) x)(date and time(\"2020-01-01T12:30:00+02:00\"))",
+        "\"2020-01-01T12:30:00+02:00\"",
+      ),
+      ("(function(x:date and time) x)([1])", "null"),
+    ] {
+    assert_eq(@eval.feel_eval(source).json().stringify(), expected)
+  }
+}
