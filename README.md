@@ -213,7 +213,7 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 类型系统 | 部分支持 | 根包/CLI/Playground 共用声明时态 JSON 转换；结构类型/隐式转换仍有失败 |
 | 内置函数 | 部分支持（约 90 个） | 剩余逐例缺陷和受限函数见 docs/conformance.md |
 | `now()` / `today()` | 已支持（需注入时钟） | API 的 clock 参数、CLI 的 `--now`；不注入则报不支持 |
-| 正则 `s`/`x`/`m` 标志 | 部分支持 | `matches` 支持 Unicode simple folding、递归字符类相减和反向引用；完整范围见设计文档 |
+| 正则 `s`/`x`/`m` 标志 | 部分支持 | `matches` 支持 F&O Unicode 大小写变体、递归字符类相减和反向引用；完整范围见设计文档 |
 | 外部 Java 函数 | 明确不支持 | 需要 JVM |
 | DMN 1.5 `import` | 明确不支持 | 多文件导入尚未实现 |
 
@@ -249,7 +249,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 281 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
+每个后端 286 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。

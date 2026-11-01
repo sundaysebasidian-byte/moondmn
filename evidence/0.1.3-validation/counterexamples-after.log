@@ -1,0 +1,46 @@
+$ moon run --quiet cmd/main -- feel 'matches("\u0131", "I", "i")'
+true
+$ moon run --quiet cmd/main -- feel 'matches("\u0131", "i", "i")'
+true
+$ moon run --quiet cmd/main -- feel 'matches("\u0131", "[A-Z]", "i")'
+true
+$ moon run --quiet cmd/main -- feel 'matches("\u0131", "[^I]", "i")'
+false
+$ moon run --quiet cmd/main -- feel 'matches("\u0131", "[A-Z-[O]]", "i")'
+true
+$ moon run --quiet cmd/main -- feel 'matches("\u03D1", "\u03F4", "i")'
+false
+$ moon run --quiet cmd/main -- feel '1 in (!=3)'
+true
+$ moon run --quiet cmd/main -- feel 'overlaps((!=3), [1..2])'
+null
+$ moon run --quiet cmd/main -- feel 'before((!=3), [4..5])'
+null
+$ moon run --quiet cmd/main -- feel 'includes([0..10], (!=3))'
+null
+$ moon run --quiet cmd/main -- feel 'matches("banana", "[a-z-[aeiou]]")'
+true
+$ moon run --quiet cmd/main -- feel 'replace("banana", "[a-z-[aeiou]]", "X")'
+"XaXaXa"
+$ moon run --quiet cmd/main -- feel 'replace("\u212Aate", "k", "X", "i")'
+"Xate"
+$ moon run --quiet cmd/main -- feel 'replace("abc", "b", "X")'
+"aXc"
+$ moon run --quiet cmd/main -- feel 'split("aXbXc", "X")'
+["a","b","c"]
+$ moon run --quiet cmd/main -- feel 'range("(..2)") = (<2)'
+true
+$ moon run --quiet cmd/main -- feel 'range("[2..)") = (>=2)'
+true
+$ moon run --quiet cmd/main -- feel 'range("[18..21)") = [18..21)'
+true
+$ moon run --quiet cmd/main -- feel 'split("a-b-c", "-")'
+["a","b","c"]
+length=16, suffix='', pattern=(a*)*b: false
+length=16, suffix='b', pattern=(a*)*b: true
+length=32, suffix='', pattern=(a*)*b: false
+length=32, suffix='b', pattern=(a*)*b: true
+length=100, suffix='', pattern=(a*)*b: false
+length=100, suffix='b', pattern=(a*)*b: true
+length=1000, suffix='', pattern=(a*)*b: false
+length=1000, suffix='b', pattern=(a*)*b: true

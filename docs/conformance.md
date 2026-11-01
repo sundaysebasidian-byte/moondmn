@@ -34,7 +34,9 @@ L2 保持 116/116；L3 从 3251/3291（40 个失败）提高到 3258/3291（33 �
 
 六个正则失败分别是 Kelvin 单码点折叠（1）、大小写扩展后的字符类相减（4）、大小写不敏感反向引用（1）。比较式区间依据 DMN 1.5 表 53 保留比较运算符，`(=3) = [3..3]` 为 false，`(=3) = (=3)` 为 true。最小反例及扩展边界测试在 `feel/eval/xpath_test.mbt`；修复前四组反例在四后端均失败，修复后全部通过。实现范围见 [设计文档](design.md)。
 
-实际命令、退出码、日志、接口前后指纹及逐例增量见 `evidence/0.1.3-validation/`。runner、容差和错误白名单未改；未实现 Java 外部函数或跨文件 import。CI 的 L3 最低通过数提高到 3258，并固定总数为 3291。
+大小写变体按 F&O 的直接 upper/lower 单字符关系判断；替换和分割共用 XPath 匹配器。`!=` 区间关系返回 null，开端缺值的 `range()` 返回单侧无界区间。嵌套量词在 16、32、100、1000 字符的成功和失败输入上均返回正确布尔值。
+
+实际命令、退出码、日志、`moon info` 幂等指纹（不表示相对 0.1.2 源码兼容）及逐例增量见 `evidence/0.1.3-validation/`。runner、容差和错误白名单未改；未实现 Java 外部函数或跨文件 import。CI 的 L3 最低通过数提高到 3258，并固定总数为 3291。
 
 ## 时态算术边界核验（0.1.0 记录）
 
@@ -64,7 +66,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 - TCK 仓库：https://github.com/dmn-tck/tck
 - 固定提交：`1e349176e5ae689d924a2a2c7a8df25c220d8b07`（由 `scripts/fetch-tck.sh` 拉取到被忽略的 `.tck/`）
-- 工具链：MoonBit 0.1.20261028；本轮 TCK 使用 `moon run` 默认 wasm 后端，单元回归另覆盖四后端
+- 工具链：MoonBit 0.1.20261028；TCK 使用 `moon run` 默认 wasm 后端，单元回归另覆盖四后端
 - 驱动：`moondmn tck <目录> --json <文件>`，读取 `<modelName>` 指向的模型并按 `resultNode/@type` 分派
 - 判定：number 使用绝对差 ≤ 1e-8，list/context 递归比较，其他值使用引擎结构/时态相等；errorResult 只接受现有白名单错误或期望 null 时的 null。未改 runner 或容差
 
@@ -79,8 +81,8 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 ## 测试规模
 
-- 单元测试 281 个 test block，native、wasm-gc、js、wasm 四个目标各 281/281 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
-- 正则新增独立解析/匹配实现和自动生成的 Unicode C/S 表；生成输入与许可一并保留。
+- 单元测试 286 个 test block，native、wasm-gc、js、wasm 四个目标各 286/286 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- 正则新增独立解析/匹配实现和自动生成的 Unicode 大小写映射表；生成输入与许可一并保留。
 - 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 26 项。
 - 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。
 

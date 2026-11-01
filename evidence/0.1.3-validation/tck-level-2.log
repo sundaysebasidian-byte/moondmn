@@ -1,0 +1,10 @@
+Command stdout: empty; exit code: 0
+Report JSON summary:
+{
+  "total": 116,
+  "passed": 116,
+  "failed": 0,
+  "skipped": 0,
+  "empty_files": 0,
+  "failures": {}
+}

@@ -1,0 +1,17 @@
+Command stdout: empty; exit code: 0
+Report JSON summary:
+{
+  "total": 3291,
+  "passed": 3258,
+  "failed": 33,
+  "skipped": 0,
+  "empty_files": 0,
+  "failures": {
+    "E_TYPE_UNSUPPORTED": 2,
+    "E_ZONE_UNSUPPORTED": 2,
+    "E_TCK_MISMATCH": 3,
+    "E_IMPORT_UNSUPPORTED": 5,
+    "E_BUILTIN_UNSUPPORTED": 4,
+    "E_UNSUPPORTED_SYNTAX": 17
+  }
+}
