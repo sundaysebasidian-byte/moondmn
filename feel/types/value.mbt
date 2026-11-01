@@ -140,7 +140,19 @@ fn datetime_compare(a : DateTime, b : DateTime) -> Int32 raise EngineError {
 pub fn compare_values(a : Value, b : Value) -> Int32 raise EngineError {
   match (a, b) {
     (Number(x), Number(y)) => x.compare(y)
-    (Text(x), Text(y)) => if x < y { -1 } else if x > y { 1 } else { 0 }
+    (Text(x), Text(y)) => {
+      let xs = x.to_array()
+      let ys = y.to_array()
+      for i = 0; i < xs.length() && i < ys.length(); i = i + 1 {
+        if xs[i] < ys[i] {
+          return -1
+        }
+        if xs[i] > ys[i] {
+          return 1
+        }
+      }
+      xs.length() - ys.length()
+    }
     (Boolean(x), Boolean(y)) => if x == y { 0 } else if x { 1 } else { -1 }
     (Date(x), Date(y)) => x.ordinal().compare(y.ordinal())
     (Time(x), Time(y)) => time_compare(x, y)

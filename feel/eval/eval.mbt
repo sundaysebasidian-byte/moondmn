@@ -114,7 +114,7 @@ pub fn evaluate(
       let out = Map([])
       for pair in entries {
         if out.contains(pair.0) {
-          raise err("E_DUPLICATE", "duplicate context key: " + pair.0)
+          return Null
         }
         let value = evaluate(pair.1, scope)
         scope[pair.0] = value
@@ -158,7 +158,7 @@ pub fn evaluate(
               if @builtins.has(n) {
                 @builtins.call_args(n, evaluated)
               } else {
-                raise err("E_NAME", "unknown function: " + n)
+                Null
               }
           }
         _ =>
@@ -206,6 +206,35 @@ pub fn evaluate(
           let scope = captured.copy()
           for i, param in params {
             scope[param] = args[i]
+          }
+          evaluate(body, scope)
+        },
+      })
+    }
+    TypedFunctionDef(parameters, body) => {
+      let captured = ctx.copy()
+      Function({
+        name: "function",
+        params: parameters.map(p => p.0),
+        callback: args => {
+          if args.length() != parameters.length() {
+            return Null
+          }
+          let scope = captured.copy()
+          for i, parameter in parameters {
+            let value = args[i]
+            let value = if !instance_of(value, parameter.1, captured) {
+              match value {
+                List([one]) => one
+                _ => value
+              }
+            } else {
+              value
+            }
+            if !(value is Null) && !instance_of(value, parameter.1, captured) {
+              return Null
+            }
+            scope[parameter.0] = value
           }
           evaluate(body, scope)
         },
@@ -373,6 +402,7 @@ fn environments(
       let value = evaluate(pair.1, scope)
       match value {
         List(xs) => xs
+        Range(_) => return None
         _ => [value]
       }
     }
@@ -485,7 +515,7 @@ fn instance_of_at(
                 .to_owned()
               match entries.get(key) {
                 Some(v) =>
-                  if !instance_of_at(v, ty, ctx, depth + 1) {
+                  if !(v is Null) && !instance_of_at(v, ty, ctx, depth + 1) {
                     ok = false
                   }
                 None => ok = false
@@ -722,7 +752,10 @@ fn filter_value(
   if items.is_empty() {
     return List([])
   }
-  let probe = evaluate(filter, filter_scope(ctx, items[0]))
+  let probe = evaluate(filter, filter_scope(ctx, items[0])) catch {
+    @types.Failure("E_NAME", _, _, _) => Null
+    e => raise e
+  }
   match probe {
     Number(n) => {
       if !n.is_integer() {
@@ -955,19 +988,27 @@ fn subtract(
     (Date(d), YearsMonths(x)) =>
       Date(@types.date_add_months(d, -x.total_months()))
     (Date(d), DateTime(dt)) =>
-      DaysSeconds(
-        @types.duration_ds_of_nanos(
-          date_midnight_nanos(d) - datetime_utc_nanos(dt),
-        ),
-      )
+      if !dt.has_offset() {
+        Null
+      } else {
+        DaysSeconds(
+          @types.duration_ds_of_nanos(
+            date_midnight_nanos(d) - datetime_utc_nanos(dt),
+          ),
+        )
+      }
     (Time(x), Time(y)) => DaysSeconds(time_difference(x, y))
     (Time(t), DaysSeconds(x)) => Time(time_add(t, x.negate()))
     (DateTime(dt), Date(d)) =>
-      DaysSeconds(
-        @types.duration_ds_of_nanos(
-          datetime_utc_nanos(dt) - date_midnight_nanos(d),
-        ),
-      )
+      if !dt.has_offset() {
+        Null
+      } else {
+        DaysSeconds(
+          @types.duration_ds_of_nanos(
+            datetime_utc_nanos(dt) - date_midnight_nanos(d),
+          ),
+        )
+      }
     (DateTime(x), DateTime(y)) => DaysSeconds(datetime_difference(x, y))
     (DateTime(dt), DaysSeconds(x)) => DateTime(datetime_add_ds(dt, x.negate()))
     (DateTime(dt), YearsMonths(x)) =>
@@ -1201,12 +1242,12 @@ fn filter_scope(
   item : @types.Value,
 ) -> Map[String, @types.Value] {
   let scope = ctx.copy()
+  scope["item"] = item
   if item is Context(fields) {
     for k, v in fields {
       scope[k] = v
     }
   }
-  scope["item"] = item
   scope
 }
 

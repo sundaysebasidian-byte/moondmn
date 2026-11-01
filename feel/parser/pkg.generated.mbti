@@ -35,6 +35,7 @@ pub(all) enum Expr {
   SomeIn(Array[(String, Expr)], Expr)
   EveryIn(Array[(String, Expr)], Expr)
   FunctionDef(Array[String], Expr)
+  TypedFunctionDef(Array[(String, String)], Expr)
   InstanceOf(Expr, String)
   Between(Expr, Expr, Expr)
   In(Expr, Test)

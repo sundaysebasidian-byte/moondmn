@@ -24,6 +24,7 @@ pub(all) enum Expr {
   SomeIn(Array[(String, Expr)], Expr)
   EveryIn(Array[(String, Expr)], Expr)
   FunctionDef(Array[String], Expr)
+  TypedFunctionDef(Array[(String, String)], Expr)
   InstanceOf(Expr, String)
   Between(Expr, Expr, Expr)
   In(Expr, Test)
@@ -248,7 +249,7 @@ fn Parser::expr(p : Parser, minimum : Int32) -> Expr raise @types.EngineError {
       break
     }
     let op = p.take().text
-    let right = p.expr(if op == "**" { 6 } else { prec + 1 })
+    let right = p.expr(prec + 1)
     left = Binary(op, left, right)
   }
   p.depth = p.depth - 1
@@ -416,7 +417,15 @@ fn Parser::atom(p : Parser) -> Expr raise @types.EngineError {
     "for" => For(p.bindings(), p.body("return"))
     "some" => SomeIn(p.bindings(), p.body("satisfies"))
     "every" => EveryIn(p.bindings(), p.body("satisfies"))
-    "function" => FunctionDef(p.params(), p.expr(1))
+    "function" => {
+      let params = p.params()
+      let body = p.expr(1)
+      if params.iter().all(p => p.1 == "Any") {
+        FunctionDef(params.map(p => p.0), body)
+      } else {
+        TypedFunctionDef(params, body)
+      }
+    }
     "(" => p.paren_atom()
     "[" => p.bracket_atom()
     "]" => p.close_bracket_atom()
@@ -496,7 +505,9 @@ fn Parser::body(p : Parser, keyword : String) -> Expr raise @types.EngineError {
 }
 
 ///|
-fn Parser::params(p : Parser) -> Array[String] raise @types.EngineError {
+fn Parser::params(
+  p : Parser,
+) -> Array[(String, String)] raise @types.EngineError {
   p.expect("(")
   let out = []
   if !p.at(")") {
@@ -510,13 +521,13 @@ fn Parser::params(p : Parser) -> Array[String] raise @types.EngineError {
           "expected a parameter name",
         )
       }
-      if p.at(":") {
+      let ty = if p.at(":") {
         ignore(p.take())
-        while !p.at(",") && !p.at(")") && p.peek().kind != "eof" {
-          ignore(p.take())
-        }
+        p.type_name()
+      } else {
+        "Any"
       }
-      out.push(name.text)
+      out.push((name.text, ty))
       if p.at(",") {
         ignore(p.take())
         continue

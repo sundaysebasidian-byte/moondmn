@@ -31,7 +31,12 @@ fn membership(
   for item in items {
     let hit : @types.Value = match item {
       Range(r) => Boolean(r.contains(input)) catch { _ => Null }
-      List(inner) => membership(input, inner)
+      List(inner) =>
+        if input.equals(item) {
+          Boolean(true)
+        } else {
+          membership(input, inner)
+        }
       Null => Null
       _ => Boolean(input.equals(item))
     }
@@ -124,8 +129,18 @@ pub fn test_match_value(
       } else {
         let value = evaluate(expr, scope_with(ctx, "?", input))
         match value {
-          Boolean(b) => Boolean(b)
-          List(items) => membership(input, items)
+          Boolean(b) =>
+            if expr is Lit(Boolean(_)) || expr is Name(_) || expr is Path(_, _) {
+              Boolean(input.equals(Boolean(b)))
+            } else {
+              Boolean(b)
+            }
+          List(items) =>
+            if input.equals(value) {
+              Boolean(true)
+            } else {
+              membership(input, items)
+            }
           Range(r) =>
             if input is Null {
               Null

@@ -33,6 +33,7 @@ fn number(
 fn text(v : @types.Value, name : String) -> String raise @types.EngineError {
   match v {
     Text(s) => s
+    List([one]) => text(one, name)
     _ => raise err("E_TYPE", name + " requires a string")
   }
 }
@@ -121,19 +122,19 @@ fn call_function(
 /// stay in this list so that names with spaces are tokenised as one unit.
 let builtin_names : Array[String] = [
   "date", "time", "date and time", "duration", "years and months duration", "not",
-  "number", "string", "string length", "upper case", "lower case", "substring", "substring before",
-  "substring after", "contains", "starts with", "ends with", "matches", "replace",
-  "split", "string join", "trim", "decimal", "floor", "ceiling", "round up", "round down",
-  "round half up", "round half down", "abs", "modulo", "sqrt", "log", "exp", "odd",
-  "even", "count", "min", "max", "sum", "mean", "median", "stddev", "mode", "product",
-  "all", "any", "list contains", "sublist", "append", "concatenate", "insert before",
-  "remove", "list replace", "reverse", "index of", "union", "distinct values", "flatten",
-  "sort", "not", "get value", "get entries", "context put", "context merge", "context",
-  "day of week", "day of year", "week of year", "month of year", "day of month",
-  "year", "today", "now", "before", "after", "meets", "met by", "overlaps", "overlaps before",
-  "overlaps after", "finishes", "finished by", "includes", "during", "starts", "started by",
-  "coincides", "start included", "end included", "time offset", "weekday", "timezone",
-  "is", "range",
+  "decimal sep", "grouping sep", "number", "string", "string length", "upper case",
+  "lower case", "substring", "substring before", "substring after", "contains", "starts with",
+  "ends with", "matches", "replace", "split", "string join", "trim", "decimal", "floor",
+  "ceiling", "round up", "round down", "round half up", "round half down", "abs",
+  "modulo", "sqrt", "log", "exp", "odd", "even", "count", "min", "max", "sum", "mean",
+  "median", "stddev", "mode", "product", "all", "any", "list contains", "sublist",
+  "append", "concatenate", "insert before", "remove", "list replace", "reverse",
+  "index of", "union", "distinct values", "flatten", "sort", "not", "get value",
+  "get entries", "context put", "context merge", "context", "day of week", "day of year",
+  "week of year", "month of year", "day of month", "year", "today", "now", "before",
+  "after", "meets", "met by", "overlaps", "overlaps before", "overlaps after", "finishes",
+  "finished by", "includes", "during", "starts", "started by", "coincides", "start included",
+  "end included", "time offset", "weekday", "timezone", "is", "range",
 ]
 
 ///|
@@ -346,6 +347,10 @@ fn bind_args(
   name : String,
   args : Array[(String?, @types.Value)],
 ) -> @types.Value raise @types.EngineError {
+  if name == "context put" &&
+    args.iter().any(arg => arg.0 is Some("key") && !(arg.1 is Text(_))) {
+    return Null
+  }
   let named = args.iter().any(arg => arg.0 is Some(_))
   if named && args.iter().any(arg => arg.0 is None) {
     raise err("E_ARITY", "cannot mix named and positional arguments")
@@ -528,6 +533,7 @@ fn dispatch(
         match xs[0] {
           Time(_) => xs[0]
           DateTime(dt) => Time(dt.time)
+          Date(_) => Time(@types.make_time(0, 0, 0, 0, @types.Fixed(0)))
           Text(s) => Time(@types.parse_time(s))
           _ => raise err("E_TYPE", "time requires a string or date and time")
         }
@@ -606,6 +612,12 @@ fn dispatch(
       arity(name, xs, 1, 3)
       match xs[0] {
         Text(s) => {
+          if xs.length() == 3 &&
+            !(xs[1] is Null) &&
+            !(xs[2] is Null) &&
+            xs[1].equals(xs[2]) {
+            return Null
+          }
           let mut body = s
           if xs.length() > 1 {
             let grouping = if xs[1] is Null { "" } else { text(xs[1], name) }
@@ -670,7 +682,7 @@ fn dispatch(
       let body = text(xs[0], name)
       let start = index_of_value(xs[1], name)
       let length = if xs.length() == 3 && !(xs[2] is Null) {
-        Some(index_of_value(xs[2], name))
+        Some(number(xs[2], name).floor().to_int())
       } else {
         None
       }
@@ -761,7 +773,10 @@ fn dispatch(
         List(input.to_array().map(ch => Text(ch.to_string())))
       } else {
         List(
-          input.split(delimiter).to_array().map(part => Text(part.to_owned())),
+          compile_regex(delimiter, "")
+          .split(input)
+          .to_array()
+          .map(part => Text(part.to_owned())),
         )
       }
     }
@@ -1707,10 +1722,31 @@ fn compile_regex(
   pattern : String,
   flags : String,
 ) -> @string.Regex raise @types.EngineError {
+  let raw = StringBuilder()
+  let mut in_class = false
+  let mut escaped = false
+  for ch in pattern.to_array() {
+    if flags.contains("x") &&
+      !in_class &&
+      (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
+      continue
+    }
+    raw.write_char(ch)
+    if !escaped && ch == '[' {
+      in_class = true
+    }
+    if !escaped && ch == ']' {
+      in_class = false
+    }
+    escaped = !escaped && ch == '\\'
+  }
+  let normalized = raw
+    .to_string()
+    .replace_all(old="\\p{IsBasicLatin}", new="[\u0000-\u007F]")
   let out = StringBuilder()
   let mut escaped = false
   let mut in_class = false
-  for ch in translate_pattern(pattern).to_array() {
+  for ch in translate_pattern(normalized).to_array() {
     if escaped {
       out.write_char(ch)
       escaped = false
@@ -1845,7 +1881,7 @@ fn range_relation(
       let starts = bound_compare(a_start, b_start)
       let ends = bound_compare(a_end, b_end)
       (starts < 0 || (starts == 0 && a_start_included && !b_start_included)) &&
-      (ends < 0 || (ends == 0 && !a_end_included && b_end_included)) &&
+      (ends < 0 || (ends == 0 && (!a_end_included || b_end_included))) &&
       @types.Range::overlaps(as_range(a), as_range(b))
     }
     "overlaps after" => range_relation("overlaps before", b, a)
@@ -1854,7 +1890,7 @@ fn range_relation(
       let starts = bound_compare(a_start, b_start)
       ends == 0 &&
       a_end_included == b_end_included &&
-      (starts > 0 || (starts == 0 && !a_start_included && b_start_included))
+      (starts > 0 || (starts == 0 && (!a_start_included || b_start_included)))
     }
     "finished by" => range_relation("finishes", b, a)
     "includes" => {
@@ -1872,7 +1908,7 @@ fn range_relation(
       let ends = bound_compare(a_end, b_end)
       starts == 0 &&
       a_start_included == b_start_included &&
-      (ends < 0 || (ends == 0 && !a_end_included && b_end_included))
+      (ends < 0 || (ends == 0 && (!a_end_included || b_end_included)))
     }
     "started by" => range_relation("starts", b, a)
     "coincides" =>

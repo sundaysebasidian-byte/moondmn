@@ -227,6 +227,9 @@ pub fn parse_date(text : String) -> Date raise EngineError {
     raise fail("E_DATE_INVALID", "invalid year: " + s)
   }
   let year = String::from_array(chars[start:len - 6].to_owned())
+  if year.length() > 4 && year.has_prefix("0") {
+    raise fail("E_DATE_INVALID", "extended year has leading zero")
+  }
   for ch in year.to_array() {
     if ch < '0' || ch > '9' {
       raise fail("E_DATE_INVALID", "invalid year: " + s)
@@ -402,7 +405,12 @@ pub fn Time::text(self : Time) -> String {
       h.to_string() +
       ":" +
       (if m < 10 { "0" } else { "" }) +
-      m.to_string()
+      m.to_string() +
+      (if a % 60 == 0 {
+        ""
+      } else {
+        ":" + (if a % 60 < 10 { "0" } else { "" }) + (a % 60).to_string()
+      })
     }
     Named(name) => out + "@" + name
   }
