@@ -12,7 +12,7 @@ MoonDMN 是用 MoonBit 从零写的 OMG DMN 1.5 决策引擎和 FEEL 表达式�
 
 English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. It runs without a JVM,
 compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
-(Level 2: 116/116, Level 3: 3170/3291).
+(Level 2: 116/116, Level 3: 3251/3291).
 
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
@@ -198,10 +198,10 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 级别 | 用例数 | 通过 | 通过率 |
 | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 100.0% |
-| Level 3 | 3291 | 3170 | 96.32% |
+| Level 3 | 3291 | 3251 | 98.78% |
 
-目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。Level 3 剩余 121 个失败：87 个是已知缺陷，26 个未实现
-（Java 外部函数 18、`import` 8），2 个覆盖边界，2 个规范与 TCK 存在差异，4 个因 TCK 驱动不提供时钟。
+目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。Level 3 剩余 40 个失败：7 个是已知缺陷，25 个未实现
+（Java 外部函数 18、`import` 7），2 个覆盖边界，2 个规范与 TCK 存在差异，4 个因 TCK 驱动不提供时钟。
 也就是说，失败的大头是引擎自己的缺陷，不是范围外的用例。
 结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。
 
@@ -222,7 +222,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 242 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
+每个后端 271 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
@@ -230,7 +230,7 @@ CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任�
 ## 限制与路线图
 
 - 外部 Java 函数和 DMN 1.5 导入不在当前范围。
-- TCK Level 3 还有 121 个失败，其中 87 个是已知缺陷，逐例列在 [docs/conformance.md](docs/conformance.md)。
+- TCK Level 3 还有 40 个失败，其中 7 个是已知缺陷，逐例列在 [docs/conformance.md](docs/conformance.md)。
 - 时区只有 39 个名称，只覆盖 1970–2100 年。
 - `now()`、`today()` 没有隐含的系统时钟，必须由调用方注入。
 - 计划补齐正则标志和 `range()` 的高级参数。

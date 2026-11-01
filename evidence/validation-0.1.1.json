@@ -1,0 +1,43 @@
+{
+  "version": "0.1.1",
+  "tck_commit": "1e349176e5ae689d924a2a2c7a8df25c220d8b07",
+  "level_2": {
+    "before": 116,
+    "after": 116,
+    "total": 116
+  },
+  "level_3": {
+    "before": 3170,
+    "after": 3251,
+    "total": 3291,
+    "failures": 40
+  },
+  "checks": {
+    "moon check --deny-warn --target all": "PASS",
+    "moon test --target all": {
+      "wasm": 271,
+      "wasm-gc": 271,
+      "js": 271,
+      "native": 271
+    },
+    "moon fmt --check": "PASS",
+    "moon info; git diff --exit-code -- *.mbti": "PASS",
+    "python3 scripts/test-cli.py": "16 passed",
+    "scripts/build-web.sh": "PASS",
+    "node web/smoke.mjs": "26 passed"
+  },
+  "runner_unchanged_from": "c8c14be750ce51224065f03fa0e22d82e4d8b8dc",
+  "reports": {
+    "evidence/tck-level-2.json": "985e26defb264003080d8eec7109a72ff7d86f0510e391cf9f3eb14926f65f74",
+    "evidence/tck-level-3.json": "ab1871ffcc0093e205e9285a615251825eaa21a4c148d1fc0d16d4111bbc0d76",
+    "evidence/failure-classification.json": "24347df27c2da9837df8e8de80de3983e1d445586abb404d3addf37d794f9923"
+  },
+  "non_test_mbt_lines": 14525,
+  "generated_tzdata_lines": 4394,
+  "whitebox_test_lines": 38,
+  "handwritten_non_test_lines": 10093,
+  "not_run": [
+    "push",
+    "publish"
+  ]
+}

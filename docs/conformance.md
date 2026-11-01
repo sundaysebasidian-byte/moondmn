@@ -5,34 +5,26 @@
 <!-- summary:start -->
 ## 结论
 
-Level 2 为 116/116。Level 3 为 3170/3291（96.32%），剩余 121 个失败，没有跳过，也没有被隐藏的用例。
+Level 2 为 116/116。Level 3 为 3251/3291（98.78%），剩余 40 个失败，没有跳过，也没有被隐藏的用例。
 
-这 121 个失败里，87 个（72%）是引擎自己的缺陷，只有 30 个属于范围外或测试环境。通过率不能理解为“剩下的都是范围外”。
+这 40 个失败里，7 个（18%）是引擎自己的缺陷，29 个属于范围外或测试环境。通过率不能理解为“剩下的都是范围外”。
 
 | 分类 | 失败数 | 占失败比例 | 含义 |
 | --- | ---: | ---: | --- |
-| 已知缺陷 | 87 | 71.9% | 范围内的行为不正确，是待修的缺陷 |
-| 未实现 | 26 | 21.5% | 尚未实现或明确不做 |
-| 覆盖边界 | 2 | 1.7% | 实现主动拒绝，不猜测 |
-| 规范与 TCK 存在差异 | 2 | 1.7% | 实现依据规范文本，与 TCK 期望不一致；仍计为失败 |
-| 驱动未提供时钟 | 4 | 3.3% | TCK 驱动不提供时钟；API 与 CLI 注入时钟后可用 |
+| 已知缺陷 | 7 | 17.5% | 范围内的行为不正确，是待修的缺陷 |
+| 未实现 | 25 | 62.5% | 尚未实现或明确不做 |
+| 覆盖边界 | 2 | 5.0% | 实现主动拒绝，不猜测 |
+| 规范与 TCK 存在差异 | 2 | 5.0% | 实现依据规范文本，与 TCK 期望不一致；仍计为失败 |
+| 驱动未提供时钟 | 4 | 10.0% | TCK 驱动不提供时钟；API 与 CLI 注入时钟后可用 |
 
-未实现的 26 个中，Java 外部函数 18 个，DMN `import` 8 个。
+未实现的 25 个中，Java 外部函数 18 个，DMN `import` 7 个。
 
 已知缺陷集中在下面这些套件（按失败数排序，只列前 10 个；全部明细见文末）：
 
 | 套件 | 失败数 | 症状举例 |
 | --- | ---: | --- |
-| 0082-feel-coercion | 12 | 结构化字段缺失被补成 null 后接受，与该声明类型要求的错误/null 不一致。 |
-| 1111-feel-matches-function | 9 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1130-feel-interval | 6 | 同端点、开闭边界的 starts/finishes/overlaps 关系仍有不正确分支。 |
-| 1157-implicit-conversions | 6 | 决策服务/BKM/调用表达式的输出类型适配未完整贯通，包括 singleton 和 date 到 date-time。 |
-| 0020-vacation-days | 5 | 休假天数决策链返回 null 而非数字；表调用与传播路径的直接根因待定位。 |
-| 0084-feel-for-loops | 5 | 非法 range domain 或 range/list 迭代区分不正确：本应 null/错误，却返回列表。 |
-| 0087-chapter-11-example | 5 | 综合信贷示例的风险/路由决策结果错误；直接根因尚未完全定位，不能声称规范歧义。 |
-| 0069-feel-list | 3 | item 字段被注入的整个 item context 遮蔽，导致 context 与 number 比较。 |
-| 0100-arithmetic | 3 | date 与 date-time 混合相减未拒绝不兼容类型。 |
-| 0085-decision-services | 3 | 服务位置参数按 href 排序绑定，未按声明输入参数次序绑定。 |
+| 1111-feel-matches-function | 6 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
+| 0068-feel-equality | 1 | 比较式 (=x) 被表示为双闭点区间，丢失一元测试与双端区间的类型区别；需扩展值表示和相等规则。 |
 
 数字的来源：
 
@@ -41,9 +33,27 @@ Level 2 为 116/116。Level 3 为 3170/3291（96.32%），剩余 121 个失败�
 - 任何一个套件都可以用下文“复现”一节的命令单独重跑。
 <!-- summary:end -->
 
-## 时态算术边界核验
+## 时态算术边界核验（0.1.0 记录）
 
-N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，duration/epoch 纳秒在 BigInt 中计算，越界返回 E_DATE_RANGE 或 E_DURATION_RANGE。三个后端各 242/242、CLI 16 项、Web 26 项通过；两级 TCK 数字未变。逐项排查依据、容量范围和测试见 [时态算术核验](temporal-arithmetic.md)。这不改变下述剩余 121 个 TCK 失败的披露。
+N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，duration/epoch 纳秒在 BigInt 中计算，越界返回 E_DATE_RANGE 或 E_DURATION_RANGE。三个后端各 242/242、CLI 16 项、Web 26 项通过；两级 TCK 数字未变。逐项排查依据、容量范围和测试见 [时态算术核验](temporal-arithmetic.md)。0.1.1 的语义修正和当前 TCK 数字见上文。
+
+## 0.1.1 语义修正与边界
+
+依据 [DMN 1.5](https://www.omg.org/spec/DMN/1.5/PDF) §10.3.2、§10.3.4、§10.4 的求值、内建函数和 invocable 语义，补充 29 个独立测试块。测试不依赖 TCK 文件，期望值为固定的规范结果。
+
+L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失败。runner 的比较规则、容差及错误白名单完全未改。
+
+剩余项暂不修复的原因：
+
+- Java 外部函数 18：需要 JVM/宿主调用桥，当前纯 MoonBit 引擎不提供。
+- 跨文件 import 7：需要文件解析接口、目录内相对模型引用、别名与命名空间隔离；本版本只支持本模型 namespace 的绝对 href，不把它当成跨文件 import 支持。
+- Unicode/XPath 正则 6：底层正则缺少完整 Unicode 大小写折叠、字符类相减和反向引用；需要独立实现或更换兼容的正则基础。
+- 比较式区间相等 1：当前值表示丢失一元测试与双端区间的区别，需扩展表示及相等规则。
+- 小数秒相等 2：保留精度，规范/TCK 差异仍待核对，不为通过测试丢弃小数秒。
+- 无日期命名时区 time 相减 2：DST offset 无法唯一确定，继续明确拒绝。
+- now()/today() 4：驱动未注入时钟，按要求继续失败并披露。
+
+解析器 AST 增加 TypedFunctionDef 以保留类型声明；直接穷举 Expr 的调用方需补充分支。FEEL 调用与顶层决策的类型不匹配现在产生 null，基础 API 的其他显式错误仍保留错误码。
 
 ## 环境与方法
 
@@ -58,14 +68,14 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 | 级别 | 用例总数 | 通过 | 失败 | 通过率 | 原始报告 |
 | --- | --- | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 0 | 100.00% | `evidence/tck-level-2.json` |
-| Level 3 | 3291 | 3170 | 121 | 96.32% | `evidence/tck-level-3.json` |
+| Level 3 | 3291 | 3251 | 40 | 98.78% | `evidence/tck-level-3.json` |
 
 目标为 Level 2 ≥ 95%、Level 3 ≥ 80%，两项均已达到。
 
 ## 测试规模
 
-- 单元测试 242 个 test block，native、wasm-gc、js 三个后端各 242/242 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
-- MoonBit 代码共 14331 行，其中自动生成的 tzdata 4394 行、whitebox 测试 38 行；排除这两部分后为 9899 行。
+- 单元测试 271 个 test block，native、wasm-gc、js、wasm 四个目标各 271/271 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- MoonBit 代码共 14525 行，其中自动生成的 tzdata 4394 行、whitebox 测试 38 行；排除这两部分后为 10093 行。
 - 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 26 项。
 - 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。
 
@@ -73,29 +83,22 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 
 | 状态码 | 用例数 |
 | --- | --- |
-| `E_TCK_MISMATCH` | 54 |
-| `E_TCK_EXPECTED_ERROR` | 19 |
 | `E_UNSUPPORTED_SYNTAX` | 17 |
-| `E_IMPORT_UNSUPPORTED` | 6 |
-| `E_TYPE` | 4 |
-| `E_DMN_ITERATOR` | 4 |
+| `E_TCK_MISMATCH` | 10 |
+| `E_IMPORT_UNSUPPORTED` | 5 |
 | `E_BUILTIN_UNSUPPORTED` | 4 |
-| `E_NAME` | 3 |
-| `E_PARSE` | 3 |
 | `E_TYPE_UNSUPPORTED` | 2 |
 | `E_ZONE_UNSUPPORTED` | 2 |
-| `E_DMN_FILTER` | 2 |
-| `E_DUPLICATE` | 1 |
 
 下表按引擎返回的状态码统计，和上面“结论”里按原因的分类是两个维度。`E_TCK_MISMATCH` 表示求值成功但值与期望不同；`E_TCK_EXPECTED_ERROR` 表示期望错误/空值而引擎给出了值；其余为引擎语义错误。
 
 几个主要的失败来源（不是全部，全部见文末逐例明细）：
 
 - 外部 Java 函数（`0076-feel-external-java`）需要 JVM 回调，明确不实现。
-- DMN 1.5 导入（`0086-import`、`1160-multiple-imports`、`0089-nested-inputdata-imports`、`0091-local-hrefs`）尚未实现。
+- DMN 1.5 导入（`0086-import`、`1160-multiple-imports`、`0089-nested-inputdata-imports`）尚未实现。
 - Unicode 正则与部分匹配语义（`1111-feel-matches-function`）。
 - 动态时间 TCK 未注入运行时钟，仍报不支持；库 API 可注入 clock，CLI 可使用 `--now`。
-- `1130-feel-interval` 的开闭端点关系与 `1157-implicit-conversions` 的隐式转换。
+- 比较式区间与双端区间的值表示差异（`0068-feel-equality/range_010`）。
 
 ## Level 2 全量矩阵（28 个套件，116 例）
 
@@ -137,7 +140,7 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 | 0001-filter | 1 | 1 | 0 |
 | 0002-string-functions | 4 | 4 | 0 |
 | 0003-iteration | 1 | 1 | 0 |
-| 0004-lending | 1 | 0 | 1 |
+| 0004-lending | 1 | 1 | 0 |
 | 0005-literal-invocation | 3 | 3 | 0 |
 | 0006-join | 1 | 1 | 0 |
 | 0007-date-time | 1 | 1 | 0 |
@@ -146,19 +149,19 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 | 0010-concatenate | 1 | 1 | 0 |
 | 0011-insert-remove | 1 | 1 | 0 |
 | 0012-list-functions | 19 | 19 | 0 |
-| 0013-sort | 1 | 0 | 1 |
+| 0013-sort | 1 | 1 | 0 |
 | 0014-loan-comparison | 1 | 1 | 0 |
 | 0016-some-every | 3 | 3 | 0 |
 | 0017-tableTests | 4 | 4 | 0 |
-| 0020-vacation-days | 7 | 2 | 5 |
-| 0021-singleton-list | 1 | 0 | 1 |
+| 0020-vacation-days | 7 | 7 | 0 |
+| 0021-singleton-list | 1 | 1 | 0 |
 | 0030-user-defined-functions | 1 | 1 | 0 |
 | 0031-user-defined-functions | 3 | 3 | 0 |
 | 0032-conditionals | 6 | 6 | 0 |
 | 0033-for-loops | 4 | 4 | 0 |
 | 0034-drg-scopes | 1 | 1 | 0 |
 | 0035-test-structure-output | 3 | 3 | 0 |
-| 0036-dt-variable-input | 3 | 1 | 2 |
+| 0036-dt-variable-input | 3 | 3 | 0 |
 | 0037-dt-on-bkm-implicit-params | 2 | 2 | 0 |
 | 0038-dt-on-bkm-explicit-params | 2 | 2 | 0 |
 | 0039-dt-list-semantics | 2 | 2 | 0 |
@@ -171,8 +174,8 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 | 0054-feel-even-function | 17 | 17 | 0 |
 | 0055-feel-odd-function | 17 | 17 | 0 |
 | 0056-feel-modulo-function | 28 | 28 | 0 |
-| 0057-feel-context | 11 | 10 | 1 |
-| 0058-feel-number-function | 21 | 19 | 2 |
+| 0057-feel-context | 11 | 11 | 0 |
+| 0058-feel-number-function | 21 | 21 | 0 |
 | 0059-feel-all-function | 19 | 19 | 0 |
 | 0060-feel-any-function | 17 | 17 | 0 |
 | 0061-feel-median-function | 14 | 14 | 0 |
@@ -181,30 +184,30 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 | 0064-feel-conjunction | 19 | 19 | 0 |
 | 0065-feel-disjunction | 19 | 19 | 0 |
 | 0066-feel-negation | 6 | 6 | 0 |
-| 0067-feel-split-function | 9 | 8 | 1 |
+| 0067-feel-split-function | 9 | 9 | 0 |
 | 0068-feel-equality | 114 | 111 | 3 |
-| 0069-feel-list | 35 | 32 | 3 |
-| 0070-feel-instance-of | 142 | 141 | 1 |
+| 0069-feel-list | 35 | 35 | 0 |
+| 0070-feel-instance-of | 142 | 142 | 0 |
 | 0071-feel-between | 38 | 38 | 0 |
-| 0072-feel-in | 327 | 325 | 2 |
+| 0072-feel-in | 327 | 327 | 0 |
 | 0073-feel-comments | 3 | 3 | 0 |
 | 0074-feel-properties | 53 | 53 | 0 |
-| 0075-feel-exponent | 12 | 11 | 1 |
+| 0075-feel-exponent | 12 | 12 | 0 |
 | 0076-feel-external-java | 18 | 0 | 18 |
 | 0077-feel-nan | 1 | 1 | 0 |
 | 0078-feel-infinity | 2 | 2 | 0 |
 | 0080-feel-getvalue-function | 14 | 14 | 0 |
 | 0081-feel-getentries-function | 9 | 9 | 0 |
-| 0082-feel-coercion | 36 | 24 | 12 |
-| 0083-feel-unicode | 14 | 12 | 2 |
-| 0084-feel-for-loops | 24 | 19 | 5 |
-| 0085-decision-services | 18 | 15 | 3 |
+| 0082-feel-coercion | 36 | 36 | 0 |
+| 0083-feel-unicode | 14 | 14 | 0 |
+| 0084-feel-for-loops | 24 | 24 | 0 |
+| 0085-decision-services | 18 | 18 | 0 |
 | 0086-import | 2 | 0 | 2 |
-| 0087-chapter-11-example | 8 | 3 | 5 |
+| 0087-chapter-11-example | 8 | 8 | 0 |
 | 0088-no-decision-logic | 1 | 1 | 0 |
 | 0089-nested-inputdata-imports | 1 | 0 | 1 |
 | 0090-feel-paths | 4 | 4 | 0 |
-| 0091-local-hrefs | 1 | 0 | 1 |
+| 0091-local-hrefs | 1 | 1 | 0 |
 | 0092-feel-lambda | 18 | 18 | 0 |
 | 0093-feel-at-literals | 19 | 19 | 0 |
 | 0094-feel-product-function | 13 | 13 | 0 |
@@ -213,12 +216,12 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 | 0097-feel-month-of-year-function | 12 | 12 | 0 |
 | 0098-feel-week-of-year-function | 19 | 19 | 0 |
 | 0099-arithmetic-negation | 14 | 14 | 0 |
-| 0100-arithmetic | 1087 | 1082 | 5 |
+| 0100-arithmetic | 1087 | 1085 | 2 |
 | 0103-feel-is-function | 50 | 50 | 0 |
 | 1100-feel-decimal-function | 10 | 10 | 0 |
 | 1101-feel-floor-function | 17 | 17 | 0 |
 | 1102-feel-ceiling-function | 17 | 17 | 0 |
-| 1103-feel-substring-function | 11 | 10 | 1 |
+| 1103-feel-substring-function | 11 | 11 | 0 |
 | 1104-feel-string-length-function | 6 | 6 | 0 |
 | 1105-feel-upper-case-function | 8 | 8 | 0 |
 | 1106-feel-lower-case-function | 9 | 9 | 0 |
@@ -226,32 +229,32 @@ N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，durat
 | 1108-feel-substring-after-function | 10 | 10 | 0 |
 | 1109-feel-replace-function | 28 | 28 | 0 |
 | 1110-feel-contains-function | 10 | 10 | 0 |
-| 1111-feel-matches-function | 40 | 31 | 9 |
-| 1115-feel-date-function | 52 | 51 | 1 |
-| 1116-feel-time-function | 83 | 80 | 3 |
-| 1117-feel-date-and-time-function | 88 | 87 | 1 |
+| 1111-feel-matches-function | 40 | 34 | 6 |
+| 1115-feel-date-function | 52 | 52 | 0 |
+| 1116-feel-time-function | 83 | 83 | 0 |
+| 1117-feel-date-and-time-function | 88 | 88 | 0 |
 | 1120-feel-duration-function | 50 | 50 | 0 |
 | 1121-feel-years-and-months-duration-function | 36 | 36 | 0 |
-| 1130-feel-interval | 14 | 8 | 6 |
-| 1131-feel-function-invocation | 8 | 7 | 1 |
+| 1130-feel-interval | 14 | 14 | 0 |
+| 1131-feel-function-invocation | 8 | 8 | 0 |
 | 1140-feel-string-join-function | 22 | 22 | 0 |
 | 1141-feel-round-up-function | 16 | 16 | 0 |
 | 1142-feel-round-down-function | 16 | 16 | 0 |
 | 1143-feel-round-half-up-function | 16 | 16 | 0 |
 | 1144-feel-round-half-down-function | 16 | 16 | 0 |
 | 1145-feel-context-function | 18 | 18 | 0 |
-| 1146-feel-context-put-function | 30 | 29 | 1 |
+| 1146-feel-context-put-function | 30 | 30 | 0 |
 | 1147-feel-context-merge-function | 14 | 14 | 0 |
 | 1148-feel-now-function | 2 | 0 | 2 |
 | 1149-feel-today-function | 2 | 0 | 2 |
 | 1150-boxed-conditional | 3 | 3 | 0 |
-| 1151-boxed-filter | 4 | 2 | 2 |
+| 1151-boxed-filter | 4 | 4 | 0 |
 | 1152-boxed-for | 2 | 2 | 0 |
-| 1153-boxed-some | 5 | 3 | 2 |
-| 1154-boxed-every | 5 | 3 | 2 |
+| 1153-boxed-some | 5 | 5 | 0 |
+| 1154-boxed-every | 5 | 5 | 0 |
 | 1155-list-replace-function | 22 | 22 | 0 |
 | 1156-range-function | 56 | 56 | 0 |
-| 1157-implicit-conversions | 12 | 6 | 6 |
+| 1157-implicit-conversions | 12 | 12 | 0 |
 | 1160-multiple-imports | 4 | 0 | 4 |
 | 1161-boxed-list-expression | 2 | 2 | 0 |
 
@@ -297,34 +300,13 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 ## 逐例明细
 
-每一行是一个失败用例，共 121 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认的不一致，其中综合信贷链的直接根因尚未完全定位，已在原因里注明。
+每一行是一个失败用例，共 40 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。
 
 | 套件 / 测试文件 | case ID | 分类 | 原因 |
 | --- | --- | --- | --- |
-| 0004-lending/0004-lending-test-01.xml | `001` | 已知缺陷 | 综合信贷决策链给出 DECLINE 而非 ACCEPT；直接根因尚未完全定位，保留为已知结果错误。 |
-| 0013-sort/0013-sort-test-01.xml | `001` | 已知缺陷 | 字符串比较/排序未达到 TCK 要求的字典序，列表排序结果按长度分组。 |
-| 0020-vacation-days/0020-vacation-days-test-01.xml | `001` | 已知缺陷 | 休假天数决策链返回 null 而非数字；表调用与传播路径的直接根因待定位。 |
-| 0020-vacation-days/0020-vacation-days-test-01.xml | `002` | 已知缺陷 | 休假天数决策链返回 null 而非数字；表调用与传播路径的直接根因待定位。 |
-| 0020-vacation-days/0020-vacation-days-test-01.xml | `003` | 已知缺陷 | 休假天数决策链返回 null 而非数字；表调用与传播路径的直接根因待定位。 |
-| 0020-vacation-days/0020-vacation-days-test-01.xml | `004` | 已知缺陷 | 休假天数决策链返回 null 而非数字；表调用与传播路径的直接根因待定位。 |
-| 0020-vacation-days/0020-vacation-days-test-01.xml | `005` | 已知缺陷 | 休假天数决策链返回 null 而非数字；表调用与传播路径的直接根因待定位。 |
-| 0021-singleton-list/0021-singleton-list-test-01.xml | `001` | 已知缺陷 | 字符串函数调用链没有完成 singleton-list 参数适配，结果为 null 而非 BOB。 |
-| 0036-dt-variable-input/0036-dt-variable-input-test-01.xml | `_20445ee0-744d-4488-a90e-136701510871` | 已知缺陷 | 决策表 inputVariable 与布尔 unary test 的作用域/匹配行为不正确。 |
-| 0036-dt-variable-input/0036-dt-variable-input-test-01.xml | `_58109f16-2e9b-496e-bfff-5f0adbfa0279` | 已知缺陷 | 决策表 inputVariable 与布尔 unary test 的作用域/匹配行为不正确。 |
-| 0057-feel-context/0057-feel-context-test-01.xml | `008` | 已知缺陷 | 重复 context 键当前抛 E_DUPLICATE，与该用例期望的 context 行为不一致；重复键策略待进一步规范核对。 |
-| 0058-feel-number-function/0058-feel-number-function-test-01.xml | `009` | 已知缺陷 | grouping separator 与 decimal separator 相同仍被接受，应为 null/错误。 |
-| 0058-feel-number-function/0058-feel-number-function-test-01.xml | `014` | 已知缺陷 | decimal sep/grouping sep 命名拼写没有被识别，编译阶段报错。 |
-| 0067-feel-split-function/0067-feel-split-function-test-01.xml | `001` | 已知缺陷 | split 将分隔符当作普通文本，未按正则分隔符拆分。 |
 | 0068-feel-equality/0068-feel-equality-test-01.xml | `datetime_003_a` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。 |
-| 0068-feel-equality/0068-feel-equality-test-01.xml | `range_010` | 已知缺陷 | 单端比较 range 与双端 range 的相等性规则不正确。 |
+| 0068-feel-equality/0068-feel-equality-test-01.xml | `range_010` | 已知缺陷 | 比较式 (=x) 被表示为双闭点区间，丢失一元测试与双端区间的类型区别；需扩展值表示和相等规则。 |
 | 0068-feel-equality/0068-feel-equality-test-01.xml | `time_005` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。 |
-| 0069-feel-list/0069-feel-list-test-01.xml | `026` | 已知缺陷 | item 字段被注入的整个 item context 遮蔽，导致 context 与 number 比较。 |
-| 0069-feel-list/0069-feel-list-test-01.xml | `031` | 已知缺陷 | filter 在逐项缺失字段探测时抛 E_NAME，没有产生空集/过滤剩余合法项。 |
-| 0069-feel-list/0069-feel-list-test-01.xml | `032` | 已知缺陷 | filter 在逐项缺失字段探测时抛 E_NAME，没有产生空集/过滤剩余合法项。 |
-| 0070-feel-instance-of/0070-feel-instance-of-test-01.xml | `context_019` | 已知缺陷 | 结构化 context 类型的 conforms-to 检查拒绝了该合法值。 |
-| 0072-feel-in/0072-feel-in-test-01.xml | `list_001` | 已知缺陷 | 嵌套 list 的 membership/整体 list 相等适配不完整。 |
-| 0072-feel-in/0072-feel-in-test-01.xml | `list_011_a` | 已知缺陷 | 嵌套 list 的 membership/整体 list 相等适配不完整。 |
-| 0075-feel-exponent/0075-feel-exponent-test-01.xml | `decision_001` | 已知缺陷 | 幂运算解析当前右结合；3 ** 4 ** 5 未按 TCK 的左结合结果求值。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `boxed_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_002` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
@@ -343,86 +325,22 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_011` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_012` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `varargs_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decisionService_001` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decisionService_002_b` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decisionService_002_c` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decision_005` | 已知缺陷 | 结构化字段缺失被补成 null 后接受，与该声明类型要求的错误/null 不一致。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decision_bkm_002` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decision_bkm_003` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decision_bkm_004_a` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decision_bkm_005` | 已知缺陷 | literalExpression 的 number typeRef 未应用于 BKM 返回值；输出 [10] 未适配为 10。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decision_bkm_005_a` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `decision_context_03` | 已知缺陷 | 结构化字段缺失被补成 null 后接受，与该声明类型要求的错误/null 不一致。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `fd_002` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0082-feel-coercion/0082-feel-coercion-test-01.xml | `invoke_001` | 已知缺陷 | 表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。 |
-| 0083-feel-unicode/0083-feel-unicode-test-01.xml | `decision_006` | 已知缺陷 | 未加引号的 Unicode context 键无法被 lexer/parser 接受。 |
-| 0083-feel-unicode/0083-feel-unicode-test-01.xml | `decision_007` | 已知缺陷 | 未加引号的 Unicode context 键无法被 lexer/parser 接受。 |
-| 0084-feel-for-loops/0084-feel-for-loops-test-01.xml | `decision_019_a` | 已知缺陷 | 非法 range domain 或 range/list 迭代区分不正确：本应 null/错误，却返回列表。 |
-| 0084-feel-for-loops/0084-feel-for-loops-test-01.xml | `decision_020_a` | 已知缺陷 | 非法 range domain 或 range/list 迭代区分不正确：本应 null/错误，却返回列表。 |
-| 0084-feel-for-loops/0084-feel-for-loops-test-01.xml | `decision_021_a` | 已知缺陷 | 非法 range domain 或 range/list 迭代区分不正确：本应 null/错误，却返回列表。 |
-| 0084-feel-for-loops/0084-feel-for-loops-test-01.xml | `decision_022_a` | 已知缺陷 | 非法 range domain 或 range/list 迭代区分不正确：本应 null/错误，却返回列表。 |
-| 0084-feel-for-loops/0084-feel-for-loops-test-01.xml | `decision_025` | 已知缺陷 | 非法 range domain 或 range/list 迭代区分不正确：本应 null/错误，却返回列表。 |
-| 0085-decision-services/0085-decision-services-test-01.xml | `011` | 已知缺陷 | 服务位置参数按 href 排序绑定，未按声明输入参数次序绑定。 |
-| 0085-decision-services/0085-decision-services-test-01.xml | `013` | 已知缺陷 | 服务位置参数按 href 排序绑定，未按声明输入参数次序绑定。 |
-| 0085-decision-services/0085-decision-services-test-01.xml | `014` | 已知缺陷 | 服务位置参数按 href 排序绑定，未按声明输入参数次序绑定。 |
 | 0086-import/0086-import-test-01.xml | `test_001` | 未实现 | 跨文件 import 的名称解析和导入 ItemDefinition 注册未实现。 |
 | 0086-import/0086-import-test-01.xml | `test_002` | 未实现 | 跨文件 import 的名称解析和导入 ItemDefinition 注册未实现。 |
-| 0087-chapter-11-example/0087-chapter-11-example-test-01.xml | `001` | 已知缺陷 | 综合信贷示例的风险/路由决策结果错误；直接根因尚未完全定位，不能声称规范歧义。 |
-| 0087-chapter-11-example/0087-chapter-11-example-test-01.xml | `002` | 已知缺陷 | 综合信贷示例的风险/路由决策结果错误；直接根因尚未完全定位，不能声称规范歧义。 |
-| 0087-chapter-11-example/0087-chapter-11-example-test-01.xml | `003b` | 已知缺陷 | 综合信贷示例的风险/路由决策结果错误；直接根因尚未完全定位，不能声称规范歧义。 |
-| 0087-chapter-11-example/0087-chapter-11-example-test-01.xml | `003c` | 已知缺陷 | 综合信贷示例的风险/路由决策结果错误；直接根因尚未完全定位，不能声称规范歧义。 |
-| 0087-chapter-11-example/0087-chapter-11-example-test-01.xml | `004` | 已知缺陷 | 综合信贷示例的风险/路由决策结果错误；直接根因尚未完全定位，不能声称规范歧义。 |
 | 0089-nested-inputdata-imports/0089-nested-inputdata-imports-test-01.xml | `001` | 未实现 | 嵌套导入的 InputData/href 解析未实现。 |
-| 0091-local-hrefs/0091-local-hrefs-test-01.xml | `001` | 未实现 | 绝对 URI 形式的本地 href 未解析；当前只接受 #id。 |
-| 0100-arithmetic/0100-arithmetic-test-01.xml | `exponent_lhs_number_exp_rhs_number_003` | 已知缺陷 | 幂运算解析当前右结合；3 ** 4 ** 5 未按 TCK 的左结合结果求值。 |
-| 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_dateAndTime_minus_rhs_date_001` | 已知缺陷 | date 与 date-time 混合相减未拒绝不兼容类型。 |
-| 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_date_minus_rhs_dateAndTime_001` | 已知缺陷 | date 与 date-time 混合相减未拒绝不兼容类型。 |
 | 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_time_minus_rhs_time_005` | 覆盖边界 | time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。 |
 | 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_time_minus_rhs_time_006` | 覆盖边界 | time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。 |
-| 1103-feel-substring-function/1103-feel-substring-function-test-01.xml | `010_fbf9a89fde` | 已知缺陷 | 负 start position 配合 length 的截取终点计算错误。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `K2-MatchesFunc-1` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `K2-MatchesFunc-17` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `K2-MatchesFunc-5` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `K2-MatchesFunc-6` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch07` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch08` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch09` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch10` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch11` | 已知缺陷 | Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。 |
-| 1115-feel-date-function/1115-feel-date-function-test-01.xml | `039_67a6eafa3f` | 已知缺陷 | 扩展年份带前导零的非法 date 字符串被接受。 |
-| 1116-feel-time-function/1116-feel-time-function-test-01.xml | `046_7b80221ec1` | 已知缺陷 | 时区 offset 格式化丢失秒分量，不能保留 ±02:45:55。 |
-| 1116-feel-time-function/1116-feel-time-function-test-01.xml | `047_33cd7b9b15` | 已知缺陷 | 时区 offset 格式化丢失秒分量，不能保留 ±02:45:55。 |
-| 1116-feel-time-function/1116-feel-time-function-test-01.xml | `053_3d956966c0` | 已知缺陷 | time(date) 缺少 UTC 午夜转换。 |
-| 1117-feel-date-and-time-function/1117-feel-date-and-time-function-test-01.xml | `067_35fef99b53` | 已知缺陷 | 扩展年份带前导零的非法 date-time 字符串被接受。 |
-| 1130-feel-interval/1130-feel-interval-test-01.xml | `finished by` | 已知缺陷 | 同端点、开闭边界的 starts/finishes/overlaps 关系仍有不正确分支。 |
-| 1130-feel-interval/1130-feel-interval-test-01.xml | `finishes` | 已知缺陷 | 同端点、开闭边界的 starts/finishes/overlaps 关系仍有不正确分支。 |
-| 1130-feel-interval/1130-feel-interval-test-01.xml | `overlaps after` | 已知缺陷 | 同端点、开闭边界的 starts/finishes/overlaps 关系仍有不正确分支。 |
-| 1130-feel-interval/1130-feel-interval-test-01.xml | `overlaps before` | 已知缺陷 | 同端点、开闭边界的 starts/finishes/overlaps 关系仍有不正确分支。 |
-| 1130-feel-interval/1130-feel-interval-test-01.xml | `started by` | 已知缺陷 | 同端点、开闭边界的 starts/finishes/overlaps 关系仍有不正确分支。 |
-| 1130-feel-interval/1130-feel-interval-test-01.xml | `starts` | 已知缺陷 | 同端点、开闭边界的 starts/finishes/overlaps 关系仍有不正确分支。 |
-| 1131-feel-function-invocation/1131-feel-function-invocation-test-01.xml | `001` | 已知缺陷 | 不存在的函数当前抛 E_NAME，而该用例期望 FEEL null；未统一调用失败语义。 |
-| 1146-feel-context-put-function/1146-feel-context-put-function-test-01.xml | `nested008` | 已知缺陷 | context put 对 key/keys 的命名重载校验未区分，接受了该用例要求拒绝的调用。 |
+| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `K2-MatchesFunc-17` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
+| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch07` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
+| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch08` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
+| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch09` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
+| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch10` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
+| 1111-feel-matches-function/1111-feel-matches-function-test-01.xml | `caselessmatch11` | 已知缺陷 | 剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。 |
 | 1148-feel-now-function/1148-feel-now-function-test-01.xml | `001` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
 | 1148-feel-now-function/1148-feel-now-function-test-01.xml | `002` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
 | 1149-feel-today-function/1149-feel-today-function-test-01.xml | `001` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
 | 1149-feel-today-function/1149-feel-today-function-test-01.xml | `002` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
-| 1151-boxed-filter/1151-boxed-filter-test-01.xml | `004` | 已知缺陷 | boxed filter 的非布尔 predicate 抛错误，该用例要求 null/元素过滤行为。 |
-| 1151-boxed-filter/1151-boxed-filter-test-01.xml | `005` | 已知缺陷 | boxed filter 的非布尔 predicate 抛错误，该用例要求 null/元素过滤行为。 |
-| 1153-boxed-some/1153-boxed-some-test-01.xml | `005` | 已知缺陷 | boxed some 的标量 domain 或非布尔 body 处理与规范/TCK 要求不一致。 |
-| 1153-boxed-some/1153-boxed-some-test-01.xml | `006` | 已知缺陷 | boxed some 的标量 domain 或非布尔 body 处理与规范/TCK 要求不一致。 |
-| 1154-boxed-every/1154-boxed-every-test-01.xml | `005` | 已知缺陷 | boxed every 的标量 domain 或非布尔 body 处理与规范/TCK 要求不一致。 |
-| 1154-boxed-every/1154-boxed-every-test-01.xml | `006` | 已知缺陷 | boxed every 的标量 domain 或非布尔 body 处理与规范/TCK 要求不一致。 |
-| 1157-implicit-conversions/1157-implicit-conversions-test-01.xml | `002_a` | 已知缺陷 | 决策服务/BKM/调用表达式的输出类型适配未完整贯通，包括 singleton 和 date 到 date-time。 |
-| 1157-implicit-conversions/1157-implicit-conversions-test-01.xml | `007` | 已知缺陷 | 决策服务/BKM/调用表达式的输出类型适配未完整贯通，包括 singleton 和 date 到 date-time。 |
-| 1157-implicit-conversions/1157-implicit-conversions-test-01.xml | `008` | 已知缺陷 | 决策服务/BKM/调用表达式的输出类型适配未完整贯通，包括 singleton 和 date 到 date-time。 |
-| 1157-implicit-conversions/1157-implicit-conversions-test-01.xml | `009` | 已知缺陷 | 决策服务/BKM/调用表达式的输出类型适配未完整贯通，包括 singleton 和 date 到 date-time。 |
-| 1157-implicit-conversions/1157-implicit-conversions-test-01.xml | `010` | 已知缺陷 | 决策服务/BKM/调用表达式的输出类型适配未完整贯通，包括 singleton 和 date 到 date-time。 |
-| 1157-implicit-conversions/1157-implicit-conversions-test-01.xml | `011` | 已知缺陷 | 决策服务/BKM/调用表达式的输出类型适配未完整贯通，包括 singleton 和 date 到 date-time。 |
 | 1160-multiple-imports/1160-multiple-imports-test-01.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
 | 1160-multiple-imports/1160-multiple-imports-test-02.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
 | 1160-multiple-imports/1160-multiple-imports-test-03.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
 | 1160-multiple-imports/1160-multiple-imports-test-04.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
-
-## 发布验证
-
-2026-11-01，GitHub [CI](https://github.com/sundaysebasidian-byte/moondmn/actions/runs/41272099552) 的 Ubuntu、macOS、Windows、TCK 和 Playground 均通过；[Pages](https://github.com/sundaysebasidian-byte/moondmn/actions/runs/41272099573) 部署通过。线上静态资源与本地构建 SHA-256 一致，下载后的 bundle 26/26 冒烟检查通过。

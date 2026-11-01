@@ -30,10 +30,10 @@ reasons = {
  '0086-import': '跨文件 import 的名称解析和导入 ItemDefinition 注册未实现。',
  '0087-chapter-11-example': '综合信贷示例的风险/路由决策结果错误；直接根因尚未完全定位，不能声称规范歧义。',
  '0089-nested-inputdata-imports': '嵌套导入的 InputData/href 解析未实现。',
- '0091-local-hrefs': '绝对 URI 形式的本地 href 未解析；当前只接受 #id。',
+ '0091-local-hrefs': '绝对 URI 形式的本地 href 需匹配模型 namespace。',
  '0100-arithmetic': 'date 与 date-time 混合相减未拒绝不兼容类型。',
  '1103-feel-substring-function': '负 start position 配合 length 的截取终点计算错误。',
- '1111-feel-matches-function': 'Unicode 大小写折叠/字符类或 XPath 正则语法支持不完整；MoonBit 正则子集与目标语义不一致。',
+ '1111-feel-matches-function': '剩余 Unicode Kelvin 大小写折叠、XPath 字符类相减与反向引用未实现；底层正则不覆盖这些语义。',
  '1115-feel-date-function': '扩展年份带前导零的非法 date 字符串被接受。',
  '1116-feel-time-function': 'time 构造器的 date 隐式转换或秒级 offset 格式不完整。',
  '1117-feel-date-and-time-function': '扩展年份带前导零的非法 date-time 字符串被接受。',
@@ -67,6 +67,8 @@ for case in reports[3]['cases']:
         reason = 'time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。'
     elif suite == '0100-arithmetic' and case['id'].startswith('exponent_'):
         reason = reasons['0075-feel-exponent']
+    elif suite == '0068-feel-equality' and case['id'] == 'range_010':
+        reason = '比较式 (=x) 被表示为双闭点区间，丢失一元测试与双端区间的类型区别；需扩展值表示和相等规则。'
     elif suite == '0058-feel-number-function':
         reason = ('grouping separator 与 decimal separator 相同仍被接受，应为 null/错误。' if case['id'] == '009' else 'decimal sep/grouping sep 命名拼写没有被识别，编译阶段报错。')
     elif suite == '0069-feel-list':
@@ -115,7 +117,7 @@ summary = f"""## 结论
 
 Level 2 为 116/116。Level 3 为 {reports[3]['passed']}/{total}（{100*reports[3]['passed']/total:.2f}%），剩余 {failed} 个失败，没有跳过，也没有被隐藏的用例。
 
-这 {failed} 个失败里，{by_category['已知 bug']} 个（{100*by_category['已知 bug']/failed:.0f}%）是引擎自己的缺陷，只有 {out_of_scope} 个属于范围外或测试环境。通过率不能理解为“剩下的都是范围外”。
+这 {failed} 个失败里，{by_category['已知 bug']} 个（{100*by_category['已知 bug']/failed:.0f}%）是引擎自己的缺陷，{out_of_scope} 个属于范围外或测试环境。通过率不能理解为“剩下的都是范围外”。
 
 | 分类 | 失败数 | 占失败比例 | 含义 |
 | --- | ---: | ---: | --- |
@@ -136,7 +138,7 @@ Level 2 为 116/116。Level 3 为 {reports[3]['passed']}/{total}（{100*reports[
 text = re.sub(r'<!-- summary:start -->.*<!-- summary:end -->', lambda _: '<!-- summary:start -->\n' + summary + '<!-- summary:end -->', text, flags=re.S)
 marker = '\n## 逐例明细'
 text = text.split(marker)[0].rstrip() + '\n'
-text += marker + '\n\n每一行是一个失败用例，共 ' + str(failed) + ' 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认的不一致，其中综合信贷链的直接根因尚未完全定位，已在原因里注明。\n\n'
+text += marker + '\n\n每一行是一个失败用例，共 ' + str(failed) + ' 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。\n\n'
 text += '| 套件 / 测试文件 | case ID | 分类 | 原因 |\n| --- | --- | --- | --- |\n'
 for row in sorted(rows,key=lambda r:(r['file'],r['id'])):
     label = row['suite'] + '/' + Path(row['file']).name
