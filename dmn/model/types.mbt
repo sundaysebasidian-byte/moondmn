@@ -283,11 +283,15 @@ fn coerce_definition(
     }
     raise @types.fail("E_TYPE", "expected function")
   }
-  let value = match value {
-    List([one]) => one
-    _ => value
-  }
   let components = node.all("itemComponent")
+  let value = if !components.is_empty() {
+    match value {
+      List([one]) => one
+      _ => value
+    }
+  } else {
+    value
+  }
   let result = if components.is_empty() {
     coerce_type(model, item_type_name(node), value, depth + 1)
   } else {
@@ -300,7 +304,10 @@ fn coerce_definition(
       ctx[key] = coerce_definition(
         model,
         component,
-        ctx.get(key).unwrap_or(Null),
+        match ctx.get(key) {
+          Some(v) => v
+          None => raise @types.fail("E_TYPE", "missing field: " + key)
+        },
         depth + 1,
         true,
       )

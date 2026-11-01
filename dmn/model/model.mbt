@@ -143,14 +143,7 @@ fn evaluate_named(
   for req in decision.all("informationRequirement") {
     for reference in req.children {
       let href = reference.attr("href")
-      if !href.has_prefix("#") {
-        raise @types.fail("E_IMPORT_UNSUPPORTED", "external reference: " + href)
-      }
-      let id = href.strip_prefix("#").unwrap().to_owned()
-      let dep = match model.ids.get(id) {
-        Some(d) => d
-        None => raise @types.fail("E_REFERENCE", "unknown reference: " + href)
-      }
+      let dep = href_id(model, href)
       if reference.name == "requiredDecision" {
         if inputs.get(dep) is Some(value) {
           let node = match model.decisions.get(dep) {
@@ -174,14 +167,7 @@ fn evaluate_named(
   for req in decision.all("knowledgeRequirement") {
     for reference in req.children {
       let href = reference.attr("href")
-      if !href.has_prefix("#") {
-        raise @types.fail("E_IMPORT_UNSUPPORTED", "external reference: " + href)
-      }
-      let id = href.strip_prefix("#").unwrap().to_owned()
-      let dep = match model.ids.get(id) {
-        Some(d) => d
-        None => raise @types.fail("E_REFERENCE", "unknown reference: " + href)
-      }
+      let dep = href_id(model, href)
       if model.bkms.get(dep) is Some(bkm) {
         ctx[dep] = bkm_function(model, bkm, ctx, 0)
       } else if model.services.get(dep) is Some(service) {
@@ -191,7 +177,14 @@ fn evaluate_named(
       }
     }
   }
-  let value = coerce_variable(model, decision, boxed(expression(decision), ctx))
+  let value = coerce_variable(
+    model,
+    decision,
+    boxed(model, expression(decision), ctx),
+  ) catch {
+    @types.Failure("E_TYPE", _, _, _) => Null
+    e => raise e
+  }
   ignore(visiting.pop())
   cache[name] = value
   value
@@ -222,14 +215,7 @@ fn bkm_function(
   for req in node.all("knowledgeRequirement") {
     for reference in req.children {
       let href = reference.attr("href")
-      if !href.has_prefix("#") {
-        raise @types.fail("E_IMPORT_UNSUPPORTED", "external reference: " + href)
-      }
-      let id = href.strip_prefix("#").unwrap().to_owned()
-      let dep = match model.ids.get(id) {
-        Some(d) => d
-        None => raise @types.fail("E_REFERENCE", "unknown reference: " + href)
-      }
+      let dep = href_id(model, href)
       if model.bkms.get(dep) is Some(bkm) {
         captured[dep] = bkm_function(model, bkm, outer, depth + 1)
       } else if model.services.get(dep) is Some(service) {
@@ -266,11 +252,11 @@ fn bkm_function(
           @types.Function({
             name: "result",
             params: [],
-            callback: _ => boxed(body, scope),
+            callback: _ => boxed(model, body, scope),
           }),
         ) {
         Function(f) => (f.callback)([])
-        _ => boxed(body, scope)
+        _ => boxed(model, body, scope)
       }
     },
   })
@@ -279,12 +265,11 @@ fn bkm_function(
 ///|
 fn service_params(service : @xml.Node) -> Array[String] {
   let out = []
-  for kind in ["inputDecision", "inputData"] {
+  for kind in ["inputData", "inputDecision"] {
     for node in service.all(kind) {
       out.push(node.attr("href"))
     }
   }
-  out.sort()
   out
 }
 
@@ -312,7 +297,7 @@ fn service_function(
       for i, param in params {
         inputs[param] = args[i]
       }
-      let outputs = evaluate_service_map(model, service, inputs)
+      let outputs = evaluate_service(model, service.attr("name"), inputs)
       if outputs.length() == 1 {
         let mut value : @types.Value = Null
         for _, v in outputs {
@@ -328,6 +313,14 @@ fn service_function(
 
 ///|
 fn href_id(model : Model, href : String) -> String raise @types.EngineError {
+  let href = if model.root.attr("namespace") != "" {
+    href
+    .strip_prefix(model.root.attr("namespace"))
+    .unwrap_or(href[:])
+    .to_owned()
+  } else {
+    href
+  }
   if !href.has_prefix("#") {
     raise @types.fail("E_IMPORT_UNSUPPORTED", "external reference: " + href)
   }
@@ -344,7 +337,7 @@ fn evaluate_service_map(
   service : @xml.Node,
   inputs : Map[String, @types.Value],
 ) -> Map[String, @types.Value] raise @types.EngineError {
-  for kind in ["inputDecision", "inputData"] {
+  for kind in ["inputData", "inputDecision"] {
     for node in service.all(kind) {
       let name = href_id(model, node.attr("href"))
       if !inputs.contains(name) {
@@ -358,13 +351,15 @@ fn evaluate_service_map(
           }
         }
         match found {
-          Some(data) => validate_variable(model, data, inputs[name])
+          Some(data) =>
+            inputs[name] = coerce_variable(model, data, inputs[name])
           None =>
             raise @types.fail("E_REFERENCE", "unknown input data: " + name)
         }
       } else {
         match model.decisions.get(name) {
-          Some(decision) => validate_variable(model, decision, inputs[name])
+          Some(decision) =>
+            inputs[name] = coerce_variable(model, decision, inputs[name])
           None => raise @types.fail("E_REFERENCE", "unknown decision: " + name)
         }
       }
@@ -429,11 +424,25 @@ pub fn evaluate_service(
     None =>
       raise @types.fail("E_DMN_SERVICE", "unknown decision service: " + name)
   }
-  evaluate_service_map(model, service, inputs)
+  let outputs = evaluate_service_map(model, service, inputs.copy())
+  if outputs.length() == 1 {
+    for key, value in outputs {
+      let wrapped = coerce_variable(
+        model,
+        service,
+        Function({ name: "result", params: [], callback: _ => value, }),
+      )
+      if wrapped is Function(f) {
+        outputs[key] = (f.callback)([])
+      }
+    }
+  }
+  outputs
 }
 
 ///|
-fn boxed(
+fn boxed_raw(
+  model : Model,
   node : @xml.Node,
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
@@ -447,13 +456,21 @@ fn boxed(
       @eval.feel_eval(node.content("text"), ctx~)
     }
     "list" =>
-      List(node.children.filter(n => n.uri == node.uri).map(n => boxed(n, ctx)))
+      List(
+        node.children
+        .filter(n => n.uri == node.uri)
+        .map(n => boxed(model, n, ctx)),
+      )
     "context" => {
       let scope = ctx.copy()
       let out = Map([])
       let entries = node.all("contextEntry")
       for i, entry in entries {
-        let value = boxed(expression(entry), scope)
+        let value = coerce_variable(
+          model,
+          entry,
+          boxed(model, expression(entry), scope),
+        )
         match entry.child("variable") {
           Some(v) => {
             let name = v.attr("name")
@@ -472,7 +489,7 @@ fn boxed(
     }
     "invocation" => {
       let callee_node = expression_child(node)
-      let callee = boxed(callee_node, ctx)
+      let callee = boxed(model, callee_node, ctx)
       let args : Array[(String?, @types.Value)] = []
       for binding in node.all("binding") {
         let parameter = match binding.child("parameter") {
@@ -480,7 +497,9 @@ fn boxed(
           None =>
             raise @types.fail("E_DMN_INVOCATION", "missing binding parameter")
         }
-        args.push((Some(parameter), boxed(expression_child(binding), ctx)))
+        args.push(
+          (Some(parameter), boxed(model, expression_child(binding), ctx)),
+        )
       }
       match callee {
         Function(f) => @eval.call_function(f, args)
@@ -502,7 +521,7 @@ fn boxed(
         }
         let record = Map([])
         for i, value in values {
-          record[columns[i]] = boxed(value, ctx)
+          record[columns[i]] = boxed(model, value, ctx)
         }
         rows.push(@types.Context(record))
       }
@@ -524,9 +543,14 @@ fn boxed(
           }
           let scope = captured.copy()
           for i, param in params {
-            scope[param] = args[i]
+            scope[param] = coerce_type(
+              model,
+              node.all("formalParameter")[i].attr("typeRef"),
+              args[i],
+              0,
+            )
           }
-          boxed(body, scope)
+          boxed(model, body, scope)
         },
       })
     }
@@ -534,9 +558,9 @@ fn boxed(
       let condition = expression_child(required_child(node, "if"))
       let yes = expression_child(required_child(node, "then"))
       let no = expression_child(required_child(node, "else"))
-      match boxed(condition, ctx) {
-        Boolean(true) => boxed(yes, ctx)
-        Boolean(false) => boxed(no, ctx)
+      match boxed(model, condition, ctx) {
+        Boolean(true) => boxed(model, yes, ctx)
+        Boolean(false) => boxed(model, no, ctx)
         _ => Null
       }
     }
@@ -552,13 +576,13 @@ fn boxed(
       if expressions.length() != 2 {
         raise @types.fail("E_DMN_FILTER", "filter needs a list and a predicate")
       }
-      let target = boxed(expressions[0], ctx)
+      let target = boxed(model, expressions[0], ctx)
       let items = match target {
         List(xs) => xs
         Null => return Null
         _ => [target]
       }
-      filter_items(items, expressions[1], ctx)
+      filter_items(model, items, expressions[1], ctx)
     }
     "for" | "some" | "every" => {
       let kind = node.name
@@ -586,22 +610,19 @@ fn boxed(
           Some(n) => n
           None => raise @types.fail("E_DMN_ITERATOR", "missing iterator body")
         }
-        let source = boxed(expression_child(domain), ctx)
+        let source = boxed(model, expression_child(domain), ctx)
         let items = match source {
           List(xs) => xs
-          _ =>
-            raise @types.fail(
-              "E_DMN_ITERATOR", "boxed iterator requires a list",
-            )
+          _ => [source]
         }
         let body_expr = expression_child(body)
-        return iterator_values(kind, variable, items, body_expr, ctx)
+        return iterator_values(model, kind, variable, items, body_expr, ctx)
       }
       let body = match body {
         Some(n) => n
         None => raise @types.fail("E_DMN_ITERATOR", "missing iterator body")
       }
-      iterator(kind, bindings, body, ctx)
+      iterator(model, kind, bindings, body, ctx)
     }
     _ =>
       raise @types.Failure(
@@ -615,14 +636,15 @@ fn boxed(
 
 ///|
 fn filter_items(
+  model : Model,
   items : Array[@types.Value],
   predicate : @xml.Node,
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
   let first = if items.is_empty() {
-    boxed(predicate, ctx)
+    boxed(model, predicate, ctx)
   } else {
-    boxed(predicate, scope_with(ctx, "item", items[0]))
+    boxed(model, predicate, scope_with(ctx, "item", items[0]))
   }
   match first {
     Number(n) => {
@@ -639,11 +661,11 @@ fn filter_items(
     _ => {
       let out = []
       for item in items {
-        let keep = match boxed(predicate, scope_with(ctx, "item", item)) {
+        let keep = match
+          boxed(model, predicate, scope_with(ctx, "item", item)) {
           Boolean(b) => b
           Null => false
-          _ =>
-            raise @types.fail("E_DMN_FILTER", "filter predicate is not boolean")
+          _ => return Null
         }
         if keep {
           out.push(item)
@@ -667,6 +689,7 @@ fn scope_with(
 
 ///|
 fn iterator_values(
+  model : Model,
   kind : String,
   variable : String,
   items : Array[@types.Value],
@@ -676,18 +699,18 @@ fn iterator_values(
   if kind == "for" {
     let out = []
     for item in items {
-      out.push(boxed(body, scope_with(ctx, variable, item)))
+      out.push(boxed(model, body, scope_with(ctx, variable, item)))
     }
     return List(out)
   }
   let some = kind == "some"
   let mut has_null = false
   for item in items {
-    match boxed(body, scope_with(ctx, variable, item)) {
+    match boxed(model, body, scope_with(ctx, variable, item)) {
       Boolean(false) => if !some { return Boolean(false) }
       Boolean(true) => if some { return Boolean(true) }
       Null => has_null = true
-      _ => raise @types.fail("E_DMN_ITERATOR", "iterator body is not boolean")
+      _ => return Null
     }
   }
   if has_null {
@@ -701,23 +724,24 @@ fn iterator_values(
 
 ///|
 fn iterator(
+  model : Model,
   kind : String,
   bindings : Array[@xml.Node],
   body : @xml.Node,
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
-  let envs = iterator_envs(bindings, 0, ctx, 0)
+  let envs = iterator_envs(model, bindings, 0, ctx, 0)
   if kind == "for" {
-    return List(envs.map(env => boxed(body, env)))
+    return List(envs.map(env => boxed(model, body, env)))
   }
   let some = kind == "some"
   let mut has_null = false
   for env in envs {
-    match boxed(body, env) {
+    match boxed(model, body, env) {
       Boolean(false) => if !some { return Boolean(false) }
       Boolean(true) => if some { return Boolean(true) }
       Null => has_null = true
-      _ => raise @types.fail("E_DMN_ITERATOR", "iterator body is not boolean")
+      _ => return Null
     }
   }
   if has_null {
@@ -731,6 +755,7 @@ fn iterator(
 
 ///|
 fn iterator_envs(
+  model : Model,
   bindings : Array[@xml.Node],
   index : Int32,
   scope : Map[String, @types.Value],
@@ -747,7 +772,7 @@ fn iterator_envs(
     Some(v) => v.attr("name")
     None => raise @types.fail("E_DMN_ITERATOR", "missing iterator variable")
   }
-  let value = boxed(expression_child(binding), scope)
+  let value = boxed(model, expression_child(binding), scope)
   let items = match value {
     List(xs) => xs
     _ => [value]
@@ -756,7 +781,9 @@ fn iterator_envs(
   for item in items {
     let inner = scope.copy()
     inner[name] = item
-    out.append(iterator_envs(bindings, index + 1, inner, count + out.length()))
+    out.append(
+      iterator_envs(model, bindings, index + 1, inner, count + out.length()),
+    )
   }
   out
 }
@@ -776,4 +803,13 @@ fn required_child(
     )
   }
   children[0]
+}
+
+///|
+fn boxed(
+  model : Model,
+  node : @xml.Node,
+  ctx : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  coerce_type(model, node.attr("typeRef"), boxed_raw(model, node, ctx), 0)
 }

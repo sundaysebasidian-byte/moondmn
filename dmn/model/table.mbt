@@ -163,6 +163,10 @@ fn table(
       break
     }
   }
+  if matches.is_empty() &&
+    outputs.iter().any(o => o.child("defaultOutputEntry") is Some(_)) {
+    return default_row(outputs, ctx)
+  }
   if collect {
     if outputs.length() != 1 {
       if node.attr("aggregation") != "" {
