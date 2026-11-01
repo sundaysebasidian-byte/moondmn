@@ -328,7 +328,7 @@ fn Parser::type_name(p : Parser) -> String raise @types.EngineError {
 ///|
 fn Parser::unary(p : Parser) -> Expr raise @types.EngineError {
   let t = p.peek()
-  if t.text == "-" || t.text == "+" {
+  if t.kind == "symbol" && (t.text == "-" || t.text == "+") {
     ignore(p.take())
     return Unary(t.text, p.unary())
   }

@@ -1,22 +1,38 @@
 #!/usr/bin/env python3
-"""Generate simple case equivalence tables from the bundled Unicode data."""
+"""Generate direct XPath case variants from Unicode upper/lower mappings."""
 import hashlib
 from pathlib import Path
-
 root = Path(__file__).resolve().parent.parent
-data = (root / 'scripts/CaseFolding-17.0.0.txt').read_bytes()
-fold = {}
-for line in data.decode().splitlines():
-    fields = line.split('#')[0].split(';')
-    if len(fields) > 2 and fields[1].strip() in ('C', 'S'):
-        fold[int(fields[0], 16)] = int(fields[2], 16)
-groups = {}
-for source, target in fold.items():
-    groups.setdefault(target, [target]).append(source)
-text = '// Generated from Unicode 17.0.0 CaseFolding.txt, statuses C/S only.\n'
-text += '// Source SHA-256: ' + hashlib.sha256(data).hexdigest() + '\n'
-text += '///|\nlet xpath_folds : Map[Int, Int] = {\n'
-text += ''.join(f'  {a}: {b},\n' for a, b in fold.items()) + '}\n'
+paths = [root / 'scripts' / name for name in ('UnicodeData-17.0.0.txt', 'SpecialCasing-17.0.0.txt')]
+lower, upper = {}, {}
+for line in paths[0].read_text().splitlines():
+    f = line.split(';')
+    c = int(f[0], 16)
+    lower[c] = (int(f[13], 16),) if f[13] else (c,)
+    upper[c] = (int(f[12], 16),) if f[12] else (c,)
+for line in paths[1].read_text().splitlines():
+    f = line.split('#')[0].split(';')
+    if len(f) >= 5 and not f[4].strip():
+        c = int(f[0], 16)
+        lower[c] = tuple(int(x, 16) for x in f[1].split())
+        upper[c] = tuple(int(x, 16) for x in f[3].split())
+groups = []
+for mapping in (lower, upper):
+    inverse = {}
+    for c, value in mapping.items():
+        if len(value) == 1:
+            inverse.setdefault(value, []).append(c)
+    groups.append(inverse)
+text = '// Generated from Unicode 17.0.0 UnicodeData.txt and unconditional SpecialCasing.txt.\n'
+for path in paths:
+    text += '// ' + path.name + ' SHA-256: ' + hashlib.sha256(path.read_bytes()).hexdigest() + '\n'
 text += '///|\nlet xpath_variants : Map[Int, Array[Int]] = {\n'
-text += ''.join(f'  {b}: {values},\n' for b, values in groups.items()) + '}\n'
+for c in sorted(lower):
+    variants = {c}
+    for mapping, inverse in zip((lower, upper), groups):
+        if len(mapping[c]) == 1:
+            variants.update(inverse[mapping[c]])
+    if len(variants) > 1:
+        text += f'  {c}: {sorted(variants)},\n'
+text += '}\n'
 (root / 'feel/builtins/unicode_fold.mbt').write_text(text)

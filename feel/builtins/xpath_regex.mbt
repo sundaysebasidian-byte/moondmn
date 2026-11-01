@@ -16,7 +16,7 @@ priv enum XPathRE {
   Choice(Array[XPathRE])
   Capture(Int32, XPathRE)
   Reference(Int32)
-  Repeat(XPathRE, Int32, Int32?)
+  Repeat(XPathRE, Int32, Int32?, Bool)
 }
 
 ///|
@@ -254,18 +254,18 @@ fn XPathParser::expression(p : XPathParser) -> XPathRE raise @types.EngineError 
         raise err("E_REGEX", "unexpected metacharacter")
       _ => Character(xpath_literal(c))
     }
-    let quantified = match p.peek() {
+    let mut quantified = match p.peek() {
       '*' => {
         ignore(p.take())
-        Repeat(atom, 0, None)
+        Repeat(atom, 0, None, false)
       }
       '+' => {
         ignore(p.take())
-        Repeat(atom, 1, None)
+        Repeat(atom, 1, None, false)
       }
       '?' => {
         ignore(p.take())
-        Repeat(atom, 0, Some(1))
+        Repeat(atom, 0, Some(1), false)
       }
       '{' => {
         ignore(p.take())
@@ -284,12 +284,15 @@ fn XPathParser::expression(p : XPathParser) -> XPathRE raise @types.EngineError 
         if high is Some(h) && h < low {
           raise err("E_REGEX", "invalid repetition bounds")
         }
-        Repeat(atom, low, high)
+        Repeat(atom, low, high, false)
       }
       _ => atom
     }
     if p.peek() == '?' {
       ignore(p.take())
+      if quantified is Repeat(inner, low, high, _) {
+        quantified = Repeat(inner, low, high, true)
+      }
     }
     sequence.push(quantified)
   }
@@ -308,9 +311,8 @@ fn xpath_set_matches(s : XPathSet, c : Char, insensitive : Bool) -> Bool {
       if !insensitive {
         return false
       }
-      let key = xpath_folds.get(code).unwrap_or(code)
       xpath_variants
-      .get(key)
+      .get(code)
       .unwrap_or([code])
       .iter()
       .any(v => v >= a && v <= b)
@@ -339,110 +341,223 @@ priv struct XPathMatch {
 }
 
 ///|
-fn xpath_run(
-  re : XPathRE,
-  state : XPathState,
-  ctx : XPathMatch,
-) -> Array[XPathState] raise @types.EngineError {
-  ctx.budget -= 1
-  if ctx.budget < 0 {
-    raise err("E_REGEX", "regular expression work limit exceeded")
-  }
-  let pos = state.pos
-  let input = ctx.input
-  match re {
-    Character(s) =>
-      if pos < input.length() &&
-        xpath_set_matches(s, input[pos], ctx.insensitive) {
-        [{ pos: pos + 1, captures: state.captures, }]
-      } else {
-        []
-      }
-    Start =>
-      if pos == 0 ||
-        (ctx.multiline && pos < input.length() && input[pos - 1] == '\n') {
-        [state]
-      } else {
-        []
-      }
-    End =>
-      if (
-          pos == input.length() &&
-          (!ctx.multiline || pos == 0 || input[pos - 1] != '\n')
-        ) ||
-        (ctx.multiline && pos < input.length() && input[pos] == '\n') {
-        [state]
-      } else {
-        []
-      }
-    Sequence(xs) => {
-      let mut states = [state]
-      for x in xs {
-        let next : Array[XPathState] = []
-        for s in states {
-          next.append(xpath_run(x, s, ctx))
-        }
-        states = next
-      }
-      states
-    }
-    Choice(xs) => {
-      let out : Array[XPathState] = []
-      for x in xs {
-        out.append(xpath_run(x, state, ctx))
-      }
-      out
-    }
-    Capture(id, inner) =>
-      xpath_run(inner, state, ctx).map(s => {
-        let captures = s.captures.copy()
-        captures[id] = input[pos:s.pos].to_owned()
-        { pos: s.pos, captures, }
-      })
-    Reference(id) => {
-      let captured = state.captures.get(id).unwrap_or([])
-      if pos + captured.length() > input.length() {
-        return []
-      }
-      for i, c in captured {
-        if !xpath_set_matches(xpath_literal(c), input[pos + i], ctx.insensitive) {
-          return []
-        }
-      }
-      [{ pos: pos + captured.length(), captures: state.captures, }]
-    }
-    Repeat(inner, low, high) => {
-      let out : Array[XPathState] = []
-      let mut states = [state]
-      let limit = high.unwrap_or(input.length() + low + 1)
-      for count = 0; count <= limit && !states.is_empty(); count = count + 1 {
-        if count >= low {
-          out.append(states)
-        }
-        if count == limit {
-          break
-        }
-        let next : Array[XPathState] = []
-        for s in states {
-          for n in xpath_run(inner, s, ctx) {
-            if n.pos != s.pos || count < low {
-              next.push(n)
-            }
-          }
-        }
-        states = next
-      }
-      out
-    }
-  }
+priv enum XPathInstruction {
+  Consume(XPathSet, Int32)
+  AssertStart(Int32)
+  AssertEnd(Int32)
+  Fork(Int32, Int32)
+  Open(Int32, Int32)
+  Close(Int32, Int32)
+  Backref(Int32, Int32)
+  Accept
 }
 
 ///|
-fn xpath_matches(
-  input : String,
+fn xpath_compile(
+  re : XPathRE,
+  next : Int32,
+  code : Array[XPathInstruction],
+) -> Int32 raise @types.EngineError {
+  if code.length() > 100000 {
+    raise err("E_REGEX", "compiled instruction limit exceeded")
+  }
+  let instruction = match re {
+    Character(s) => Consume(s, next)
+    Start => AssertStart(next)
+    End => AssertEnd(next)
+    Reference(id) => Backref(id, next)
+    Capture(id, inner) => {
+      let close = code.length()
+      code.push(Close(id, next))
+      Open(id, xpath_compile(inner, close, code))
+    }
+    Sequence(xs) => {
+      let mut entry = next
+      for i = xs.length() - 1; i >= 0; i = i - 1 {
+        entry = xpath_compile(xs[i], entry, code)
+      }
+      return entry
+    }
+    Choice(xs) => {
+      let mut entry = xpath_compile(xs[xs.length() - 1], next, code)
+      for i = xs.length() - 2; i >= 0; i = i - 1 {
+        let first = xpath_compile(xs[i], next, code)
+        let at = code.length()
+        code.push(Fork(first, entry))
+        entry = at
+      }
+      return entry
+    }
+    Repeat(inner, low, high, reluctant) => {
+      let mut entry = next
+      match high {
+        None => {
+          let fork = code.length()
+          code.push(Accept)
+          let body = xpath_compile(inner, fork, code)
+          code[fork] = if reluctant {
+            Fork(next, body)
+          } else {
+            Fork(body, next)
+          }
+          entry = fork
+        }
+        Some(h) =>
+          for i = low; i < h; i = i + 1 {
+            let body = xpath_compile(inner, entry, code)
+            let fork = code.length()
+            code.push(
+              if reluctant {
+                Fork(entry, body)
+              } else {
+                Fork(body, entry)
+              },
+            )
+            entry = fork
+          }
+      }
+      for i = 0; i < low; i = i + 1 {
+        entry = xpath_compile(inner, entry, code)
+      }
+      return entry
+    }
+  }
+  let entry = code.length()
+  code.push(instruction)
+  entry
+}
+
+///|
+fn xpath_find(
+  code : Array[XPathInstruction],
+  entry : Int32,
+  ctx : XPathMatch,
+  from : Int32,
+) -> (Int32, XPathState)? raise @types.EngineError {
+  let references = code.iter().any(i => i is Backref(_, _))
+  let seen : Map[(Int32, Int32), Bool] = Map([])
+  let captured_seen : Map[(Int32, Int32, String), Bool] = Map([])
+  for start = from; start <= ctx.input.length(); start = start + 1 {
+    ctx.budget = 10000000
+    let stack : Array[(Int32, XPathState, Map[Int32, Int32])] = [
+      (entry, { pos: start, captures: {}, }, {}),
+    ]
+    while !stack.is_empty() {
+      let (pc, state, opens) = stack.pop().unwrap()
+      let pos = state.pos
+      ctx.budget -= 1
+      if ctx.budget < 0 {
+        raise err("E_REGEX", "regular expression work limit exceeded")
+      }
+      if !references {
+        if seen.contains((pc, pos)) {
+          continue
+        }
+        seen[(pc, pos)] = true
+      }
+      if references {
+        let key = StringBuilder()
+        let ids = state.captures.keys().to_array()
+        ids.sort()
+        for id in ids {
+          let chars = state.captures.get(id).unwrap()
+          key.write_string("\{id}:\{chars.length()}:")
+          for c in chars {
+            key.write_char(c)
+          }
+        }
+        key.write_char('|')
+        let ids = opens.keys().to_array()
+        ids.sort()
+        for id in ids {
+          key.write_string("\{id}:\{opens.get(id).unwrap()};")
+        }
+        let fingerprint = (pc, pos, key.to_string())
+        if captured_seen.contains(fingerprint) {
+          continue
+        }
+        captured_seen[fingerprint] = true
+      }
+      match code[pc] {
+        Accept => return Some((start, state))
+        Fork(a, b) => {
+          stack.push((b, state, opens))
+          stack.push((a, state, opens))
+        }
+        Consume(s, next) =>
+          if pos < ctx.input.length() &&
+            xpath_set_matches(s, ctx.input[pos], ctx.insensitive) {
+            stack.push(
+              (next, { pos: pos + 1, captures: state.captures, }, opens),
+            )
+          }
+        AssertStart(next) =>
+          if pos == 0 ||
+            (
+              ctx.multiline &&
+              pos < ctx.input.length() &&
+              ctx.input[pos - 1] == '\n'
+            ) {
+            stack.push((next, state, opens))
+          }
+        AssertEnd(next) =>
+          if (
+              pos == ctx.input.length() &&
+              (!ctx.multiline || pos == 0 || ctx.input[pos - 1] != '\n')
+            ) ||
+            (
+              ctx.multiline &&
+              pos < ctx.input.length() &&
+              ctx.input[pos] == '\n'
+            ) {
+            stack.push((next, state, opens))
+          }
+        Open(id, next) => {
+          let updated = opens.copy()
+          updated[id] = pos
+          stack.push((next, state, updated))
+        }
+        Close(id, next) => {
+          let captures = state.captures.copy()
+          captures[id] = ctx.input[opens.get(id).unwrap():pos].to_owned()
+          stack.push((next, { pos, captures, }, opens))
+        }
+        Backref(id, next) => {
+          let captured = state.captures.get(id).unwrap_or([])
+          let mut matches = pos + captured.length() <= ctx.input.length()
+          if matches {
+            for i, c in captured {
+              if !xpath_set_matches(
+                  xpath_literal(c),
+                  ctx.input[pos + i],
+                  ctx.insensitive,
+                ) {
+                matches = false
+                break
+              }
+            }
+          }
+          if matches {
+            stack.push(
+              (
+                next,
+                { pos: pos + captured.length(), captures: state.captures, },
+                opens,
+              ),
+            )
+          }
+        }
+      }
+    }
+  }
+  None
+}
+
+///|
+fn xpath_program(
   pattern : String,
   flags : String,
-) -> Bool raise @types.EngineError {
+) -> (Array[XPathInstruction], Int32, Int32) raise @types.EngineError {
   if pattern.length() > 4096 {
     raise err("E_REGEX", "pattern length limit exceeded")
   }
@@ -479,16 +594,119 @@ fn xpath_matches(
   if parser.pos != chars.length() {
     raise err("E_REGEX", "unmatched parenthesis")
   }
-  let ctx : XPathMatch = {
+  let code = [Accept]
+  let entry = xpath_compile(re, 0, code)
+  if code.length() > 100000 {
+    raise err("E_REGEX", "compiled instruction limit exceeded")
+  }
+  (code, entry, parser.groups)
+}
+
+///|
+fn xpath_context(input : String, flags : String) -> XPathMatch {
+  {
     input: input.to_array(),
     insensitive: flags.contains("i"),
     multiline: flags.contains("m"),
-    budget: 100000,
+    budget: 10000000,
   }
-  for pos = 0; pos <= ctx.input.length(); pos = pos + 1 {
-    if !xpath_run(re, { pos, captures: {}, }, ctx).is_empty() {
-      return true
+}
+
+///|
+fn xpath_matches(
+  input : String,
+  pattern : String,
+  flags : String,
+) -> Bool raise @types.EngineError {
+  let (code, entry, _) = xpath_program(pattern, flags)
+  xpath_find(code, entry, xpath_context(input, flags), 0) is Some(_)
+}
+
+///|
+fn xpath_parts(
+  input : String,
+  pattern : String,
+  flags : String,
+  replacement : String?,
+) -> Array[String] raise @types.EngineError {
+  let (code, entry, groups) = xpath_program(pattern, flags)
+  if xpath_find(code, entry, xpath_context("", flags), 0) is Some(_) {
+    raise err("E_REGEX", "pattern matches zero length string")
+  }
+  // Validate replacement even when the input has no match.
+  if replacement is Some(r) {
+    ignore(xpath_replacement(r, {}, groups))
+  }
+  let ctx = xpath_context(input, flags)
+  let out : Array[String] = []
+  let mut from = 0
+  while from <= ctx.input.length() {
+    match xpath_find(code, entry, ctx, from) {
+      None => break
+      Some((start, state)) => {
+        if start == state.pos {
+          raise err("E_REGEX", "zero length match")
+        }
+        out.push(String::from_array(ctx.input[from:start].to_owned()))
+        if replacement is Some(r) {
+          let captures = state.captures.copy()
+          captures[0] = ctx.input[start:state.pos].to_owned()
+          out.push(xpath_replacement(r, captures, groups))
+        }
+        from = state.pos
+      }
     }
   }
-  false
+  out.push(String::from_array(ctx.input[from:].to_owned()))
+  out
+}
+
+///|
+fn xpath_replacement(
+  source : String,
+  captures : Map[Int32, Array[Char]],
+  groups : Int32,
+) -> String raise @types.EngineError {
+  let chars = source.to_array()
+  let out = StringBuilder()
+  let mut i = 0
+  while i < chars.length() {
+    let c = chars[i]
+    i += 1
+    if c == '\\' {
+      if i == chars.length() || (chars[i] != '\\' && chars[i] != '$') {
+        raise err("E_REGEX", "invalid replacement escape")
+      }
+      out.write_char(chars[i])
+      i += 1
+    } else if c == '$' {
+      if i == chars.length() || chars[i] < '0' || chars[i] > '9' {
+        raise err("E_REGEX", "invalid replacement group")
+      }
+      let mut id = 0
+      let mut chosen = 0
+      let mut consumed = i
+      let first = i
+      while i < chars.length() && chars[i] >= '0' && chars[i] <= '9' {
+        id = if id > 10000 { 100001 } else { id * 10 + chars[i].to_int() - 48 }
+        i += 1
+        if id <= groups || id <= 9 {
+          chosen = id
+          consumed = i
+        }
+      }
+      if consumed == first {
+        raise err("E_REGEX", "invalid replacement group")
+      }
+      for ch in captures.get(chosen).unwrap_or([]) {
+        out.write_char(ch)
+      }
+      for j = consumed; j < i; j = j + 1 {
+        out.write_char(chars[j])
+      }
+    } else {
+      out.write_char(c)
+    }
+  }
+  out.to_string()
 }

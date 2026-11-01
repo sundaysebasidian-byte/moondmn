@@ -748,12 +748,7 @@ fn dispatch(
       } else {
         ""
       }
-      let regex = compile_regex(pattern, flags)
-      Text(
-        regex
-        .replace_by(input, m => expand_replacement(replacement, m))
-        .to_owned(),
-      )
+      Text(xpath_parts(input, pattern, flags, Some(replacement)).join(""))
     }
     "split" => {
       arity(name, xs, 2, 2)
@@ -762,12 +757,7 @@ fn dispatch(
       if delimiter == "" {
         List(input.to_array().map(ch => Text(ch.to_string())))
       } else {
-        List(
-          compile_regex(delimiter, "")
-          .split(input)
-          .to_array()
-          .map(part => Text(part.to_owned())),
-        )
+        List(xpath_parts(input, delimiter, "", None).map(part => Text(part)))
       }
     }
     "string join" => {
@@ -1784,33 +1774,6 @@ fn compile_regex(
   @string.Regex::Regex(body) catch {
     _ => raise err("E_REGEX", "invalid regular expression: " + pattern)
   }
-}
-
-///|
-fn expand_replacement(
-  replacement : String,
-  m : @string.MatchResult,
-) -> StringView {
-  let out = StringBuilder()
-  let chars = replacement.to_array()
-  let mut i = 0
-  while i < chars.length() {
-    if chars[i] == '$' &&
-      i + 1 < chars.length() &&
-      chars[i + 1] >= '0' &&
-      chars[i + 1] <= '9' {
-      let group = chars[i + 1].to_int() - 48
-      match m.group(group) {
-        Some(part) => out.write_stringview(part)
-        None => ()
-      }
-      i = i + 2
-    } else {
-      out.write_char(chars[i])
-      i = i + 1
-    }
-  }
-  out.to_string()[:]
 }
 
 ///|

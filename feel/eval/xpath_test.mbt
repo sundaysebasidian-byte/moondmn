@@ -1,5 +1,5 @@
 ///|
-test "Unicode simple folding in regex literals and ranges" {
+test "Unicode case variants in regex literals and ranges" {
   inspect(
     @eval.feel_eval("matches(\"K\", \"k\", \"i\")").text(),
     content="true",
@@ -147,4 +147,143 @@ test "comparison range membership and nested equality" {
   inspect(@eval.feel_eval("4 in [(!=3)]").text(), content="true")
   inspect(@eval.feel_eval("[(=3)] = [[3..3]]").text(), content="false")
   inspect(@eval.feel_eval("{x:(=3)} = {x:(=3)}").text(), content="true")
+}
+
+///|
+test "XPath direct upper and lower case variants" {
+  inspect(
+    @eval.feel_eval("matches(\"ı\", \"I\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ı\", \"i\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ı\", \"[A-Z]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ı\", \"[^I]\", \"i\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ı\", \"[A-Z-[O]]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ϑ\", \"ϴ\", \"i\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ϴ\", \"ϑ\", \"i\")").text(),
+    content="false",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"𐐨\", \"𐐀\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"K\", \"[A-Z-[O]]\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ẞ\", \"ß\", \"i\")").text(),
+    content="true",
+  )
+  inspect(
+    @eval.feel_eval("matches(\"ß\", \"s\", \"i\")").text(),
+    content="false",
+  )
+}
+
+///|
+test "XPath replacement and split share character sets and captures" {
+  inspect(
+    @eval.feel_eval("replace(\"banana\", \"[a-z-[aeiou]]\", \"X\")").text(),
+    content="XaXaXa",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"Kate\", \"k\", \"X\", \"i\")").text(),
+    content="Xate",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"abc\", \"b\", \"X\")").text(),
+    content="aXc",
+  )
+  inspect(
+    @eval.feel_eval("split(\"aXbXc\", \"X\")").json().stringify(),
+    content="[\"a\",\"b\",\"c\"]",
+  )
+  inspect(
+    @eval.feel_eval("split(\"a-b-c\", \"-\")").json().stringify(),
+    content="[\"a\",\"b\",\"c\"]",
+  )
+  inspect(
+    @eval.feel_eval("split(\"aa\", \"(a)\\1\")").json().stringify(),
+    content="[\"\",\"\"]",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"aa\", \"(a)\\1\", \"$1X\")").text(),
+    content="aX",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"abcd\", \"(ab)|(a)\", \"[1=$1][2=$2]\")").text(),
+    content="[1=ab][2=]cd",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"a\", \"(a)\", \"$12:$0:$9\")").text(),
+    content="a2:a:",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"a\", \"a\", \"\\\\$\\\\\\\\\")").text(),
+    content="$\\",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"aaa\", \"a+?\", \"X\")").text(),
+    content="XXX",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"aaa\", \"a+\", \"X\")").text(),
+    content="X",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"abc\", \"a*\", \"X\")").text(),
+    content="null",
+  )
+  inspect(
+    @eval.feel_eval("split(\"abc\", \"a*\")").json().stringify(),
+    content="null",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"abc\", \"z\", \"$\")").text(),
+    content="null",
+  )
+  inspect(
+    @eval.feel_eval("replace(\"abc\", \"z\", \"\\q\")").text(),
+    content="null",
+  )
+  inspect(
+    @eval.feel_eval("split(\"abc\", \"\")").json().stringify(),
+    content="[\"a\",\"b\",\"c\"]",
+  )
+}
+
+///|
+test "Nested nullable repetition terminates with a boolean result" {
+  inspect(
+    @eval.feel_eval("matches(\"b\", \"(a*)*\\1b\")").text(),
+    content="true",
+  )
+  for n in [16, 32, 100, 1000] {
+    let input = "a".repeat(n)
+    inspect(
+      @eval.feel_eval("matches(\"" + input + "\", \"(a*)*b\")").text(),
+      content="false",
+    )
+    inspect(
+      @eval.feel_eval("matches(\"" + input + "b\", \"(a*)*b\")").text(),
+      content="true",
+    )
+  }
 }
