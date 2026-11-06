@@ -6,7 +6,11 @@ import tempfile
 from pathlib import Path
 
 
+checks = 0
+
 def run(*args, code=0):
+    global checks
+    checks += 1
     result = subprocess.run(
         ["moon", "run", "cmd/main", "--target", "native", "--", *args],
         text=True, capture_output=True,
@@ -42,4 +46,27 @@ assert run("feel", 'string(date("999999999-12-31") + duration("P0M"))') == "9999
 assert run("feel", 'string(date("-999999999-01-31") + duration("P0M"))') == "-999999999-01-31"
 assert run("feel", 'date("999999999-12-31") + duration("P1M")', code=1)["error"] == "E_DATE_RANGE"
 assert run("feel", 'date("-999999999-01-31") - duration("P1M")', code=1)["error"] == "E_DATE_RANGE"
-print("CLI integration: 16 checks passed")
+assert run("eval", "examples/imports/main.dmn", "--decision", "Total", "--input", "examples/imports/input.json") == 56
+assert run("lint", "examples/imports/main.dmn") == []
+with tempfile.TemporaryDirectory() as directory:
+    base = Path(directory)
+    main = base / "main.dmn"
+    ns = "https://www.omg.org/spec/DMN/20230324/MODEL/"
+    def imported(location):
+        return f"<definitions xmlns='{ns}' namespace='main'><import name='A' namespace='child' importType='{ns}' locationURI='{location}'/></definitions>"
+    for location in ("../child.dmn", "/child.dmn", "C:/child.dmn", "sub/../../child.dmn"):
+        main.write_text(imported(location))
+        for command in ("eval", "lint"):
+            assert run(command, str(main), "--decision", "d", "--input", "examples/input.json", code=1)["error"] == "E_IMPORT_PATH"
+    main.write_text(imported("missing.dmn"))
+    assert run("lint", str(main), code=1)["error"] == "E_IMPORT_NOT_FOUND"
+    child = base / "child.dmn"
+    child.write_text(f"<definitions xmlns='{ns}' namespace='child'/>")
+    try:
+        (base / "link.dmn").symlink_to(child)
+    except OSError:
+        print("Symlink check unavailable on this host")
+    else:
+        main.write_text(imported("link.dmn"))
+        assert run("lint", str(main), code=1)["error"] == "E_IMPORT_PATH"
+print(f"CLI integration: {checks} checks passed")

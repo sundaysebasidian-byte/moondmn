@@ -1,0 +1,14 @@
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="urn:example:shared" name="Shared">
+  <itemDefinition name="Money"><typeRef>number</typeRef></itemDefinition>
+  <inputData id="amount" name="Amount"><variable typeRef="Money"/></inputData>
+  <businessKnowledgeModel id="twice" name="Twice">
+    <encapsulatedLogic><formalParameter name="n" typeRef="Money"/><literalExpression><text>n * 2</text></literalExpression></encapsulatedLogic>
+  </businessKnowledgeModel>
+  <decision id="subtotal" name="Subtotal">
+    <variable typeRef="Money"/>
+    <informationRequirement><requiredInput href="#amount"/></informationRequirement>
+    <knowledgeRequirement><requiredKnowledge href="#twice"/></knowledgeRequirement>
+    <literalExpression><text>Twice(Amount)</text></literalExpression>
+  </decision>
+  <decisionService id="compute" name="Compute"><outputDecision href="#subtotal"/><inputData href="#amount"/></decisionService>
+</definitions>

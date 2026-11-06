@@ -1,0 +1,10 @@
+<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" namespace="urn:example:main" name="Main">
+  <import name="Shared" namespace="urn:example:shared" locationURI="shared.dmn" importType="https://www.omg.org/spec/DMN/20230324/MODEL/"/>
+  <decision id="total" name="Total">
+    <variable typeRef="Shared.Money"/>
+    <informationRequirement><requiredDecision href="urn:example:shared#subtotal"/></informationRequirement>
+    <knowledgeRequirement><requiredKnowledge href="urn:example:shared#twice"/></knowledgeRequirement>
+    <knowledgeRequirement><requiredKnowledge href="urn:example:shared#compute"/></knowledgeRequirement>
+    <literalExpression><text>Shared.Subtotal + Shared.Twice(5) + Shared.Compute(3)</text></literalExpression>
+  </decision>
+</definitions>
