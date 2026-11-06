@@ -253,7 +253,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 289 个单元测试，另有 16 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
+每个后端 300 个单元测试，另有 29 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
@@ -264,7 +264,6 @@ CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任�
 - TCK Level 3 还有 26 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
 - 时区只有 39 个名称，只覆盖 1970–2100 年。
 - `now()`、`today()` 没有隐含的系统时钟，必须由调用方注入。
-- 计划补齐正则标志和 `range()` 的高级参数。
 - 部分隐式转换和函数元数据（`0103-feel-is-function`）还有差距。
 - 决策表里的 FEEL 每次求值时重新编译，整表预编译还没做；性能数字见 [docs/performance.md](docs/performance.md)。
 - Playground 的命中规则只覆盖决策自己的决策表，BKM 内的决策表不显示命中。

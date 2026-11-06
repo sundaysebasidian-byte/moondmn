@@ -60,6 +60,11 @@ with tempfile.TemporaryDirectory() as directory:
             assert run(command, str(main), "--decision", "d", "--input", "examples/input.json", code=1)["error"] == "E_IMPORT_PATH"
     main.write_text(imported("missing.dmn"))
     assert run("lint", str(main), code=1)["error"] == "E_IMPORT_NOT_FOUND"
+    (base / "sub").mkdir()
+    main.write_text(imported("sub"))
+    error = run("lint", str(main), code=1)
+    assert error["error"] == "E_IMPORT_NOT_FOUND"
+    assert error["message"] == "cannot read model: sub", error
     child = base / "child.dmn"
     child.write_text(f"<definitions xmlns='{ns}' namespace='child'/>")
     try:

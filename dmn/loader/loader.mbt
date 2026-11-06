@@ -19,7 +19,7 @@ pub fn load(path : String) -> @model.Model raise @types.EngineError {
       }
       if location != "" && !location.has_suffix("/") {
         check_path(base, location)
-        return read(base + "/" + location)
+        return read(base + "/" + location, display=location)
       }
       check_path(base, location)
       let directory = base + "/" + location
@@ -35,7 +35,7 @@ pub fn load(path : String) -> @model.Model raise @types.EngineError {
           continue
         }
         check_path(base, location + "/" + file)
-        let text = read(directory + "/" + file)
+        let text = read(directory + "/" + file, display=location + file)
         let root = @xml.parse(text)
         if root.attr("namespace") == ns {
           matches.push(text)
@@ -53,9 +53,13 @@ pub fn load(path : String) -> @model.Model raise @types.EngineError {
 }
 
 ///|
-fn read(path : String) -> String raise @types.EngineError {
+fn read(
+  path : String,
+  display~ : String = path,
+) -> String raise @types.EngineError {
   @fs.read_file_to_string(path) catch {
-    _ => raise @types.fail("E_IMPORT_NOT_FOUND", "cannot read model: " + path)
+    _ =>
+      raise @types.fail("E_IMPORT_NOT_FOUND", "cannot read model: " + display)
   }
 }
 

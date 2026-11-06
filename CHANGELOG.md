@@ -4,6 +4,8 @@
 
 ## 0.2.0
 
+- 空别名 import 按定义顺序保留已有同名元素并继续导入其余名称；循环诊断保留闭合边文件及行列，导入读取失败仅回显相对位置。
+
 - 支持 DMN 多文件 import、嵌套导入、别名 FEEL/typeRef、namespace href、导入 Decision/InputData/BKM/DecisionService/ItemDefinition，32 层上限及结构化错误。CLI native/js 按模型目录加载，拒绝路径逃逸和符号链接。
 - `parse_model` 新增可选 resolver；Model 新增 imports；新增 `bind_input` namespace 输入绑定接口。FEEL AST 新增 External，穷举 Expr 的使用方需补充分支。
 - 新增 `register_external` 和可选 host 参数，按 class/method signature 调用宿主回调，先执行 FEEL 参数适配；支持 literal、boxed Java 和 BKM。未绑定返回 E_EXTERNAL_UNBOUND，不执行 JVM、不模拟 JDK。

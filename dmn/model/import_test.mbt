@@ -169,28 +169,194 @@ test "nested callback locations and resolver errors" {
 }
 
 ///|
-test "ambiguous unnamed imports fail rather than overwrite" {
+test "unnamed imports retain the first name and expose disjoint names" {
+  let a = document(
+    "a",
+    decision("<literalExpression><text>4</text></literalExpression>") +
+    "<decision id='a' name='OnlyA'><literalExpression><text>10</text></literalExpression></decision>",
+  )
+  let b = document(
+    "b",
+    decision("<literalExpression><text>5</text></literalExpression>") +
+    "<decision id='b' name='OnlyB'><literalExpression><text>20</text></literalExpression></decision>",
+  )
+  for
+    (expression, expected, first) in [
+      ("d + OnlyA + OnlyB", "34", "a"),
+      ("d + OnlyA + OnlyB", "34", "b"),
+      ("OnlyA + OnlyB", "30", "a"),
+    ] {
+    let root = document(
+      "root",
+      include_model("a", "", "a.dmn") +
+      include_model("b", "", "b.dmn") +
+      "<decision id='out' name='Out'><informationRequirement><requiredDecision href='" +
+      first +
+      "#d'/></informationRequirement><informationRequirement><requiredDecision href='" +
+      (if first == "a" { "b" } else { "a" }) +
+      "#d'/></informationRequirement><informationRequirement><requiredDecision href='a#a'/></informationRequirement><informationRequirement><requiredDecision href='b#b'/></informationRequirement><literalExpression><text>" +
+      expression +
+      "</text></literalExpression></decision>",
+    )
+    let model = @model.parse_model(
+      root,
+      resolver=Some((_, ns) => if ns == "a" { a } else { b }),
+    )
+    inspect(
+      @model.evaluate_decision(model, "Out", Map([])).json().stringify(),
+      content=expected,
+    )
+  }
+}
+
+///|
+test "local names survive unnamed imports regardless of requirement order" {
+  let child = document(
+    "child", "<decision id='keep' name='Keep'><literalExpression><text>99</text></literalExpression></decision><decision id='extra' name='Extra'><literalExpression><text>7</text></literalExpression></decision>",
+  )
   let root = document(
     "root",
-    include_model("a", "", "a.dmn") + include_model("b", "", "b.dmn"),
+    "<decision id='keep' name='Keep'><literalExpression><text>1</text></literalExpression></decision>" +
+    include_model("child", "", "child.dmn") +
+    "<decision id='out' name='Out'><informationRequirement><requiredDecision href='#keep'/></informationRequirement><informationRequirement><requiredDecision href='child#keep'/></informationRequirement><informationRequirement><requiredDecision href='child#extra'/></informationRequirement><literalExpression><text>Keep + Extra</text></literalExpression></decision>",
+  )
+  let model = @model.parse_model(root, resolver=Some((_, _) => child))
+  inspect(
+    @model.evaluate_decision(model, "Out", Map([])).json().stringify(),
+    content="8",
+  )
+}
+
+///|
+test "cycle diagnostics identify the closing import" {
+  let a = document("a", "\n" + include_model("b", "B", "b.dmn"))
+  let b = document("b", "\n\n" + include_model("a", "A", "a.dmn"))
+  inspect(
+    try {
+      ignore(
+        @model.parse_model(
+          a,
+          resolver=Some((_, ns) => if ns == "a" { a } else { b }),
+        ),
+      )
+      "ok"
+    } catch {
+      @types.Failure(code, line, column, message) =>
+        code + " " + line.to_string() + ":" + column.to_string() + " " + message
+    },
+    content="E_IMPORT_CYCLE 3:1 import cycle in b.dmn:3:1: a",
+  )
+}
+
+///|
+test "disjoint unnamed imports expose both models" {
+  let root = document(
+    "root",
+    include_model("a", "", "a.dmn") +
+    include_model("b", "", "b.dmn") +
+    decision(
+      "<informationRequirement><requiredDecision href='a#a'/></informationRequirement><informationRequirement><requiredDecision href='b#b'/></informationRequirement><literalExpression><text>OnlyA + OnlyB</text></literalExpression>",
+    ),
+  )
+  let model = @model.parse_model(
+    root,
+    resolver=Some((_, ns) => {
+      document(
+        ns,
+        if ns == "a" {
+          "<decision id='a' name='OnlyA'><literalExpression><text>10</text></literalExpression></decision>"
+        } else {
+          "<decision id='b' name='OnlyB'><literalExpression><text>20</text></literalExpression></decision>"
+        },
+      )
+    }),
+  )
+  inspect(
+    @model.evaluate_decision(model, "d", Map([])).json().stringify(),
+    content="30",
+  )
+}
+
+///|
+test "unnamed input and type collisions retain local or first declarations" {
+  let declarations = "<itemDefinition name='T'><typeRef>number</typeRef></itemDefinition><inputData id='x' name='x'><variable typeRef='T'/></inputData>"
+  let other = "<itemDefinition name='T'><typeRef>string</typeRef></itemDefinition><inputData id='x' name='x'><variable typeRef='T'/></inputData>"
+  for has_local in [true, false] {
+    let root = document(
+      "root",
+      (if has_local { declarations } else { include_model("a", "", "a.dmn") }) +
+      include_model("b", "", "b.dmn") +
+      decision(
+        "<variable typeRef='T'/><informationRequirement><requiredInput href='b#x'/></informationRequirement>" +
+        (if has_local {
+          "<informationRequirement><requiredInput href='#x'/></informationRequirement>"
+        } else {
+          "<informationRequirement><requiredInput href='a#x'/></informationRequirement>"
+        }) +
+        "<literalExpression><text>if x instance of T then x + 1 else 99</text></literalExpression>",
+      ),
+    )
+    let model = @model.parse_model(
+      root,
+      resolver=Some((_, ns) => {
+        document(ns, if ns == "a" { declarations } else { other })
+      }),
+    )
+    let inputs = @types.json_context("{\"x\":4}")
+    @model.bind_input(inputs, "x", @types.Text("wrong"), model_namespace="b")
+    inspect(
+      @model.evaluate_decision(model, "d", inputs).json().stringify(),
+      content="5",
+    )
+  }
+}
+
+///|
+test "named aliases remain distinct from local and unnamed elements" {
+  let child = document(
+    "a",
+    decision("<literalExpression><text>4</text></literalExpression>"),
   )
   inspect(
     try {
       ignore(
         @model.parse_model(
-          root,
-          resolver=Some((_, ns) => {
-            document(
-              ns,
-              decision("<literalExpression><text>1</text></literalExpression>"),
-            )
-          }),
+          document(
+            "root",
+            include_model("a", "Amount", "a.dmn") +
+            "<decision name='Amount'><literalExpression><text>1</text></literalExpression></decision>",
+          ),
+          resolver=Some((_, _) => child),
         ),
       )
       "ok"
     } catch {
       e => @types.error_code(e)
     },
-    content="E_IMPORT_NAME",
+    content="E_IMPORT_ALIAS",
+  )
+  let root = document(
+    "root",
+    include_model("a", "A", "a.dmn") +
+    include_model("b", "", "b.dmn") +
+    decision(
+      "<informationRequirement><requiredDecision href='a#d'/></informationRequirement><informationRequirement><requiredDecision href='b#A'/></informationRequirement><literalExpression><text>A.d</text></literalExpression>",
+    ),
+  )
+  let model = @model.parse_model(
+    root,
+    resolver=Some((_, ns) => {
+      if ns == "a" {
+        child
+      } else {
+        document(
+          "b", "<decision id='A' name='A'><literalExpression><text>99</text></literalExpression></decision>",
+        )
+      }
+    }),
+  )
+  inspect(
+    @model.evaluate_decision(model, "d", Map([])).json().stringify(),
+    content="4",
   )
 }

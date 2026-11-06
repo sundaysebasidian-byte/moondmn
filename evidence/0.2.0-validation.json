@@ -10,10 +10,10 @@
       "command": "moon test --target all",
       "exit_code": 0,
       "results": [
-        "Total tests: 295, passed: 295, failed: 0. [wasm]",
-        "Total tests: 295, passed: 295, failed: 0. [wasm-gc]",
-        "Total tests: 295, passed: 295, failed: 0. [js]",
-        "Total tests: 295, passed: 295, failed: 0. [native]"
+        "Total tests: 300, passed: 300, failed: 0. [wasm]",
+        "Total tests: 300, passed: 300, failed: 0. [wasm-gc]",
+        "Total tests: 300, passed: 300, failed: 0. [js]",
+        "Total tests: 300, passed: 300, failed: 0. [native]"
       ]
     },
     {
@@ -35,14 +35,15 @@
     {
       "command": "python3 scripts/test-cli.py",
       "exit_code": 0,
-      "result": "CLI integration: 28 checks passed"
+      "result": "CLI integration: 29 checks passed"
     },
     {
-      "command": "bash scripts/build-web.sh",
-      "exit_code": 0
+      "command": "moon build --target js --release playground",
+      "exit_code": 0,
+      "result": "Bundle and web source files staged in a fresh temporary directory; no Node imports in bundle"
     },
     {
-      "command": "node web/smoke.mjs",
+      "command": "node web/smoke.mjs <temporary-dist>",
       "exit_code": 0,
       "result": "26 passed"
     },
@@ -136,5 +137,13 @@
     ],
     "regressions": [],
     "java_unbound_failures": 18
+  },
+  "import_precedence_validation": {
+    "baseline": "09c6739b91d316c4de9ab41aa6b9e6d24825a74d",
+    "unit_tests_per_backend": 300,
+    "cli_checks": 29,
+    "web_checks": 26,
+    "tck_cases_and_details_unchanged": true,
+    "tck_target": "native"
   }
 }

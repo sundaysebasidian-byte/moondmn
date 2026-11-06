@@ -38,7 +38,7 @@ pub fn parse_model(
   source : String,
   resolver~ : ((String, String) -> String raise @types.EngineError)? = None,
 ) -> Model raise @types.EngineError {
-  load_model(source, resolver, [], "", None)
+  load_model(source, resolver, [], "", None, "<root>")
 }
 
 ///|
@@ -48,6 +48,7 @@ fn load_model(
   stack : Array[String],
   base : String,
   expected_ns : String?,
+  source_location : String,
 ) -> Model raise @types.EngineError {
   let root = @xml.parse(source)
   if root.name != "definitions" ||
@@ -132,7 +133,26 @@ fn load_model(
       next,
       import_directory(path),
       Some(node.attr("namespace")),
+      path,
     ) catch {
+      @types.Failure("E_IMPORT_CYCLE", line, column, message) => {
+        if message.has_prefix("cyclic import: ") {
+          raise @types.Failure(
+            "E_IMPORT_CYCLE",
+            node.line,
+            node.column,
+            "import cycle in " +
+            source_location +
+            ":" +
+            node.line.to_string() +
+            ":" +
+            node.column.to_string() +
+            ": " +
+            node.attr("namespace"),
+          )
+        }
+        raise @types.Failure("E_IMPORT_CYCLE", line, column, message)
+      }
       @types.Failure(code, _, _, message) =>
         raise @types.Failure(code, node.line, node.column, message)
     }
@@ -185,10 +205,16 @@ fn load_model(
   }
   for (qualifier, _) in imports {
     if qualifier != "" &&
-      (
-        ids.values().any(n => n == qualifier) ||
-        root.all("itemDefinition").any(n => n.attr("name") == qualifier)
-      ) {
+      root.children.any(n => {
+        n.uri == root.uri &&
+        [
+          "decision", "inputData", "businessKnowledgeModel", "decisionService", "itemDefinition",
+        ].contains(n.name) &&
+        (
+          n.attr("name") == qualifier ||
+          (n.attr("name") == "" && n.attr("id") == qualifier)
+        )
+      }) {
       let node = root.all("import").filter(n => n.attr("name") == qualifier)[0]
       raise @types.Failure(
         "E_IMPORT_ALIAS",
@@ -196,40 +222,6 @@ fn load_model(
         node.column,
         "import alias conflicts with local name: " + qualifier,
       )
-    }
-  }
-  let visible : Map[String, String] = Map([])
-  for node in root.children {
-    if node.uri == root.uri &&
-      (
-        node.name == "itemDefinition" ||
-        ids.values().any(n => n == node.attr("name"))
-      ) {
-      visible[node.attr("name")] = root.attr("namespace")
-    }
-  }
-  for (qualifier, child) in imports {
-    if qualifier != "" {
-      visible[qualifier] = "alias:" + child.root.attr("namespace")
-    }
-  }
-  for (qualifier, child) in imports {
-    if qualifier != "" {
-      continue
-    }
-    for name, owner in exported_names(child) {
-      if visible.get(name) is Some(existing) && existing != owner {
-        let node = root
-          .all("import")
-          .filter(n => n.attr("namespace") == child.root.attr("namespace"))[0]
-        raise @types.Failure(
-          "E_IMPORT_NAME",
-          node.line,
-          node.column,
-          "ambiguous unnamed import: " + name,
-        )
-      }
-      visible[name] = owner
     }
   }
   { root, decisions, bkms, services, ids, imports, }

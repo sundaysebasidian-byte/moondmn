@@ -98,7 +98,8 @@ fn import_scope(
     let scope = imported_inputs(child, qualifier, inputs)
     for node in child.root.all("inputData") {
       let name = node.attr("name")
-      if scope.get(name) is Some(v) {
+      if import_visible(model, qualifier, child, name) &&
+        scope.get(name) is Some(v) {
         bind_import(ctx, qualifier, name, coerce_variable(child, node, v))
       }
     }
@@ -106,7 +107,9 @@ fn import_scope(
     let nested = scope.copy()
     import_scope(child, scope, nested)
     for (nested_alias, _) in child.imports {
-      if nested_alias != "" && nested.get(nested_alias) is Some(v) {
+      if nested_alias != "" &&
+        import_visible(model, qualifier, child, nested_alias) &&
+        nested.get(nested_alias) is Some(v) {
         bind_import(ctx, qualifier, nested_alias, v)
       }
     }
@@ -129,6 +132,9 @@ fn imported_requirement(
     let name = href_id(child, href) catch {
       @types.Failure(code, _, _, message) =>
         raise @types.Failure(code, reference.line, reference.column, message)
+    }
+    if !import_visible(model, qualifier, child, name) {
+      return true
     }
     let scope = imported_inputs(child, qualifier, inputs)
     let value = match reference.name {
@@ -196,7 +202,8 @@ fn imported_requirement(
 fn imported_type(model : Model, name : String) -> (Model, String)? {
   for (qualifier, child) in model.imports {
     if qualifier == "" {
-      if child.root.all("itemDefinition").any(n => n.attr("name") == name) {
+      if import_visible(model, qualifier, child, name) &&
+        child.root.all("itemDefinition").any(n => n.attr("name") == name) {
         return Some((child, name))
       }
     } else if name.strip_prefix(qualifier + ".") is Some(rest) {
@@ -234,20 +241,43 @@ pub fn bind_input(
 ///|
 fn exported_names(model : Model) -> Map[String, String] {
   let out = Map([])
-  for _, name in model.ids {
-    out[name] = model.root.attr("namespace")
+  for node in model.root.children {
+    if node.uri == model.root.uri &&
+      [
+        "decision", "inputData", "businessKnowledgeModel", "decisionService", "itemDefinition",
+      ].contains(node.name) {
+      let name = if node.attr("name") == "" {
+        node.attr("id")
+      } else {
+        node.attr("name")
+      }
+      out[name] = model.root.attr("namespace")
+    }
   }
-  for node in model.root.all("itemDefinition") {
-    out[node.attr("name")] = model.root.attr("namespace")
+  for (qualifier, child) in model.imports {
+    if qualifier != "" {
+      out[qualifier] = "alias:" + child.root.attr("namespace")
+    }
   }
   for (qualifier, child) in model.imports {
     if qualifier == "" {
       for name, owner in exported_names(child) {
-        out[name] = owner
+        if !out.contains(name) {
+          out[name] = owner
+        }
       }
-    } else {
-      out[qualifier] = child.root.attr("namespace")
     }
   }
   out
+}
+
+///|
+fn import_visible(
+  model : Model,
+  qualifier : String,
+  child : Model,
+  name : String,
+) -> Bool {
+  qualifier != "" ||
+  exported_names(model).get(name) == exported_names(child).get(name)
 }

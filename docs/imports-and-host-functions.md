@@ -14,11 +14,11 @@ moon run cmd/main --target native -- lint examples/imports/main.dmn
 # []
 ```
 
-每个模型保留独立的 Decision、InputData、BKM、DecisionService、ItemDefinition 索引；别名限定的 FEEL 名称和 typeRef 在对应作用域解析。requiredInput、requiredDecision、requiredKnowledge 通过 `namespace#id` 定位，未声明 namespace 的引用报错。无别名导入直接暴露名称；不同 namespace 的无别名同名元素报 E_IMPORT_NAME，不覆盖已有值。输入可以按别名嵌套，例如 `{"Shared":{"Amount":20}}`；同一 namespace 的 InputData 在多处导入间共享。类型化 JSON 边界也能解析导入的 ItemDefinition。
+每个模型保留独立的 Decision、InputData、BKM、DecisionService、ItemDefinition 索引；别名限定的 FEEL 名称和 typeRef 在对应作用域解析。requiredInput、requiredDecision、requiredKnowledge 通过 `namespace#id` 定位，未声明 namespace 的引用报错；不支持 `locationURI#id`。无别名导入直接暴露名称；同名元素保留本地声明或按 import 定义顺序最先导入的元素，丢弃后续同名元素，其余名字继续导入；非空别名与本地名称冲突仍报 `E_IMPORT_ALIAS`。输入可以按别名嵌套，例如 `{"Shared":{"Amount":20}}`；同一 namespace 的 InputData 在多处导入间共享。类型化 JSON 边界也能解析导入的 ItemDefinition。
 
 宿主需要按 namespace 绑定输入时，使用 `dmn/model.bind_input(inputs, name, value, model_namespace="...")`；TCK 驱动使用该接口读取 inputNode 的 namespace 属性。runner 的比较、容差、错误白名单保持不变。
 
-导入最多 32 层，以当前加载栈的 namespace 检测循环。错误携带 import 元素行列：`E_IMPORT_NOT_FOUND`、`E_IMPORT_NAMESPACE`、`E_IMPORT_ALIAS`、`E_IMPORT_NAME`、`E_IMPORT_TYPE`、`E_IMPORT_CYCLE`、`E_IMPORT_DEPTH`、`E_IMPORT_PATH`；引用错误为 `E_REFERENCE`。
+导入最多 32 层，以当前加载栈的 namespace 检测循环。错误携带 import 元素行列；循环错误保留闭合边的文件位置（入口模型在宿主 resolver API 中记为 `<root>`）：`E_IMPORT_NOT_FOUND`、`E_IMPORT_NAMESPACE`、`E_IMPORT_ALIAS`、`E_IMPORT_TYPE`、`E_IMPORT_CYCLE`、`E_IMPORT_DEPTH`、`E_IMPORT_PATH`；引用错误为 `E_REFERENCE`。
 
 ## 宿主函数桥
 

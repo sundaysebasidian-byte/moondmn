@@ -81,7 +81,9 @@ fn type_registry(model : Model) -> Map[String, @types.Value] {
   }
   for (qualifier, child) in model.imports {
     for key, value in type_registry(child) {
-      out[if qualifier == "" { key } else { qualifier + "." + key }] = value
+      if import_visible(model, qualifier, child, key) {
+        out[if qualifier == "" { key } else { qualifier + "." + key }] = value
+      }
     }
   }
   out
