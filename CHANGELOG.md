@@ -4,6 +4,8 @@
 
 ## 0.2.0
 
+- 嵌套空别名 import 的元素不再占用外层默认命名空间，直接导入的求值、typeRef 与 `instance of` 可见性一致。
+
 - 空别名 import 按定义顺序保留已有同名元素并继续导入其余名称；循环诊断保留闭合边文件及行列，导入读取失败仅回显相对位置。
 
 - 支持 DMN 多文件 import、嵌套导入、别名 FEEL/typeRef、namespace href、导入 Decision/InputData/BKM/DecisionService/ItemDefinition，32 层上限及结构化错误。CLI native/js 按模型目录加载，拒绝路径逃逸和符号链接。

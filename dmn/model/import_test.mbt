@@ -360,3 +360,108 @@ test "named aliases remain distinct from local and unnamed elements" {
     content="4",
   )
 }
+
+///|
+test "nested unnamed imports do not hide direct decisions" {
+  let c = document(
+    "c", "<decision id='e' name='Extra'><literalExpression><text>7</text></literalExpression></decision>",
+  )
+  let a = document(
+    "a",
+    include_model("c", "", "c.dmn") +
+    "<decision id='only' name='OnlyA'><literalExpression><text>10</text></literalExpression></decision>",
+  )
+  let b = document(
+    "b", "<decision id='e' name='Extra'><literalExpression><text>3</text></literalExpression></decision><decision id='o' name='Other'><literalExpression><text>1</text></literalExpression></decision>",
+  )
+  for a_first in [true, false] {
+    let imports = if a_first {
+      include_model("a", "", "a.dmn") + include_model("b", "", "b.dmn")
+    } else {
+      include_model("b", "", "b.dmn") + include_model("a", "", "a.dmn")
+    }
+    let root = document(
+      "root",
+      imports +
+      decision(
+        "<informationRequirement><requiredDecision href='b#e'/></informationRequirement><informationRequirement><requiredDecision href='b#o'/></informationRequirement><informationRequirement><requiredDecision href='a#only'/></informationRequirement><literalExpression><text>Extra + Other + OnlyA</text></literalExpression>",
+      ),
+    )
+    let model = @model.parse_model(
+      root,
+      resolver=Some((_, ns) => {
+        if ns == "a" {
+          a
+        } else if ns == "b" {
+          b
+        } else {
+          c
+        }
+      }),
+    )
+    inspect(
+      @model.evaluate_decision(model, "d", Map([])).json().stringify(),
+      content="14",
+    )
+  }
+}
+
+///|
+test "nested unnamed types agree with direct typeRef and instance of" {
+  let c = document(
+    "c", "<itemDefinition name='T'><typeRef>string</typeRef></itemDefinition>",
+  )
+  let a = document("a", include_model("c", "", "c.dmn"))
+  let b = document(
+    "b", "<itemDefinition name='T'><typeRef>number</typeRef></itemDefinition>",
+  )
+  for a_first in [true, false] {
+    let imports = if a_first {
+      include_model("a", "", "a.dmn") + include_model("b", "", "b.dmn")
+    } else {
+      include_model("b", "", "b.dmn") + include_model("a", "", "a.dmn")
+    }
+    for
+      (expression, input, typed, expected) in [
+        ("if x instance of T then 1 else 0", "4", true, "1"),
+        ("if x instance of T then 1 else 0", "\"hi\"", false, "0"),
+        ("x", "4", true, "4"),
+      ] {
+      let root = document(
+        "root",
+        imports +
+        "<inputData id='x' name='x'>" +
+        (if typed { "<variable typeRef='T'/>" } else { "" }) +
+        "</inputData>" +
+        decision(
+          (if typed { "<variable typeRef='T'/>" } else { "" }) +
+          "<informationRequirement><requiredInput href='#x'/></informationRequirement><literalExpression><text>" +
+          expression +
+          "</text></literalExpression>",
+        ),
+      )
+      let model = @model.parse_model(
+        root,
+        resolver=Some((_, ns) => {
+          if ns == "a" {
+            a
+          } else if ns == "b" {
+            b
+          } else {
+            c
+          }
+        }),
+      )
+      inspect(
+        @model.evaluate_decision(
+          model,
+          "d",
+          @types.json_context("{\"x\":" + input + "}"),
+        )
+        .json()
+        .stringify(),
+        content=expected,
+      )
+    }
+  }
+}

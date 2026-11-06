@@ -14,7 +14,7 @@ moon run cmd/main --target native -- lint examples/imports/main.dmn
 # []
 ```
 
-每个模型保留独立的 Decision、InputData、BKM、DecisionService、ItemDefinition 索引；别名限定的 FEEL 名称和 typeRef 在对应作用域解析。requiredInput、requiredDecision、requiredKnowledge 通过 `namespace#id` 定位，未声明 namespace 的引用报错；不支持 `locationURI#id`。无别名导入直接暴露名称；同名元素保留本地声明或按 import 定义顺序最先导入的元素，丢弃后续同名元素，其余名字继续导入；非空别名与本地名称冲突仍报 `E_IMPORT_ALIAS`。输入可以按别名嵌套，例如 `{"Shared":{"Amount":20}}`；同一 namespace 的 InputData 在多处导入间共享。类型化 JSON 边界也能解析导入的 ItemDefinition。
+每个模型保留独立的 Decision、InputData、BKM、DecisionService、ItemDefinition 索引；别名限定的 FEEL 名称和 typeRef 在对应作用域解析。requiredInput、requiredDecision、requiredKnowledge 通过 `namespace#id` 定位，未声明 namespace 的引用报错；不支持 `locationURI#id`。无别名导入只暴露该模块直接定义的元素，不传递暴露其嵌套空别名导入的元素；嵌套元素仍可在声明它们的直接导入作用域内使用，不占用外层默认命名空间。求值、typeRef 和 `instance of` 使用相同的可见性规则；同名元素保留本地声明或按 import 定义顺序最先导入的元素，丢弃后续同名元素，其余名字继续导入；非空别名与本地名称冲突仍报 `E_IMPORT_ALIAS`。输入可以按别名嵌套，例如 `{"Shared":{"Amount":20}}`；同一 namespace 的 InputData 在多处导入间共享。类型化 JSON 边界也能解析导入的 ItemDefinition。
 
 宿主需要按 namespace 绑定输入时，使用 `dmn/model.bind_input(inputs, name, value, model_namespace="...")`；TCK 驱动使用该接口读取 inputNode 的 namespace 属性。runner 的比较、容差、错误白名单保持不变。
 

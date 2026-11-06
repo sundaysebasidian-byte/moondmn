@@ -239,7 +239,7 @@ pub fn bind_input(
 }
 
 ///|
-fn exported_names(model : Model) -> Map[String, String] {
+fn direct_exported_names(model : Model) -> Map[String, String] {
   let out = Map([])
   for node in model.root.children {
     if node.uri == model.root.uri &&
@@ -259,9 +259,15 @@ fn exported_names(model : Model) -> Map[String, String] {
       out[qualifier] = "alias:" + child.root.attr("namespace")
     }
   }
+  out
+}
+
+///|
+fn exported_names(model : Model) -> Map[String, String] {
+  let out = direct_exported_names(model)
   for (qualifier, child) in model.imports {
     if qualifier == "" {
-      for name, owner in exported_names(child) {
+      for name, owner in direct_exported_names(child) {
         if !out.contains(name) {
           out[name] = owner
         }
@@ -279,5 +285,8 @@ fn import_visible(
   name : String,
 ) -> Bool {
   qualifier != "" ||
-  exported_names(model).get(name) == exported_names(child).get(name)
+  (
+    direct_exported_names(child).get(name) is Some(owner) &&
+    exported_names(model).get(name) == Some(owner)
+  )
 }

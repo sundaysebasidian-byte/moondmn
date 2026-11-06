@@ -86,7 +86,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 ## 测试规模
 
-- 单元测试 295 个 test block，native、wasm-gc、js、wasm 四个目标各 295/295 通过；另有 28 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- 单元测试 302 个 test block，native、wasm-gc、js、wasm 四个目标各 302/302 通过；另有 29 项 CLI 进程级检查（`scripts/test-cli.py`）。
 - 正则新增独立解析/匹配实现和自动生成的 Unicode 大小写映射表；生成输入与许可一并保留。
 - 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 26 项。
 - 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。

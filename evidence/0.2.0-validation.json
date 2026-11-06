@@ -10,10 +10,10 @@
       "command": "moon test --target all",
       "exit_code": 0,
       "results": [
-        "Total tests: 300, passed: 300, failed: 0. [wasm]",
-        "Total tests: 300, passed: 300, failed: 0. [wasm-gc]",
-        "Total tests: 300, passed: 300, failed: 0. [js]",
-        "Total tests: 300, passed: 300, failed: 0. [native]"
+        "Total tests: 302, passed: 302, failed: 0. [wasm]",
+        "Total tests: 302, passed: 302, failed: 0. [wasm-gc]",
+        "Total tests: 302, passed: 302, failed: 0. [js]",
+        "Total tests: 302, passed: 302, failed: 0. [native]"
       ]
     },
     {
@@ -145,5 +145,83 @@
     "web_checks": 26,
     "tck_cases_and_details_unchanged": true,
     "tck_target": "native"
+  },
+  "nested_unnamed_import_validation": {
+    "baseline": "6cb4cfc73303927d82f3e765bc3e9923e307d023",
+    "semantics": "Unnamed imports expose direct declarations only; nested unnamed imports do not reserve outer names.",
+    "regression_before": {
+      "target": "native",
+      "tests": 39,
+      "passed": 37,
+      "failed": 2
+    },
+    "unit_tests_per_backend": 302,
+    "cli_checks": 29,
+    "regressions": {
+      "import_orders": [
+        "A,B",
+        "B,A"
+      ],
+      "Extra + Other + OnlyA": 14,
+      "typed_number_4_instance_of_T": 1,
+      "untyped_string_hi_instance_of_T": 0,
+      "typed_number_4_identity": 4
+    },
+    "commands": [
+      {
+        "command": "moon check --deny-warn --target all",
+        "exit_code": 0
+      },
+      {
+        "command": "moon fmt --check",
+        "exit_code": 0
+      },
+      {
+        "command": "moon info",
+        "exit_code": 0
+      },
+      {
+        "command": "moon test --target all",
+        "exit_code": 0
+      },
+      {
+        "command": "python3 scripts/test-cli.py",
+        "exit_code": 0
+      },
+      {
+        "command": "moon run -q --target native cmd/main -- tck .tck/TestCases/compliance-level-2 --json <temporary>/tck-l2.json",
+        "exit_code": 0
+      },
+      {
+        "command": "moon run -q --target native cmd/main -- tck .tck/TestCases/compliance-level-3 --json <temporary>/tck-l3.json",
+        "exit_code": 0
+      }
+    ],
+    "interfaces_unchanged_after_info": true,
+    "interface_sha256_verified": true,
+    "tck_target": "native",
+    "tck_commit": "1e349176e5ae689d924a2a2c7a8df25c220d8b07",
+    "tck": {
+      "2": {
+        "total": 116,
+        "passed": 116,
+        "failed": 0,
+        "skipped": 0
+      },
+      "3": {
+        "total": 3291,
+        "passed": 3265,
+        "failed": 26,
+        "skipped": 0
+      }
+    },
+    "tck_cases_and_details_unchanged": true,
+    "runner_unchanged": true,
+    "diff_contains_absolute_user_paths": false,
+    "not_rerun": [
+      "web build",
+      "web smoke",
+      "host-bridge examples"
+    ]
   }
 }
