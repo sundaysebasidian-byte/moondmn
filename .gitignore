@@ -7,3 +7,4 @@ target/
 .reference/
 
 web/dist/
+.DS_Store
