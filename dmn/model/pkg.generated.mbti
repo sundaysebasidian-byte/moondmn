@@ -2,6 +2,7 @@
 package "sundaysebasidian-byte/moondmn/dmn/model"
 
 import {
+  "moonbitlang/core/json",
   "sundaysebasidian-byte/moondmn/dmn/xml",
   "sundaysebasidian-byte/moondmn/feel/types",
 }
@@ -17,7 +18,7 @@ pub fn evaluate_service(Model, String, Map[String, @types.Value]) -> Map[String,
 
 pub fn json_inputs(Model, String) -> Map[String, @types.Value] raise @types.EngineError
 
-pub fn lint(Model) -> Json
+pub fn lint(Model) -> @json.Json
 
 pub fn parse_model(String, resolver? : ((String, String) -> String raise @types.EngineError)?) -> Model raise @types.EngineError
 

@@ -14,9 +14,10 @@ pub impl Eq for Decimal with fn equal(self : Decimal, other : Decimal) -> Bool {
 
 ///|
 /// Matchable engine failure carrying code, line, column and message.
+#derive(Eq)
 pub(all) suberror EngineError {
   Failure(String, Int32, Int32, String)
-} derive(Eq)
+}
 
 ///|
 /// Construct a semantic failure without a source location.

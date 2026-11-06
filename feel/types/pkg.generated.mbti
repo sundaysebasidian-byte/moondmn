@@ -3,6 +3,7 @@ package "sundaysebasidian-byte/moondmn/feel/types"
 
 import {
   "moonbitlang/core/bigint",
+  "moonbitlang/core/json",
 }
 
 // Values
@@ -50,7 +51,7 @@ pub fn fail_at(String, Int32, Int32, String) -> EngineError
 
 pub fn from_double(Double, Int32) -> Decimal raise EngineError
 
-pub fn from_json(Json) -> Value raise EngineError
+pub fn from_json(@json.Json) -> Value raise EngineError
 
 pub fn is_leap_year(Int32) -> Bool
 
@@ -79,9 +80,10 @@ pub fn zero() -> Decimal
 pub fn zone_offset_seconds(Zone, Date) -> Int32 raise EngineError
 
 // Errors
+#derive(Eq)
 pub(all) suberror EngineError {
   Failure(String, Int32, Int32, String)
-} derive(Eq)
+}
 pub fn EngineError::equal(Self, Self) -> Bool
 pub fn EngineError::not_equal(Self, Self) -> Bool
 
@@ -175,7 +177,7 @@ pub(all) struct Range {
   end_included : Bool
 }
 pub fn Range::contains(Self, Value) -> Bool raise EngineError
-pub fn Range::json(Self) -> Json raise EngineError
+pub fn Range::json(Self) -> @json.Json raise EngineError
 pub fn Range::overlaps(Self, Self) -> Bool raise EngineError
 pub fn Range::text(Self) -> String
 pub fn Range::unbounded() -> Self
@@ -207,7 +209,7 @@ pub(all) enum Value {
 }
 pub fn Value::equal(Self, Self) -> Bool
 pub fn Value::equals(Self, Self) -> Bool
-pub fn Value::json(Self) -> Json raise EngineError
+pub fn Value::json(Self) -> @json.Json raise EngineError
 pub fn Value::not_equal(Self, Self) -> Bool
 pub fn Value::text(Self) -> String
 pub fn Value::type_name(Self) -> String
