@@ -25,12 +25,7 @@ fn run(args : Array[String]) -> Unit raise Error {
     None
   }
   match args[1] {
-    "lint" =>
-      println(
-        @model.lint(@lib.parse_model(@fs.read_file_to_string(args[2]))).stringify(
-          indent=2,
-        ),
-      )
+    "lint" => println(@model.lint(@loader.load(args[2])).stringify(indent=2))
     "tck" => {
       let report = @tck.run(args[2]).stringify(indent=2)
       if args.contains("--json") {
@@ -48,7 +43,7 @@ fn run(args : Array[String]) -> Unit raise Error {
       println(@lib.feel_eval(args[2], context~, clock~))
     }
     "eval" => {
-      let model = @lib.parse_model(@fs.read_file_to_string(args[2]))
+      let model = @loader.load(args[2])
       println(
         @lib.evaluate_decision(
           model,
@@ -64,7 +59,7 @@ fn run(args : Array[String]) -> Unit raise Error {
 
 ///|
 fn main {
-  run(@env.args()) catch {
+  run(cli_args()) catch {
     @types.Failure(code, line, column, message) => {
       println(
         Json::object(
@@ -87,4 +82,16 @@ fn main {
       @sys.exit(1)
     }
   }
+}
+
+///|
+#cfg(target="js")
+fn cli_args() -> Array[String] {
+  @env.args()[1:].to_owned()
+}
+
+///|
+#cfg(not(target="js"))
+fn cli_args() -> Array[String] {
+  @env.args()
 }

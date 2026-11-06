@@ -7,6 +7,8 @@ import {
 }
 
 // Values
+pub fn bind_input(Map[String, @types.Value], String, @types.Value, model_namespace? : String) -> Unit
+
 pub fn evaluate_bkm(Model, String, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
 
 pub fn evaluate_decision(Model, String, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
@@ -17,7 +19,7 @@ pub fn json_inputs(Model, String) -> Map[String, @types.Value] raise @types.Engi
 
 pub fn lint(Model) -> Json
 
-pub fn parse_model(String) -> Model raise @types.EngineError
+pub fn parse_model(String, resolver? : ((String, String) -> String raise @types.EngineError)?) -> Model raise @types.EngineError
 
 // Errors
 
@@ -28,6 +30,7 @@ pub struct Model {
   bkms : Map[String, @xml.Node]
   services : Map[String, @xml.Node]
   ids : Map[String, String]
+  imports : Array[(String, Model)]
 }
 
 // Type aliases

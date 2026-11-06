@@ -6,6 +6,7 @@ pub struct Model {
   bkms : Map[String, @xml.Node]
   services : Map[String, @xml.Node]
   ids : Map[String, String]
+  imports : Array[(String, Model)]
 }
 
 ///|
@@ -33,7 +34,21 @@ fn expression_child(node : @xml.Node) -> @xml.Node raise @types.EngineError {
 
 ///|
 /// Parse namespace-aware DMN XML and index its named elements.
-pub fn parse_model(source : String) -> Model raise @types.EngineError {
+pub fn parse_model(
+  source : String,
+  resolver~ : ((String, String) -> String raise @types.EngineError)? = None,
+) -> Model raise @types.EngineError {
+  load_model(source, resolver, [], "", None)
+}
+
+///|
+fn load_model(
+  source : String,
+  resolver : ((String, String) -> String raise @types.EngineError)?,
+  stack : Array[String],
+  base : String,
+  expected_ns : String?,
+) -> Model raise @types.EngineError {
   let root = @xml.parse(source)
   if root.name != "definitions" ||
     ![
@@ -46,6 +61,82 @@ pub fn parse_model(source : String) -> Model raise @types.EngineError {
       root.column,
       "expected DMN 1.3/1.4/1.5 definitions",
     )
+  }
+  let model_ns = root.attr("namespace")
+  if expected_ns is Some(ns) && model_ns != ns {
+    raise @types.Failure(
+      "E_IMPORT_NAMESPACE",
+      root.line,
+      root.column,
+      "import namespace mismatch: " + ns,
+    )
+  }
+  if stack.contains(model_ns) {
+    raise @types.Failure(
+      "E_IMPORT_CYCLE",
+      root.line,
+      root.column,
+      "cyclic import: " + model_ns,
+    )
+  }
+  if stack.length() >= 32 {
+    raise @types.Failure(
+      "E_IMPORT_DEPTH",
+      root.line,
+      root.column,
+      "import depth exceeds 32",
+    )
+  }
+  let next = stack.copy()
+  next.push(model_ns)
+  let imports : Array[(String, Model)] = []
+  for node in root.all("import") {
+    let qualifier = node.attr("name")
+    if qualifier != "" && imports.any(i => i.0 == qualifier) {
+      raise @types.Failure(
+        "E_IMPORT_ALIAS",
+        node.line,
+        node.column,
+        "duplicate import qualifier: " + qualifier,
+      )
+    }
+    if node.attr("importType") != root.uri {
+      raise @types.Failure(
+        "E_IMPORT_TYPE",
+        node.line,
+        node.column,
+        "unsupported importType: " + node.attr("importType"),
+      )
+    }
+    let resolve = match resolver {
+      Some(r) => r
+      None =>
+        raise @types.Failure(
+          "E_IMPORT_NOT_FOUND",
+          node.line,
+          node.column,
+          "import requires a resolver",
+        )
+    }
+    let location = node.attr("locationURI")
+    let path = if location == "" {
+      base
+    } else if location.has_prefix("/") || location.contains(":") {
+      location
+    } else {
+      base + location
+    }
+    let imported = load_model(
+      resolve(path, node.attr("namespace")),
+      resolver,
+      next,
+      import_directory(path),
+      Some(node.attr("namespace")),
+    ) catch {
+      @types.Failure(code, _, _, message) =>
+        raise @types.Failure(code, node.line, node.column, message)
+    }
+    imports.push((qualifier, imported))
   }
   let decisions = Map([])
   let bkms = Map([])
@@ -92,7 +183,56 @@ pub fn parse_model(source : String) -> Model raise @types.EngineError {
         )
     }
   }
-  { root, decisions, bkms, services, ids, }
+  for (qualifier, _) in imports {
+    if qualifier != "" &&
+      (
+        ids.values().any(n => n == qualifier) ||
+        root.all("itemDefinition").any(n => n.attr("name") == qualifier)
+      ) {
+      let node = root.all("import").filter(n => n.attr("name") == qualifier)[0]
+      raise @types.Failure(
+        "E_IMPORT_ALIAS",
+        node.line,
+        node.column,
+        "import alias conflicts with local name: " + qualifier,
+      )
+    }
+  }
+  let visible : Map[String, String] = Map([])
+  for node in root.children {
+    if node.uri == root.uri &&
+      (
+        node.name == "itemDefinition" ||
+        ids.values().any(n => n == node.attr("name"))
+      ) {
+      visible[node.attr("name")] = root.attr("namespace")
+    }
+  }
+  for (qualifier, child) in imports {
+    if qualifier != "" {
+      visible[qualifier] = "alias:" + child.root.attr("namespace")
+    }
+  }
+  for (qualifier, child) in imports {
+    if qualifier != "" {
+      continue
+    }
+    for name, owner in exported_names(child) {
+      if visible.get(name) is Some(existing) && existing != owner {
+        let node = root
+          .all("import")
+          .filter(n => n.attr("namespace") == child.root.attr("namespace"))[0]
+        raise @types.Failure(
+          "E_IMPORT_NAME",
+          node.line,
+          node.column,
+          "ambiguous unnamed import: " + name,
+        )
+      }
+      visible[name] = owner
+    }
+  }
+  { root, decisions, bkms, services, ids, imports, }
 }
 
 ///|
@@ -103,6 +243,21 @@ pub fn evaluate_decision(
   inputs : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
   let inputs = inputs.copy()
+  {
+    let shared = match inputs.get("$imports") {
+      Some(Context(c)) => c.copy()
+      _ => Map([])
+    }
+    collect_import_inputs(model, inputs, shared)
+    inputs["$imports"] = Context(shared)
+    if shared.get(model.root.attr("namespace")) is Some(Context(values)) {
+      for key, value in values {
+        if !inputs.contains(key) {
+          inputs[key] = value
+        }
+      }
+    }
+  }
   for node in model.root.all("inputData") {
     let key = node.attr("name")
     if inputs.get(key) is Some(value) {
@@ -137,12 +292,16 @@ fn evaluate_named(
   }
   visiting.push(name)
   let ctx = inputs.copy()
+  import_scope(model, inputs, ctx)
   if !ctx.contains("$types") {
     ctx["$types"] = Context(type_registry(model))
   }
   for req in decision.all("informationRequirement") {
     for reference in req.children {
       let href = reference.attr("href")
+      if imported_requirement(model, reference, inputs, ctx) {
+        continue
+      }
       let dep = href_id(model, href)
       if reference.name == "requiredDecision" {
         if inputs.get(dep) is Some(value) {
@@ -167,6 +326,9 @@ fn evaluate_named(
   for req in decision.all("knowledgeRequirement") {
     for reference in req.children {
       let href = reference.attr("href")
+      if imported_requirement(model, reference, inputs, ctx) {
+        continue
+      }
       let dep = href_id(model, href)
       if model.bkms.get(dep) is Some(bkm) {
         ctx[dep] = bkm_function(model, bkm, ctx, 0)
@@ -212,9 +374,14 @@ fn bkm_function(
   let params = logic.all("formalParameter").map(p => p.attr("name"))
   let body = expression_child(logic)
   let captured = outer.copy()
+  captured["$types"] = Context(type_registry(model))
+  import_scope(model, outer, captured)
   for req in node.all("knowledgeRequirement") {
     for reference in req.children {
       let href = reference.attr("href")
+      if imported_requirement(model, reference, outer, captured) {
+        continue
+      }
       let dep = href_id(model, href)
       if model.bkms.get(dep) is Some(bkm) {
         captured[dep] = bkm_function(model, bkm, outer, depth + 1)
@@ -392,6 +559,7 @@ pub fn evaluate_bkm(
   }
   let outer : Map[String, @types.Value] = Map([])
   outer["$types"] = Context(type_registry(model))
+  import_scope(model, arguments, outer)
   let value = bkm_function(model, node, outer, 0)
   match value {
     Function(f) => {

@@ -1,0 +1,16 @@
+import {
+  "sundaysebasidian-byte/moondmn/dmn/model",
+  "sundaysebasidian-byte/moondmn/dmn/xml",
+  "sundaysebasidian-byte/moondmn/feel/types",
+  "moonbitlang/x/fs",
+  "moonbitlang/core/encoding/utf8",
+}
+
+options(
+  "native-stub": [ "path_native.c" ],
+  targets: {
+    "path_native.mbt": [ "native", "llvm" ],
+    "path_js.mbt": [ "js" ],
+    "path_wasm.mbt": [ "wasm", "wasm-gc" ],
+  },
+)

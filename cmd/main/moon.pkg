@@ -1,4 +1,5 @@
 import {
+  "sundaysebasidian-byte/moondmn/dmn/loader",
   "sundaysebasidian-byte/moondmn/dmn/model",
   "sundaysebasidian-byte/moondmn/tck",
   "sundaysebasidian-byte/moondmn" @lib,

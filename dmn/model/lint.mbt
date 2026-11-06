@@ -6,22 +6,29 @@ pub fn lint(model : Model) -> Json {
     for req in decision.all("informationRequirement") {
       for reference in req.children {
         let href = reference.attr("href")
-        if href.has_prefix("#") {
-          let id = href.strip_prefix("#").unwrap().to_owned()
-          if !model.ids.contains(id) {
-            findings.push(
-              finding(
-                "E_REFERENCE",
-                name,
-                "undefined reference " + href,
-                reference,
-              ),
-            )
+        let valid = try {
+          if href.has_prefix("#") ||
+            href.has_prefix(model.root.attr("namespace") + "#") {
+            ignore(href_id(model, href))
+            true
+          } else {
+            model.imports.any(pair => {
+              href.has_prefix(pair.1.root.attr("namespace") + "#") &&
+              pair.1.ids.contains(
+                href.split("#").to_array().last().unwrap_or("").to_owned(),
+              )
+            })
           }
-        } else {
+        } catch {
+          _ => false
+        }
+        if !valid {
           findings.push(
             finding(
-              "E_IMPORT_UNSUPPORTED", name, "external reference", reference,
+              "E_REFERENCE",
+              name,
+              "undefined reference " + href,
+              reference,
             ),
           )
         }

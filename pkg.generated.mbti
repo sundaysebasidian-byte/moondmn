@@ -16,7 +16,7 @@ pub fn evaluate_decision(@model.Model, String, String, clock? : (() -> @types.Da
 
 pub fn feel_eval(String, context? : String, clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
 
-pub fn parse_model(String) -> @model.Model raise @types.EngineError
+pub fn parse_model(String, resolver? : ((String, String) -> String raise @types.EngineError)?) -> @model.Model raise @types.EngineError
 
 // Errors
 

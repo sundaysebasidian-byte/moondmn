@@ -56,6 +56,9 @@ fn type_descriptor(model : Model, type_name : String, depth : Int32) -> String {
     return "Any"
   }
   let name = type_name.trim().to_owned()
+  if imported_type(model, name) is Some((child, rest)) {
+    return type_descriptor(child, rest, depth + 1)
+  }
   if name == "" || name == "Any" || name == "any" {
     return "any"
   }
@@ -76,11 +79,16 @@ fn type_registry(model : Model) -> Map[String, @types.Value] {
       definition_descriptor(model, definition, 0),
     )
   }
+  for (qualifier, child) in model.imports {
+    for key, value in type_registry(child) {
+      out[if qualifier == "" { key } else { qualifier + "." + key }] = value
+    }
+  }
   out
 }
 
 ///|
-/// Validate supported primitive, collection, alias and structured ItemDefinitions.
+/// Validate supported primitive, collection, qualifier and structured ItemDefinitions.
 /// No implicit coercions are performed in this version.
 fn validate_type(
   model : Model,
@@ -92,6 +100,10 @@ fn validate_type(
     raise @types.fail("E_TYPE_CYCLE", "recursive ItemDefinition")
   }
   if value is Null {
+    return
+  }
+  if imported_type(model, type_name) is Some((child, rest)) {
+    validate_type(child, rest, value, depth + 1)
     return
   }
   match type_name {
@@ -216,6 +228,9 @@ fn coerce_type(
   }
   if value is Null || name == "" || name == "Any" || name == "any" {
     return value
+  }
+  if imported_type(model, name) is Some((child, rest)) {
+    return coerce_type(child, rest, value, depth + 1)
   }
   for definition in model.root.all("itemDefinition") {
     if definition.attr("name") == name {
@@ -343,7 +358,21 @@ pub fn json_inputs(
   model : Model,
   json : String,
 ) -> Map[String, @types.Value] raise @types.EngineError {
-  let out = @types.json_context(json)
+  decode_inputs(model, @types.json_context(json))
+}
+
+///|
+fn decode_inputs(
+  model : Model,
+  out : Map[String, @types.Value],
+) -> Map[String, @types.Value] raise @types.EngineError {
+  for (qualifier, child) in model.imports {
+    if qualifier == "" {
+      ignore(decode_inputs(child, out))
+    } else if out.get(qualifier) is Some(Context(fields)) {
+      out[qualifier] = Context(decode_inputs(child, fields.copy()))
+    }
+  }
   for node in model.root.children {
     if node.uri != model.root.uri ||
       (node.name != "inputData" && node.name != "decision") {
@@ -395,6 +424,13 @@ fn decode_declared(
     return Context(values)
   }
   let name = item_type_name(node)
+  if imported_type(model, name) is Some((child, rest)) {
+    for definition in child.root.all("itemDefinition") {
+      if definition.attr("name") == rest {
+        return decode_declared(child, definition, value, depth + 1, true)
+      }
+    }
+  }
   for definition in model.root.all("itemDefinition") {
     if definition.attr("name") == name {
       return decode_declared(model, definition, value, depth + 1, true)

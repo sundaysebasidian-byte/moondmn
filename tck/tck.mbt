@@ -180,7 +180,12 @@ fn check_case(
   let invocable = case.attr("invocableName")
   let inputs = Map([])
   for input in case.all("inputNode") {
-    inputs[input.attr("name")] = value(input)
+    @model.bind_input(
+      inputs,
+      input.attr("name"),
+      value(input),
+      model_namespace=input.attr("namespace"),
+    )
   }
   let results = case.all("resultNode")
   if results.is_empty() {
@@ -268,7 +273,7 @@ pub fn run(directory : String) -> Json raise Error {
     let pieces = path.split("/").to_array()
     ignore(pieces.pop())
     let model_path = pieces.join("/") + "/" + model_name
-    let model = Ok(@model.parse_model(@fs.read_file_to_string(model_path))) catch {
+    let model : Result[@model.Model, Error] = Ok(@loader.load(model_path)) catch {
       e => Err(e)
     }
     let cases = root.all("testCase")

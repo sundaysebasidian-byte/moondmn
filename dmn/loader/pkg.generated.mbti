@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "sundaysebasidian-byte/moondmn/dmn/loader"
+
+import {
+  "sundaysebasidian-byte/moondmn/dmn/model",
+  "sundaysebasidian-byte/moondmn/feel/types",
+}
+
+// Values
+pub fn load(String) -> @model.Model raise @types.EngineError
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

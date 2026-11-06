@@ -15,8 +15,11 @@ pub fn feel_eval(
 
 ///|
 /// Parse DMN 1.3/1.4/1.5 XML; failures carry code, line and column.
-pub fn parse_model(xml : String) -> @model.Model raise @types.EngineError {
-  @model.parse_model(xml)
+pub fn parse_model(
+  xml : String,
+  resolver~ : ((String, String) -> String raise @types.EngineError)? = None,
+) -> @model.Model raise @types.EngineError {
+  @model.parse_model(xml, resolver~)
 }
 
 ///|
