@@ -12,7 +12,7 @@ MoonDMN 是用 MoonBit 从零写的 OMG DMN 1.5 决策引擎和 FEEL 表达式�
 
 English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. It runs without a JVM,
 compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
-(Level 2: 116/116, Level 3: 3258/3291).
+(Level 2: 116/116, Level 3: 3265/3291).
 
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
@@ -23,7 +23,7 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 源码 | tag `v0.1.3` | mooncakes 0.1.3 的打包内容与该 tag 指向的提交一致 |
+| 当前源码 | 0.2.0，本地未发布 | 包含多文件 import 与宿主函数桥；已发布 0.1.3 的源码对应 tag `v0.1.3` |
 | mooncakes | `sundaysebasidian-byte/moondmn@0.1.3` | 包内容固定，不随 main 变化 |
 | Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.1.3 |
 
@@ -183,21 +183,21 @@ moon run cmd/main -- lint examples/eligibility.dmn
 
 ```bash
 ./scripts/fetch-tck.sh
-moon run cmd/main -- tck .tck/TestCases/compliance-level-2 \
+moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 \
   --json evidence/tck-level-2.json
-moon run cmd/main -- tck .tck/TestCases/compliance-level-3 \
+moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 \
   --json evidence/tck-level-3.json
 ```
 
 不加 `--json` 会把完整报告打印到标准输出：
 
 ```bash
-moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
+moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 ```
 
 ## 覆盖矩阵
 
-状态只有三种：**已支持**（TCK 对应套件全部通过，例外在“已知失败”表逐例列出）、**本期交付**（已确定要做，见下）、**明确不支持**（写明影响和理由）。
+状态为已支持或明确不支持；TCK 例外见“已知失败”表。
 
 | 能力 | 状态 | 说明 |
 | --- | --- | --- |
@@ -209,8 +209,8 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 内置函数 | 已支持（约 90 个） | 覆盖 §10.3.4 的各分组，TCK 内置函数套件除下表所列外全部通过；`matches`/`replace`/`split` 使用自研 XPath 正则（标志 s m i x q） |
 | lint | 已支持 | 未定义引用、重复规则、缺口；输入域为有限枚举（最多 4096 个组合）时可证明完整覆盖，开放域只给提示，不判错 |
 | `now()` / `today()` | 已支持，需注入时钟 | API 的 clock 参数、CLI 的 `--now`；引擎不读系统时钟 |
-| 多文件 `import` 与命名空间引用 | **本期交付** | 影响：多文件模型目前无法加载；7 个 TCK 用例。方案见 [proposal](docs/proposal.md) |
-| 外部函数（Java） | 明确不支持 JVM 调用；**本期交付宿主函数桥** | 影响：只有使用 `external {java:...}` 的模型；18 个 TCK 用例，均调用 JDK 类库。wasm-gc / js 没有 JVM，引擎不模拟 JDK |
+| 多文件 `import` 与命名空间引用 | 已支持 | 别名、嵌套导入、namespace 隔离、导入类型与 invocable；7 个 TCK 用例全部通过。见 [API 与示例](docs/imports-and-host-functions.md) |
+| 外部函数（Java） | 已支持宿主函数桥；JVM 调用不支持 | 影响：只有使用 `external {java:...}` 的模型；18 个 TCK 用例，均调用 JDK 类库。wasm-gc / js 没有 JVM，引擎不模拟 JDK |
 
 ## 一致性结果
 
@@ -219,16 +219,15 @@ moon run cmd/main -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 | 级别 | 用例数 | 通过 | 通过率 |
 | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 100.0% |
-| Level 3 | 3291 | 3258 | 99.00% |
+| Level 3 | 3291 | 3265 | 99.21% |
 
 目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。
 
-### 已知失败（Level 3 剩余 33 个）
+### 已知失败（Level 3 剩余 26 个）
 
 | 原因 | 用例数 | 性质 |
 | --- | ---: | --- |
-| Java 外部函数（`0076-feel-external-java`） | 18 | 未实现，本期不提供 JVM 调用 |
-| 跨文件 import（`0086`、`0089`、`1160`） | 7 | 未实现，本期交付 |
+| Java 外部函数（`0076-feel-external-java`） | 18 | 宿主桥已支持；不调用 JVM、不模拟 JDK，未注册时 E_EXTERNAL_UNBOUND |
 | 驱动不提供时钟（`1148`、`1149`） | 4 | 库已支持注入时钟，TCK 驱动未注入 |
 | 小数秒相等（`0068`） | 2 | 实现保留小数秒；TCK 期望忽略毫秒，与 DMN 1.5 §10.3.2.3 的文本存在差异 |
 | 无日期的命名时区 time 相减（`0100`） | 2 | 无日期无法唯一确定 DST 偏移，显式拒绝 |
@@ -261,8 +260,8 @@ CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任�
 
 ## 限制与路线图
 
-- 外部 Java 函数和 DMN 1.5 导入不在当前范围。
-- TCK Level 3 还有 33 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
+- Java 外部函数仅调用显式注册的宿主回调；不提供 JVM。Playground 暂不支持加载 import。
+- TCK Level 3 还有 26 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
 - 时区只有 39 个名称，只覆盖 1970–2100 年。
 - `now()`、`today()` 没有隐含的系统时钟，必须由调用方注入。
 - 计划补齐正则标志和 `range()` 的高级参数。

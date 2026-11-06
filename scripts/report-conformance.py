@@ -22,7 +22,7 @@ reasons = {
  '0070-feel-instance-of': '结构化 context 类型的 conforms-to 检查拒绝了该合法值。',
  '0072-feel-in': '嵌套 list 的 membership/整体 list 相等适配不完整。',
  '0075-feel-exponent': '幂运算解析当前右结合；3 ** 4 ** 5 未按 TCK 的左结合结果求值。',
- '0076-feel-external-java': 'Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。',
+ '0076-feel-external-java': '已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。',
  '0082-feel-coercion': '表达式/函数/服务声明类型校验与输出适配未完整执行，含缺失字段策略。',
  '0083-feel-unicode': '未加引号的 Unicode context 键无法被 lexer/parser 接受。',
  '0084-feel-for-loops': '非法 range domain 或 range/list 迭代区分不正确：本应 null/错误，却返回列表。',
@@ -88,7 +88,7 @@ path = root / 'docs/conformance.md'
 text = path.read_text()
 for level, report in reports.items():
     text = re.sub(rf'\| Level {level} \| \d+ \| \d+ \| \d+ \| [\d.]+% \|', f"| Level {level} | {report['total']} | {report['passed']} | {report['failed']} | {100*report['passed']/report['total']:.2f}% |", text)
-start = text.index('| `E_TCK_MISMATCH`')
+start = text.index('\n', text.index('| --- | --- |', text.index('## 失败状态码'))) + 1
 end = text.index('\n\n下表按引擎返回的状态码', start)
 text = text[:start] + '\n'.join(f'| `{code}` | {count} |' for code,count in sorted(reports[3]['failures'].items(), key=lambda pair:-pair[1])) + text[end:]
 for suite in {Path(c['file']).parent.name for c in reports[3]['cases']}:
@@ -117,7 +117,7 @@ summary = f"""## 结论
 
 Level 2 为 116/116。Level 3 为 {reports[3]['passed']}/{total}（{100*reports[3]['passed']/total:.2f}%），剩余 {failed} 个失败，没有跳过，也没有被隐藏的用例。
 
-这 {failed} 个失败里，{by_category['已知 bug']} 个（{100*by_category['已知 bug']/failed:.0f}%）是引擎自己的缺陷，{out_of_scope} 个属于范围外或测试环境。通过率不能理解为“剩下的都是范围外”。
+当前失败中，{out_of_scope} 个属于未实现的 JVM 调用或测试环境，另有覆盖边界与规范/TCK 差异共 {failed - out_of_scope} 个；已归类已知缺陷 {by_category['已知 bug']} 个。这不代表引擎没有其他缺陷。
 
 | 分类 | 失败数 | 占失败比例 | 含义 |
 | --- | ---: | ---: | --- |
@@ -135,6 +135,9 @@ Level 2 为 116/116。Level 3 为 {reports[3]['passed']}/{total}（{100*reports[
 - 失败清单可机读：`evidence/failure-classification.json`，每行以测试文件路径加 case ID 唯一标识；逐例原始报告是 `evidence/tck-level-*.json`。
 - 任何一个套件都可以用下文“复现”一节的命令单独重跑。
 """
+if not bugs:
+    empty_table = "已知缺陷集中在下面这些套件（按失败数排序，只列前 10 个；全部明细见文末）：\n\n| 套件 | 失败数 | 症状举例 |\n| --- | ---: | --- |\n"
+    summary = summary.replace(empty_table, "")
 text = re.sub(r'<!-- summary:start -->.*<!-- summary:end -->', lambda _: '<!-- summary:start -->\n' + summary + '<!-- summary:end -->', text, flags=re.S)
 marker = '\n## 逐例明细'
 text = text.split(marker)[0].rstrip() + '\n'

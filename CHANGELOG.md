@@ -2,6 +2,14 @@
 
 所有值得注意的变更记录在此文件。格式参考 Keep a Changelog，版本号遵循 Semantic Versioning。
 
+## 0.2.0
+
+- 支持 DMN 多文件 import、嵌套导入、别名 FEEL/typeRef、namespace href、导入 Decision/InputData/BKM/DecisionService/ItemDefinition，32 层上限及结构化错误。CLI native/js 按模型目录加载，拒绝路径逃逸和符号链接。
+- `parse_model` 新增可选 resolver；Model 新增 imports；新增 `bind_input` namespace 输入绑定接口。FEEL AST 新增 External，穷举 Expr 的使用方需补充分支。
+- 新增 `register_external` 和可选 host 参数，按 class/method signature 调用宿主回调，先执行 FEEL 参数适配；支持 literal、boxed Java 和 BKM。未绑定返回 E_EXTERNAL_UNBOUND，不执行 JVM、不模拟 JDK。
+- L2 116/116；L3 从 3258/3291 提高至 3265/3291（99.21%）；7 个 import 用例全部通过，Java 18 个继续失败；CI 最低通过数升至 3265。
+- 新增独立测试、多文件模型与宿主桥示例；Playground 暂不提供 import resolver。源码版本 0.2.0，本次未发布包。
+
 ## 0.1.3
 
 - `i` 比较完整 Unicode 大小写映射，支持共享多字符结果的单字符变体，不作传递闭包或多字符展开。

@@ -1,16 +1,14 @@
 {
   "total": 3291,
-  "passed": 3258,
-  "failed": 33,
+  "passed": 3265,
+  "failed": 26,
   "skipped": 0,
   "empty_files": 0,
   "failures": {
-    "E_TYPE_UNSUPPORTED": 2,
     "E_ZONE_UNSUPPORTED": 2,
-    "E_TCK_MISMATCH": 3,
-    "E_IMPORT_UNSUPPORTED": 5,
+    "E_TCK_MISMATCH": 2,
     "E_BUILTIN_UNSUPPORTED": 4,
-    "E_UNSUPPORTED_SYNTAX": 17
+    "E_EXTERNAL_UNBOUND": 18
   },
   "cases": [
     {
@@ -34,14 +32,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0086-import/0086-import-test-01.xml",
       "id": "test_001",
-      "status": "E_TYPE_UNSUPPORTED",
-      "detail": "unknown or unsupported type: myimport.tPerson"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0086-import/0086-import-test-01.xml",
       "id": "test_002",
-      "status": "E_TYPE_UNSUPPORTED",
-      "detail": "unknown or unsupported type: myimport.tPerson"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0004-lending/0004-lending-test-01.xml",
@@ -13168,26 +13166,26 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-01.xml",
       "id": "001",
-      "status": "E_IMPORT_UNSUPPORTED",
-      "detail": "external reference: https://example.org/1160-multiple-imports-01-A#_B4982021-33F9-4148-9015-93511122650E"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-02.xml",
       "id": "001",
-      "status": "E_IMPORT_UNSUPPORTED",
-      "detail": "external reference: https://example.org/1160-multiple-imports-01-A#_B4982021-33F9-4148-9015-93511122650E"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-03.xml",
       "id": "001",
-      "status": "E_IMPORT_UNSUPPORTED",
-      "detail": "external reference: https://example.org/1160-multiple-imports-01-A#_B4982021-33F9-4148-9015-93511122650E"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-04.xml",
       "id": "001",
-      "status": "E_IMPORT_UNSUPPORTED",
-      "detail": "external reference: https://example.org/1160-multiple-imports-01-A#_B4982021-33F9-4148-9015-93511122650E"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0036-dt-variable-input/0036-dt-variable-input-test-01.xml",
@@ -14254,110 +14252,110 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "boxed_001",
-      "status": "E_TCK_MISMATCH",
-      "detail": "actual {\"class\":\"java.lang.Math\",\"method signature\":\"max(double, double)\"}, expected 456"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: max(double, double)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "incorrect_001",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: foo(double)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "incorrect_002",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Foo :: valueOf(double)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "incorrect_003",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: max(java.lang.String, java.lang.String)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_001",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: cos(double)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_002",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: max(double,double)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_003",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: max(double,double)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_004",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: max(int,int)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_005",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Short :: valueOf(short)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_006",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Byte :: valueOf(byte)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_007",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.String :: valueOf(char)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_007_a",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.String :: valueOf(char)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_008",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: max(long,long)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_009",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Math :: max(float,float)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_010",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Integer :: valueOf(java.lang.String)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_011",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Float :: valueOf(java.lang.String)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "literal_012",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.Double :: valueOf(java.lang.String)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
       "id": "varargs_001",
-      "status": "E_UNSUPPORTED_SYNTAX",
-      "detail": "unsupported or trailing syntax: {"
+      "status": "E_EXTERNAL_UNBOUND",
+      "detail": "unregistered external function: java.lang.String :: format(java.lang.String, [Ljava.lang.Object;)"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0087-chapter-11-example/0087-chapter-11-example-test-01.xml",
@@ -17632,8 +17630,8 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0089-nested-inputdata-imports/0089-nested-inputdata-imports-test-01.xml",
       "id": "001",
-      "status": "E_IMPORT_UNSUPPORTED",
-      "detail": "external reference: http://www.trisotech.com/definitions/_9d46ece4-a96c-4cb0-abc0-0ca121ac3768#_96df766e-23e1-4aa6-9d5d-545fbe2f1e23"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1105-feel-upper-case-function/1105-feel-upper-case-function-test-01.xml",

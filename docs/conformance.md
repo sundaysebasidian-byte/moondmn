@@ -5,21 +5,20 @@
 <!-- summary:start -->
 ## 结论
 
-Level 2 为 116/116。Level 3 为 3258/3291（99.00%），剩余 33 个失败，没有跳过，也没有被隐藏的用例。
+Level 2 为 116/116。Level 3 为 3265/3291（99.21%），剩余 26 个失败，没有跳过，也没有被隐藏的用例。
 
-当前失败分类中，未实现特性或测试环境占 29 个，覆盖边界和规范/TCK 差异占 4 个；没有剩余的已归类已知缺陷。这不代表引擎没有其他缺陷。
+当前失败中，22 个属于未实现的 JVM 调用或测试环境，另有覆盖边界与规范/TCK 差异共 4 个；已归类已知缺陷 0 个。这不代表引擎没有其他缺陷。
 
 | 分类 | 失败数 | 占失败比例 | 含义 |
 | --- | ---: | ---: | --- |
 | 已知缺陷 | 0 | 0.0% | 范围内的行为不正确，是待修的缺陷 |
-| 未实现 | 25 | 75.8% | 尚未实现或明确不做 |
-| 覆盖边界 | 2 | 6.1% | 实现主动拒绝，不猜测 |
-| 规范与 TCK 存在差异 | 2 | 6.1% | 实现依据规范文本，与 TCK 期望不一致；仍计为失败 |
-| 驱动未提供时钟 | 4 | 12.1% | TCK 驱动不提供时钟；API 与 CLI 注入时钟后可用 |
+| 未实现 | 18 | 69.2% | 尚未实现或明确不做 |
+| 覆盖边界 | 2 | 7.7% | 实现主动拒绝，不猜测 |
+| 规范与 TCK 存在差异 | 2 | 7.7% | 实现依据规范文本，与 TCK 期望不一致；仍计为失败 |
+| 驱动未提供时钟 | 4 | 15.4% | TCK 驱动不提供时钟；API 与 CLI 注入时钟后可用 |
 
-未实现的 25 个中，Java 外部函数 18 个，DMN `import` 7 个。
+未实现的 18 个中，Java 外部函数 18 个，DMN `import` 0 个。
 
-本次修复的七个已知缺陷已全部通过；剩余四个边界/规范差异仍计失败。
 
 数字的来源：
 
@@ -27,6 +26,12 @@ Level 2 为 116/116。Level 3 为 3258/3291（99.00%），剩余 33 个失败，
 - 失败清单可机读：`evidence/failure-classification.json`，每行以测试文件路径加 case ID 唯一标识；逐例原始报告是 `evidence/tck-level-*.json`。
 - 任何一个套件都可以用下文“复现”一节的命令单独重跑。
 <!-- summary:end -->
+
+## 0.2.0 实测
+
+L2 保持 116/116；L3 从 3258/3291 提高至 3265/3291（99.21%），无新增失败、无跳过。0086-import 2/2、1160-multiple-imports 4/4、0089-nested-inputdata-imports 1/1；0076-feel-external-java 仍为 0/18。只增加 namespace 输入绑定与模型加载，runner 的比较、容差、错误白名单未变。
+
+多文件导入与宿主桥的设计、错误码、限制、示例见 [接入文档](imports-and-host-functions.md)。CI 最低通过数提高至 3265。当前 TCK 逐例结果与失败分类在 evidence/；命令退出码、测试计数、接口指纹和七个新增通过用例见 `evidence/0.2.0-validation.json`。
 
 ## 0.1.3 修复与实测
 
@@ -66,7 +71,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 - TCK 仓库：https://github.com/dmn-tck/tck
 - 固定提交：`1e349176e5ae689d924a2a2c7a8df25c220d8b07`（由 `scripts/fetch-tck.sh` 拉取到被忽略的 `.tck/`）
-- 工具链：MoonBit 0.1.20261028；TCK 使用 `moon run` 默认 wasm 后端，单元回归另覆盖四后端
+- 工具链：MoonBit 0.1.20261028；0.2.0 TCK 使用 native 文件加载器，单元回归另覆盖四后端
 - 驱动：`moondmn tck <目录> --json <文件>`，读取 `<modelName>` 指向的模型并按 `resultNode/@type` 分派
 - 判定：number 使用绝对差 ≤ 1e-8，list/context 递归比较，其他值使用引擎结构/时态相等；errorResult 只接受现有白名单错误或期望 null 时的 null。未改 runner 或容差
 
@@ -75,13 +80,13 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 级别 | 用例总数 | 通过 | 失败 | 通过率 | 原始报告 |
 | --- | --- | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 0 | 100.00% | `evidence/tck-level-2.json` |
-| Level 3 | 3291 | 3258 | 33 | 99.00% | `evidence/tck-level-3.json` |
+| Level 3 | 3291 | 3265 | 26 | 99.21% | `evidence/tck-level-3.json` |
 
 目标为 Level 2 ≥ 95%、Level 3 ≥ 80%，两项均已达到。
 
 ## 测试规模
 
-- 单元测试 289 个 test block，native、wasm-gc、js、wasm 四个目标各 289/289 通过；另有 16 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- 单元测试 295 个 test block，native、wasm-gc、js、wasm 四个目标各 295/295 通过；另有 28 项 CLI 进程级检查（`scripts/test-cli.py`）。
 - 正则新增独立解析/匹配实现和自动生成的 Unicode 大小写映射表；生成输入与许可一并保留。
 - 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 26 项。
 - 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。
@@ -90,19 +95,17 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 | 状态码 | 用例数 |
 | --- | --- |
-| `E_UNSUPPORTED_SYNTAX` | 17 |
-| `E_IMPORT_UNSUPPORTED` | 5 |
+| `E_EXTERNAL_UNBOUND` | 18 |
 | `E_BUILTIN_UNSUPPORTED` | 4 |
-| `E_TCK_MISMATCH` | 3 |
-| `E_TYPE_UNSUPPORTED` | 2 |
 | `E_ZONE_UNSUPPORTED` | 2 |
+| `E_TCK_MISMATCH` | 2 |
 
 下表按引擎返回的状态码统计，和上面“结论”里按原因的分类是两个维度。`E_TCK_MISMATCH` 表示求值成功但值与期望不同；`E_TCK_EXPECTED_ERROR` 表示期望错误/空值而引擎给出了值；其余为引擎语义错误。
 
 几个主要的失败来源（不是全部，全部见文末逐例明细）：
 
-- 外部 Java 函数（`0076-feel-external-java`）需要 JVM 回调，明确不实现。
-- DMN 1.5 导入（`0086-import`、`1160-multiple-imports`、`0089-nested-inputdata-imports`）尚未实现。
+- 外部 Java 函数支持宿主桥；TCK 未注册 JDK 回调，18 个用例返回 E_EXTERNAL_UNBOUND。
+- DMN 1.5 导入的 7 个用例已全部通过。
 - 动态时间 TCK 未注入运行时钟，仍报不支持；库 API 可注入 clock，CLI 可使用 `--now`。
 
 ## Level 2 全量矩阵（28 个套件，116 例）
@@ -207,10 +210,10 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 0083-feel-unicode | 14 | 14 | 0 |
 | 0084-feel-for-loops | 24 | 24 | 0 |
 | 0085-decision-services | 18 | 18 | 0 |
-| 0086-import | 2 | 0 | 2 |
+| 0086-import | 2 | 2 | 0 |
 | 0087-chapter-11-example | 8 | 8 | 0 |
 | 0088-no-decision-logic | 1 | 1 | 0 |
-| 0089-nested-inputdata-imports | 1 | 0 | 1 |
+| 0089-nested-inputdata-imports | 1 | 1 | 0 |
 | 0090-feel-paths | 4 | 4 | 0 |
 | 0091-local-hrefs | 1 | 1 | 0 |
 | 0092-feel-lambda | 18 | 18 | 0 |
@@ -260,7 +263,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 1155-list-replace-function | 22 | 22 | 0 |
 | 1156-range-function | 56 | 56 | 0 |
 | 1157-implicit-conversions | 12 | 12 | 0 |
-| 1160-multiple-imports | 4 | 0 | 4 |
+| 1160-multiple-imports | 4 | 4 | 0 |
 | 1161-boxed-list-expression | 2 | 2 | 0 |
 
 ## 复现
@@ -305,40 +308,33 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 ## 逐例明细
 
-每一行是一个失败用例，共 33 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。
+每一行是一个失败用例，共 26 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。
 
 | 套件 / 测试文件 | case ID | 分类 | 原因 |
 | --- | --- | --- | --- |
 | 0068-feel-equality/0068-feel-equality-test-01.xml | `datetime_003_a` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。 |
 | 0068-feel-equality/0068-feel-equality-test-01.xml | `time_005` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `boxed_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_002` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_003` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_002` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_003` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_004` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_005` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_006` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_007` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_007_a` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_008` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_009` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_010` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_011` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_012` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `varargs_001` | 未实现 | Java/varargs 外部函数需 JVM 或宿主回调，当前未实现；不会因不支持而计为通过。 |
-| 0086-import/0086-import-test-01.xml | `test_001` | 未实现 | 跨文件 import 的名称解析和导入 ItemDefinition 注册未实现。 |
-| 0086-import/0086-import-test-01.xml | `test_002` | 未实现 | 跨文件 import 的名称解析和导入 ItemDefinition 注册未实现。 |
-| 0089-nested-inputdata-imports/0089-nested-inputdata-imports-test-01.xml | `001` | 未实现 | 嵌套导入的 InputData/href 解析未实现。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `boxed_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_002` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_003` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_002` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_003` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_004` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_005` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_006` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_007` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_007_a` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_008` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_009` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_010` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_011` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_012` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
+| 0076-feel-external-java/0076-feel-external-java-test-01.xml | `varargs_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
 | 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_time_minus_rhs_time_005` | 覆盖边界 | time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。 |
 | 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_time_minus_rhs_time_006` | 覆盖边界 | time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。 |
 | 1148-feel-now-function/1148-feel-now-function-test-01.xml | `001` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
 | 1148-feel-now-function/1148-feel-now-function-test-01.xml | `002` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
 | 1149-feel-today-function/1149-feel-today-function-test-01.xml | `001` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
 | 1149-feel-today-function/1149-feel-today-function-test-01.xml | `002` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
-| 1160-multiple-imports/1160-multiple-imports-test-01.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
-| 1160-multiple-imports/1160-multiple-imports-test-02.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
-| 1160-multiple-imports/1160-multiple-imports-test-03.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |
-| 1160-multiple-imports/1160-multiple-imports-test-04.xml | `001` | 未实现 | 多文件导入、别名与命名空间隔离未实现。 |

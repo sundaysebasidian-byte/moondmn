@@ -1,0 +1,140 @@
+{
+  "version": "0.2.0",
+  "baseline": "e1d00a0",
+  "commands": [
+    {
+      "command": "moon check --deny-warn --target all",
+      "exit_code": 0
+    },
+    {
+      "command": "moon test --target all",
+      "exit_code": 0,
+      "results": [
+        "Total tests: 295, passed: 295, failed: 0. [wasm]",
+        "Total tests: 295, passed: 295, failed: 0. [wasm-gc]",
+        "Total tests: 295, passed: 295, failed: 0. [js]",
+        "Total tests: 295, passed: 295, failed: 0. [native]"
+      ]
+    },
+    {
+      "command": "moon fmt --check",
+      "exit_code": 0
+    },
+    {
+      "command": "moon info",
+      "exit_code": 0
+    },
+    {
+      "command": "moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 --json evidence/tck-level-2.json",
+      "exit_code": 0
+    },
+    {
+      "command": "moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 --json evidence/tck-level-3.json",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 scripts/test-cli.py",
+      "exit_code": 0,
+      "result": "CLI integration: 28 checks passed"
+    },
+    {
+      "command": "bash scripts/build-web.sh",
+      "exit_code": 0
+    },
+    {
+      "command": "node web/smoke.mjs",
+      "exit_code": 0,
+      "result": "26 passed"
+    },
+    {
+      "command": "moon run examples/host-bridge --target native",
+      "exit_code": 0
+    },
+    {
+      "command": "moon run examples/host-bridge --target wasm-gc",
+      "exit_code": 0
+    },
+    {
+      "command": "moon run examples/host-bridge --target js",
+      "exit_code": 0
+    },
+    {
+      "command": "moon run cmd/main --target js -- eval examples/imports/main.dmn --decision Total --input examples/imports/input.json",
+      "exit_code": 0
+    },
+    {
+      "command": "git grep -n -E <absolute-local-path-patterns>",
+      "exit_code": 1,
+      "result": "no matches"
+    }
+  ],
+  "interfaces_unchanged_after_info": true,
+  "interface_sha256": {
+    "pkg.generated.mbti": "5c5e4e712ab7cee421054efd38711b26f83f6a3bec1d58797c88051ed485195c",
+    "playground/pkg.generated.mbti": "424b4008250dd52043a26c493fea08cf1d6493d293ab860d62ceadfcd00faaf9",
+    "tck/pkg.generated.mbti": "4b5b71ed8d22482655ba1831789bb47694ebd4a55c537857064c90a0cbe45d6e",
+    "benchmarks/pkg.generated.mbti": "de508a741b2d61b77cd514973eb193eef82abd84d0116a767a4fce18792a6f40",
+    "dmn/xml/pkg.generated.mbti": "33854cf4c0f393be464e68382bb15931fe8d7fe12b1afd146eeb63272e404e0b",
+    "dmn/loader/pkg.generated.mbti": "f3355918e137191d50ff436632fa87fa6b837180f1136d8e093e51b6a76552ea",
+    "dmn/model/pkg.generated.mbti": "eb066373f575162b2491df66d5b0af5cc79533066d9104de817d8260b4a76596",
+    "feel/types/pkg.generated.mbti": "366185e4dbe92790b6b49629e210d1ac1e32bedac845d465514094f212a5b470",
+    "feel/lexer/pkg.generated.mbti": "7f4f39707a40edf397fdd136710d2dee0ae4d331e4b7e04b9f05558978b1737f",
+    "feel/parser/pkg.generated.mbti": "01e8e7195b3e445899bea50312ce2a4d3f908584a1691945d0a3b8406c251130",
+    "feel/builtins/pkg.generated.mbti": "db72510db82d020e00e16c7111418a146407c36e996dbfbbbfd30431f30ecd24",
+    "feel/eval/pkg.generated.mbti": "7d7e61897519e5097a03b50089d504946d59e2cf7fb32ff86745238210f23440",
+    "examples/host-bridge/pkg.generated.mbti": "17d305de190dcbfa480959a97bee16b4499865535bcc1387c026ddc4c5dad2b7",
+    "examples/api-demo/pkg.generated.mbti": "a74a3f01c9953a49e72fc3610de203e0a41108a0738432f4e91c499f02515e02",
+    "cmd/main/pkg.generated.mbti": "ed672cc44ff5382bdc22a3ed7c21d2d9892db205d30805b91f7befa31e0b28f5"
+  },
+  "tck_delta": {
+    "before": 3258,
+    "after": 3265,
+    "total": 3291,
+    "new_passes": [
+      {
+        "file": ".tck/TestCases/compliance-level-3/0086-import/0086-import-test-01.xml",
+        "id": "test_001",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "file": ".tck/TestCases/compliance-level-3/0086-import/0086-import-test-01.xml",
+        "id": "test_002",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-01.xml",
+        "id": "001",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-02.xml",
+        "id": "001",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-03.xml",
+        "id": "001",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "file": ".tck/TestCases/compliance-level-3/1160-multiple-imports/1160-multiple-imports-test-04.xml",
+        "id": "001",
+        "status": "PASS",
+        "detail": ""
+      },
+      {
+        "file": ".tck/TestCases/compliance-level-3/0089-nested-inputdata-imports/0089-nested-inputdata-imports-test-01.xml",
+        "id": "001",
+        "status": "PASS",
+        "detail": ""
+      }
+    ],
+    "regressions": [],
+    "java_unbound_failures": 18
+  }
+}

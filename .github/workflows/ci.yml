@@ -143,12 +143,12 @@ jobs:
 
       - name: Level 2 conformance
         run: |
-          moon run cmd/main -- tck .tck/TestCases/compliance-level-2 \
+          moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 \
             --json evidence/tck-level-2.json
 
       - name: Level 3 conformance
         run: |
-          moon run cmd/main -- tck .tck/TestCases/compliance-level-3 \
+          moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 \
             --json evidence/tck-level-3.json
 
       - name: Summarise
@@ -160,7 +160,7 @@ jobs:
                   report = json.load(handle)
               print(f"Level {level}: {report['passed']}/{report['total']} passed")
               assert report['skipped'] == 0 and report['total'] > 0
-              expected_total, minimum = (116, 116) if level == 2 else (3291, 3258)
+              expected_total, minimum = (116, 116) if level == 2 else (3291, 3265)
               assert report['total'] == expected_total
               assert report['passed'] >= minimum
           EOF
