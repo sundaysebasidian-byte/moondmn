@@ -61,12 +61,19 @@ with tempfile.TemporaryDirectory() as directory:
     main.write_text(imported("missing.dmn"))
     assert run("lint", str(main), code=1)["error"] == "E_IMPORT_NOT_FOUND"
     (base / "sub").mkdir()
-    main.write_text(imported("sub"))
-    error = run("lint", str(main), code=1)
-    assert error["error"] == "E_IMPORT_NOT_FOUND"
-    assert error["message"] == "cannot read model: sub", error
+    (base / "sub" / "directory.dmn").mkdir()
+    for location in ("sub", "sub/directory.dmn"):
+        main.write_text(imported(location))
+        for model_path in {str(main), main.as_posix()}:
+            for command in ("eval", "lint"):
+                error = run(command, model_path, code=1)
+                assert error["error"] == "E_IMPORT_NOT_FOUND", error
+                assert error["message"] == f"cannot read model: {location}", error
     child = base / "child.dmn"
     child.write_text(f"<definitions xmlns='{ns}' namespace='child'/>")
+    main.write_text(imported("child.dmn"))
+    for model_path in {str(main), main.as_posix()}:
+        assert run("lint", model_path) == []
     try:
         (base / "link.dmn").symlink_to(child)
     except OSError:

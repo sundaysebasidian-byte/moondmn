@@ -1,7 +1,7 @@
 ///|
 /// File loader for CLI/TCK. Imports are confined lexically to the model tree.
 pub fn load(path : String) -> @model.Model raise @types.EngineError {
-  let parts = path.split("/").to_array()
+  let parts = model_path(path).split("/").to_array()
   ignore(parts.pop())
   let base = if parts.is_empty() { "." } else { parts.join("/") }
   let source = read(path)
@@ -57,10 +57,33 @@ fn read(
   path : String,
   display~ : String = path,
 ) -> String raise @types.EngineError {
-  @fs.read_file_to_string(path) catch {
-    _ =>
+  let source = try {
+    if @fs.is_file(path) {
+      Some(@fs.read_file_to_string(path))
+    } else {
+      None
+    }
+  } catch {
+    _ => None
+  }
+  match source {
+    Some(source) => source
+    None =>
       raise @types.fail("E_IMPORT_NOT_FOUND", "cannot read model: " + display)
   }
+}
+
+///|
+#cfg(platform="windows")
+fn model_path(path : String) -> String {
+  // CLI paths use host separators; import locations still require URI slashes.
+  path.replace_all(old="\\", new="/")
+}
+
+///|
+#cfg(not(platform="windows"))
+fn model_path(path : String) -> String {
+  path
 }
 
 ///|
