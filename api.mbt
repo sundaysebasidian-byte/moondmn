@@ -3,11 +3,12 @@
 pub fn feel_eval(
   source : String,
   context~ : String = "{}",
+  host~ : Map[String, @types.Value] = Map([]),
   clock~ : (() -> @types.DateTime)? = None,
 ) -> String raise @types.EngineError {
   @eval.feel_eval(
     source,
-    ctx=@eval.with_clock(@types.json_context(context), clock),
+    ctx=@eval.with_clock(host_scope(@types.json_context(context), host), clock),
   )
   .json()
   .stringify()
@@ -28,12 +29,13 @@ pub fn evaluate_decision(
   model : @model.Model,
   name : String,
   input : String,
+  host~ : Map[String, @types.Value] = Map([]),
   clock~ : (() -> @types.DateTime)? = None,
 ) -> String raise @types.EngineError {
   @model.evaluate_decision(
     model,
     name,
-    @eval.with_clock(@model.json_inputs(model, input), clock),
+    @eval.with_clock(host_scope(@model.json_inputs(model, input), host), clock),
   )
   .json()
   .stringify()
@@ -63,4 +65,26 @@ pub fn evaluate_compiled(
   )
   .json()
   .stringify()
+}
+
+///|
+/// Register a callback in a host scope passed to feel_eval/evaluate_decision.
+pub fn register_external(
+  host : Map[String, @types.Value],
+  class_name : String,
+  signature : String,
+  callback : (Array[@types.Value]) -> @types.Value raise @types.EngineError,
+) -> Unit {
+  @eval.register_external(host, class_name, signature, callback)
+}
+
+///|
+fn host_scope(
+  inputs : Map[String, @types.Value],
+  host : Map[String, @types.Value],
+) -> Map[String, @types.Value] {
+  if host.get("$external") is Some(v) {
+    inputs["$external"] = v
+  }
+  inputs
 }

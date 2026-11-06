@@ -34,6 +34,7 @@ pub(all) enum Expr {
   For(Array[(String, Expr)], Expr)
   SomeIn(Array[(String, Expr)], Expr)
   EveryIn(Array[(String, Expr)], Expr)
+  External(Expr)
   FunctionDef(Array[String], Expr)
   TypedFunctionDef(Array[(String, String)], Expr)
   InstanceOf(Expr, String)

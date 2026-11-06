@@ -237,7 +237,8 @@ fn uses_input(expr : @parser.Expr) -> Bool {
   match expr {
     Name(name) => name == "?"
     Lit(_) => false
-    Unary(_, value)
+    External(value)
+    | Unary(_, value)
     | Path(value, _)
     | InstanceOf(value, _)
     | FunctionDef(_, value)

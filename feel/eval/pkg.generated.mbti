@@ -15,6 +15,10 @@ pub fn evaluate(@parser.Expr, Map[String, @types.Value]) -> @types.Value raise @
 
 pub fn feel_eval(String, ctx? : Map[String, @types.Value]) -> @types.Value raise @types.EngineError
 
+pub fn invoke_external(@types.Value, Array[@types.Value], Map[String, @types.Value]) -> @types.Value raise @types.EngineError
+
+pub fn register_external(Map[String, @types.Value], String, String, (Array[@types.Value]) -> @types.Value raise @types.EngineError) -> Unit
+
 pub fn test_match_value(@parser.Test, @types.Value, Map[String, @types.Value]) -> @types.Value raise @types.EngineError
 
 pub fn test_matches(@parser.Test, @types.Value, Map[String, @types.Value]) -> Bool raise @types.EngineError

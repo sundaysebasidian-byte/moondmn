@@ -419,7 +419,13 @@ fn bkm_function(
           @types.Function({
             name: "result",
             params: [],
-            callback: _ => boxed(model, body, scope),
+            callback: _ => {
+              if logic.attr("kind") == "Java" {
+                java_boxed(model, body, scope, params.map(p => scope[p]))
+              } else {
+                boxed(model, body, scope)
+              }
+            },
           }),
         ) {
         Function(f) => (f.callback)([])
@@ -718,7 +724,11 @@ fn boxed_raw(
               0,
             )
           }
-          boxed(model, body, scope)
+          if node.attr("kind") == "Java" {
+            java_boxed(model, body, scope, params.map(p => scope[p]))
+          } else {
+            boxed(model, body, scope)
+          }
         },
       })
     }

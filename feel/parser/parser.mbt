@@ -23,6 +23,7 @@ pub(all) enum Expr {
   For(Array[(String, Expr)], Expr)
   SomeIn(Array[(String, Expr)], Expr)
   EveryIn(Array[(String, Expr)], Expr)
+  External(Expr)
   FunctionDef(Array[String], Expr)
   TypedFunctionDef(Array[(String, String)], Expr)
   InstanceOf(Expr, String)
@@ -419,7 +420,12 @@ fn Parser::atom(p : Parser) -> Expr raise @types.EngineError {
     "every" => EveryIn(p.bindings(), p.body("satisfies"))
     "function" => {
       let params = p.params()
-      let body = p.expr(1)
+      let body = if p.at("external") {
+        ignore(p.take())
+        External(p.expr(1))
+      } else {
+        p.expr(1)
+      }
       if params.iter().all(p => p.1 == "Any") {
         FunctionDef(params.map(p => p.0), body)
       } else {

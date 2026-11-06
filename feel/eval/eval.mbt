@@ -21,6 +21,7 @@ pub fn evaluate(
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
   match expr {
+    External(descriptor) => invoke_external(evaluate(descriptor, ctx), [], ctx)
     Lit(v) => v
     Name(n) =>
       match ctx.get(n) {
@@ -225,7 +226,11 @@ pub fn evaluate(
           for i, param in params {
             scope[param] = args[i]
           }
-          evaluate(body, scope)
+          if body is External(descriptor) {
+            invoke_external(evaluate(descriptor, scope), args, captured)
+          } else {
+            evaluate(body, scope)
+          }
         },
       })
     }
@@ -269,7 +274,15 @@ pub fn evaluate(
             }
             scope[parameter.0] = value
           }
-          evaluate(body, scope)
+          if body is External(descriptor) {
+            invoke_external(
+              evaluate(descriptor, scope),
+              parameters.map(p => scope[p.0]),
+              captured,
+            )
+          } else {
+            evaluate(body, scope)
+          }
         },
       })
     }

@@ -12,11 +12,13 @@ pub fn compile(String, names? : Array[String]) -> @parser.Expr raise @types.Engi
 
 pub fn evaluate_compiled(@parser.Expr, String, clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
 
-pub fn evaluate_decision(@model.Model, String, String, clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
+pub fn evaluate_decision(@model.Model, String, String, host? : Map[String, @types.Value], clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
 
-pub fn feel_eval(String, context? : String, clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
+pub fn feel_eval(String, context? : String, host? : Map[String, @types.Value], clock? : (() -> @types.DateTime)?) -> String raise @types.EngineError
 
 pub fn parse_model(String, resolver? : ((String, String) -> String raise @types.EngineError)?) -> @model.Model raise @types.EngineError
+
+pub fn register_external(Map[String, @types.Value], String, String, (Array[@types.Value]) -> @types.Value raise @types.EngineError) -> Unit
 
 // Errors
 
