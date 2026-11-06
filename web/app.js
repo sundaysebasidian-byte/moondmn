@@ -105,6 +105,10 @@ function createEditor(host, { onInput }) {
 /* ---------- state ---------- */
 
 const state = {
+  jsonInput: "{}",
+  files: [{ name: "main.dmn", text: "" }],
+  editing: 0,
+  entry: 0,
   mode: "decision",
   example: null,
   summary: null,
@@ -147,12 +151,15 @@ function renderIssues(entries) {
     }
     list.append(item);
   }
-  editor.mark(marks);
+  editor.mark(state.editing === state.entry ? marks : []);
 }
 
 function analyze() {
-  const xml = editor.value;
-  const parsed = call("parse_dmn", { xml });
+  const request = modelRequest();
+  const duplicate = new Set(state.files.map((file) => file.name)).size !== state.files.length;
+  const parsed = duplicate
+    ? { ok: false, error: { code: "E_REQUEST", message: "Duplicate file name", line: 0, column: 0 } }
+    : call("parse_dmn", request);
   if (!parsed.ok) {
     state.summary = null;
     state.layout = null;
@@ -164,7 +171,7 @@ function analyze() {
   }
   state.summary = parsed;
   state.layout = layoutGraph(parsed);
-  const lint = call("lint", { xml });
+  const lint = call("lint", request);
   renderIssues(
     (lint.ok ? lint.findings : []).map((finding) => ({
       line: finding.line,
@@ -360,6 +367,19 @@ function collection(shape, label, holder) {
 function renderForm() {
   const form = $("form");
   form.replaceChildren();
+  if (state.summary?.hasImports) {
+    const input = el("textarea");
+    input.setAttribute("aria-label", "Input JSON");
+    input.spellcheck = false;
+    input.rows = 12;
+    input.value = state.jsonInput;
+    input.addEventListener("input", () => {
+      state.jsonInput = input.value;
+      rerun();
+    });
+    form.append(input);
+    return;
+  }
   for (const input of state.summary?.inputs ?? []) {
     form.append(
       field(input.type, input.name, {
@@ -380,9 +400,9 @@ function run() {
     state.result = null;
   } else {
     state.result = call("evaluate", {
-      xml: editor.value,
+      ...modelRequest(),
       decision: state.decision,
-      input: inputText(summary, state.trees),
+      input: summary.hasImports ? state.jsonInput : inputText(summary, state.trees),
       now: nowText(),
     });
   }
@@ -509,6 +529,7 @@ function renderTables() {
 /* ---------- examples, files ---------- */
 
 function loadModel(xml, { example = null } = {}) {
+  state.jsonInput = "{}";
   state.example = example;
   state.seeds = example ? example.input : {};
   state.trees = {};
@@ -517,7 +538,10 @@ function loadModel(xml, { example = null } = {}) {
     state.decision = example.decision;
     setNow(example.now);
   }
+  state.files = [{ name: "main.dmn", text: xml }];
+  state.editing = state.entry = 0;
   editor.value = xml;
+  renderFiles();
   renderExamples();
   analyze();
 }
@@ -534,14 +558,79 @@ function renderExamples() {
   }
 }
 
-async function readFile(file) {
-  if (!file) return;
-  loadModel(await file.text());
+function saveFile() {
+  state.files[state.editing].text = editor.value;
+}
+
+function modelRequest() {
+  saveFile();
+  const files = Object.create(null);
+  for (const file of state.files) {
+    files[file.name] = file.text;
+  }
+  return { xml: state.files[state.entry].text, entry: state.files[state.entry].name, files };
+}
+
+function renderFiles() {
+  for (const id of ["edit-file", "entry-file"]) {
+    const select = $(id);
+    select.replaceChildren(...state.files.map((file, index) =>
+      Object.assign(el("option", "", file.name), { value: String(index) })));
+    select.value = String(id === "edit-file" ? state.editing : state.entry);
+  }
+  $("filename").value = state.files[state.editing].name;
+  $("remove-file").disabled = state.files.length === 1;
+}
+
+$("edit-file").addEventListener("change", (event) => {
+  saveFile();
+  state.editing = Number(event.target.value);
+  editor.value = state.files[state.editing].text;
+  renderFiles();
+  analyze();
+});
+$("entry-file").addEventListener("change", (event) => {
+  state.entry = Number(event.target.value);
+  analyze();
+});
+$("filename").addEventListener("input", (event) => {
+  state.files[state.editing].name = event.target.value;
+  renderFiles();
+  onModelInput();
+});
+$("add-file").addEventListener("click", () => {
+  saveFile();
+  let n = state.files.length + 1;
+  while (state.files.some((file) => file.name === `model${n}.dmn`)) n++;
+  state.files.push({ name: `model${n}.dmn`, text: "" });
+  state.editing = state.files.length - 1;
+  editor.value = "";
+  renderFiles();
+  analyze();
+});
+$("remove-file").addEventListener("click", () => {
+  if (state.files.length === 1) return;
+  state.files.splice(state.editing, 1);
+  if (state.entry === state.editing) state.entry = 0;
+  else if (state.entry > state.editing) state.entry--;
+  state.editing = Math.min(state.editing, state.files.length - 1);
+  editor.value = state.files[state.editing].text;
+  renderFiles();
+  analyze();
+});
+
+async function readFiles(files) {
+  if (!files.length) return;
+  const models = await Promise.all(Array.from(files, async (file) => ({ name: file.name, text: await file.text() })));
+  loadModel(models[0].text);
+  state.files = models;
+  renderFiles();
+  analyze();
 }
 
 $("open").addEventListener("click", () => $("file").click());
 $("file").addEventListener("change", async (event) => {
-  await readFile(event.target.files[0]);
+  await readFiles(event.target.files);
   event.target.value = "";
 });
 editor.host.addEventListener("dragover", (event) => {
@@ -552,7 +641,7 @@ editor.host.addEventListener("dragleave", () => editor.host.classList.remove("dr
 editor.host.addEventListener("drop", async (event) => {
   event.preventDefault();
   editor.host.classList.remove("drop");
-  await readFile(event.dataTransfer.files[0]);
+  await readFiles(event.dataTransfer.files);
 });
 
 $("now").addEventListener("input", () => {

@@ -360,3 +360,9 @@ select { appearance: none; padding-right: 28px; background-image: url("data:imag
 @media (min-width: 1101px) {
   body { height: 100vh; }
 }
+
+.file-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 20px; }
+.file-controls input { min-width: 80px; flex: 1; width: 100px; }
+.file-controls select { width: auto; max-width: 160px; }
+.file-controls label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.file-controls input, .file-controls select { font-size: 12px; padding-top: 4px; padding-bottom: 4px; }

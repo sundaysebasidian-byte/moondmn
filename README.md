@@ -23,20 +23,20 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 当前源码 | 0.2.0，本地未发布 | 包含多文件 import 与宿主函数桥；已发布 0.1.3 的源码对应 tag `v0.1.3` |
-| mooncakes | `sundaysebasidian-byte/moondmn@0.1.3` | 包内容固定，不随 main 变化 |
-| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.1.3 |
+| 当前源码 | 0.2.1，待发布 | 包含 Playground 多文件 import 与宿主函数桥；已发布 0.2.0 的源码对应 tag `v0.2.0` |
+| mooncakes | `sundaysebasidian-byte/moondmn@0.2.0` | 包内容固定，不随 main 变化 |
+| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.2.0 |
 
-定位发布提交：`git rev-list -n 1 v0.1.3`。下面三条命令分别复现三个面：
+定位发布提交：`git rev-list -n 1 v0.2.0`。下面三条命令分别复现三个面：
 
 ```bash
 # 源码测试
-git checkout v0.1.3
+git checkout v0.2.0
 moon test --target all
 
 # 安装包调用：在仓库外新建模块，把“安装与接入”中的 import 和示例原样放入 cmd/main
 moon new consumer && cd consumer
-moon add sundaysebasidian-byte/moondmn@0.1.3
+moon add sundaysebasidian-byte/moondmn@0.2.0
 moon run cmd/main
 
 # 线上引擎：打开 Pages；对应的构建见 Actions 中 Pages 工作流的运行记录
@@ -54,8 +54,8 @@ gh run list --workflow pages.yml --limit 1
 
 Playground 是纯静态页面，没有框架也没有 CDN，引擎在浏览器里直接运行。
 
-- 左：DMN XML 编辑器。可以粘贴、点上传按钮，或把文件拖进来。解析错误和 lint 告警列在下方，点一条会定位到对应行。
-- 中：按 InputData 和 ItemDefinition 自动生成的输入表单。支持数字、文本、日期、时间、日期时间、时长、布尔、枚举（`allowedValues`）、嵌套结构和集合。
+- 左：DMN XML 编辑器。可以粘贴、点上传按钮，或把多个文件拖进来；用 + 添加文件，编辑文件名，通过 Entry 选择入口模型。解析错误和 lint 告警列在下方，点一条会定位到对应行。
+- 中：按 InputData 和 ItemDefinition 自动生成的输入表单。支持数字、文本、日期、时间、日期时间、时长、布尔、枚举（`allowedValues`）、嵌套结构和集合。多文件导入模型使用 JSON 输入，可按别名嵌套传值。
 - 右：结果、决策依赖图（DRG）和决策表。图里点一个决策就求值它；决策表高亮命中的规则行并标出命中策略，点规则行会跳到 XML 对应位置。
 - 顶部的 FEEL 标签页求单行表达式并显示结果类型。右上角的时间输入框是 `now()`、`today()` 用的时钟。
 
@@ -209,7 +209,7 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 内置函数 | 已支持（约 90 个） | 覆盖 §10.3.4 的各分组，TCK 内置函数套件除下表所列外全部通过；`matches`/`replace`/`split` 使用自研 XPath 正则（标志 s m i x q） |
 | lint | 已支持 | 未定义引用、重复规则、缺口；输入域为有限枚举（最多 4096 个组合）时可证明完整覆盖，开放域只给提示，不判错 |
 | `now()` / `today()` | 已支持，需注入时钟 | API 的 clock 参数、CLI 的 `--now`；引擎不读系统时钟 |
-| 多文件 `import` 与命名空间引用 | 已支持 | 别名、嵌套导入、namespace 隔离、导入类型与 invocable；7 个 TCK 用例全部通过。见 [API 与示例](docs/imports-and-host-functions.md) |
+| 多文件 `import` 与命名空间引用 | 已支持 | 别名、嵌套导入、namespace 隔离、导入类型与 invocable；Playground 支持内存多文件导入；7 个 TCK 用例全部通过。见 [API 与示例](docs/imports-and-host-functions.md) |
 | 外部函数（Java） | 已支持宿主函数桥；JVM 调用不支持 | 影响：只有使用 `external {java:...}` 的模型；18 个 TCK 用例，均调用 JDK 类库。wasm-gc / js 没有 JVM，引擎不模拟 JDK |
 
 ## 一致性结果
@@ -253,14 +253,18 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 302 个单元测试，另有 29 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 26 项 Playground 冒烟测试。
+每个后端 302 个单元测试，另有 33 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 36 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
 
+## 平台说明
+
+CLI 的文件 import 需要 native/js 文件加载器。wasm-gc 无文件系统，通过 `parse_model` 的 resolver 回调传入文件；Playground 的 JS 构建使用内存虚拟文件表，支持多文件 import，不访问宿主文件系统。路径规则与 API 见 [接入文档](docs/imports-and-host-functions.md)。
+
 ## 限制与路线图
 
-- Java 外部函数仅调用显式注册的宿主回调；不提供 JVM。Playground 暂不支持加载 import。
+- Java 外部函数仅调用显式注册的宿主回调；不提供 JVM。
 - TCK Level 3 还有 26 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
 - 时区只有 39 个名称，只覆盖 1970–2100 年。
 - `now()`、`today()` 没有隐含的系统时钟，必须由调用方注入。

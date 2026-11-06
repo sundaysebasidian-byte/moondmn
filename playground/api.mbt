@@ -143,29 +143,29 @@ pub fn feel_eval(request : String) -> String {
 }
 
 ///|
-/// Request: `{xml}`.
+/// Request: `{xml, files?, entry?}`.
 /// Response: `{"ok":true,"name","namespace","inputs","decisions","knowledge",
 /// "itemDefinitions","edges"}`; see `summary` below.
 pub fn parse_dmn(request : String) -> String {
   respond(fn() raise Error {
     let req = parse_request(request)
-    let model = @model.parse_model(string_field(req, "xml"))
+    let model = request_model(req, string_field(req, "xml"))
     summary(model)
   })
 }
 
 ///|
-/// Request: `{xml}`. Response: `{"ok":true,"findings":[{code,decision,message,line,column}]}`.
+/// Request: `{xml, files?, entry?}`. Response: `{"ok":true,"findings":[{code,decision,message,line,column}]}`.
 pub fn lint(request : String) -> String {
   respond(fn() raise Error {
     let req = parse_request(request)
-    let model = @model.parse_model(string_field(req, "xml"))
+    let model = request_model(req, string_field(req, "xml"))
     obj([("ok", Json::boolean(true)), ("findings", @model.lint(model))])
   })
 }
 
 ///|
-/// Request: `{xml, decision, input?, now?}`.
+/// Request: `{xml, decision, input?, now?, files?, entry?}`.
 /// Response: `{"ok":true,"value","type","text","values":{decision:json},"tables":{decision:{"hitPolicy","hits":[rule index]}}}`.
 /// A failing evaluation still reports `tables` next to the error, so a
 /// multiple-hit failure shows which rules matched.
@@ -174,7 +174,7 @@ pub fn evaluate(request : String) -> String {
     let req = parse_request(request)
     let xml = string_field(req, "xml")
     let name = string_field(req, "decision")
-    let model = @model.parse_model(xml)
+    let model = request_model(req, xml)
     let input_text = object_text(req, "input")
     let clock = clock_field(req)
     let supplied = @model.json_inputs(model, input_text)
@@ -189,7 +189,7 @@ pub fn evaluate(request : String) -> String {
         values[dependency] = json_or_null(value)
       }
     }
-    let tables = table_hits(xml, model, closure, scope)
+    let tables = table_hits(xml, model, closure, scope, req)
     let outcome = @model.evaluate_decision(model, name, scope()) catch {
       e => return merge(failure_json(e), [("tables", tables)])
     }

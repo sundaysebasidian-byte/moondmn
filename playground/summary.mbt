@@ -403,6 +403,7 @@ fn summary(model : @model.Model) -> Json {
   obj([
     ("ok", Json::boolean(true)),
     ("name", Json::string(model.root.attr("name"))),
+    ("hasImports", Json::boolean(!model.imports.is_empty())),
     ("namespace", Json::string(model.root.attr("namespace"))),
     ("inputs", Json::array(inputs)),
     ("decisions", Json::array(decisions)),

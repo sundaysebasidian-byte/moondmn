@@ -4,7 +4,9 @@
 
 `parse_model(xml, resolver=Some((location, model_namespace) => xml_text))` 由宿主提供 XML；回调可以抛出 `EngineError`。引擎在三个后端使用相同的模型和求值代码，不读取文件系统。回调接收相对于入口模型的累计位置；例如 `sub/a.dmn` 再导入 `b.dmn` 时收到 `sub/b.dmn`。绝对 URI 交给宿主处理。无 locationURI 时收到当前相对目录和目标 namespace，由宿主按 namespace 定位。
 
-CLI 的 native / js 文件加载器用于 eval、lint、tck。locationURI 相对声明模型的目录；拒绝绝对路径、URI、反斜杠、所有 `..` 路径段，以及导入路径中的符号链接/Windows reparse point。原生文件系统路径检查与读取不是原子操作，调用方应保持模型目录在求值期间不变。wasm CLI 的文件系统接口不提供链接元数据，导入文件会明确拒绝；wasm-gc 库使用宿主 resolver 即可加载相同模型。Playground 暂不提供 import resolver。
+文件系统加载属于平台能力：CLI 的 native / js 文件加载器用于 eval、lint、tck。locationURI 相对声明模型的目录；拒绝绝对路径、URI、反斜杠、所有 `..` 路径段，以及导入路径中的符号链接/Windows reparse point。原生文件系统路径检查与读取不是原子操作，调用方应保持模型目录在求值期间不变。wasm CLI 的文件系统接口不提供链接元数据，导入文件会明确拒绝；wasm-gc 库使用宿主 resolver 即可加载相同模型。Playground 已支持多文件 import：可批量上传/拖入，或添加文件后填写文件名并粘贴内容，Entry 选择入口；浏览器的 JS 构建通过内存 resolver 加载虚拟文件，不依赖文件系统。
+
+Playground 的解析、lint、求值接口均接受 `{xml, entry?, files?}`：`xml` 是入口内容，`entry` 默认 `main.dmn`，`files` 是文件名到 XML 内容的对象。locationURI 相对声明文件解析，路径区分大小写，规范化 `.`、重复分隔符与目录内的 `..`；拒绝逃出入口目录、绝对路径、URL、反斜杠和编码路径。文件名规范化后不得重复。省略 locationURI 时按 namespace 在当前虚拟目录匹配唯一 DMN 文件。包含 import 的模型通过 Input JSON 编辑输入，例如 `{"Shared":{"Amount":20}}`；别名、命名空间隔离和循环检测均由引擎处理。
 
 ```sh
 moon run cmd/main --target native -- eval examples/imports/main.dmn \

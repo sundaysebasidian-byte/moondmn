@@ -139,6 +139,7 @@ fn table_hits(
   model : @model.Model,
   names : Array[String],
   scope : () -> Map[String, @types.Value],
+  req : Map[String, Json],
 ) -> Json {
   let result : Map[String, Json] = Map([])
   let tables : Array[(String, @xml.Node, @xml.Node)] = []
@@ -163,7 +164,7 @@ fn table_hits(
   let extended = xml[:position].to_owned() +
     replay.to_string() +
     xml[position:].to_owned()
-  let replayed = @model.parse_model(extended) catch {
+  let replayed = request_model(req, extended) catch {
     _ => return Json::object(result)
   }
   for index, entry in tables {

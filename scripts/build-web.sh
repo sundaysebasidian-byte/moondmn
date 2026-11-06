@@ -9,7 +9,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
-export PATH="$HOME/.moon/bin:$PATH"
+export PATH="${MOON_HOME:-$HOME/.moon}/bin:$PATH"
 
 moon build --target js --release playground
 

@@ -2,6 +2,13 @@
 
 所有值得注意的变更记录在此文件。格式参考 Keep a Changelog，版本号遵循 Semantic Versioning。
 
+## 0.2.1
+
+- Playground 支持批量上传、拖入、添加/粘贴 DMN 文件、编辑文件名与选择入口模型；解析、lint、求值和规则高亮共用内存 resolver。
+- 虚拟路径规范化并拒绝路径逃逸与 URL；别名、命名空间隔离、循环检测沿用引擎语义。
+- 文件 import 的 native/js 要求归入 CLI 平台说明；wasm-gc 通过宿主 resolver 传入文件。Java 外部函数继续明确不支持 JVM 调用，提供宿主桥。
+- 四后端各 302/302 单测、CLI 33 项、Playground 36 项；native TCK L2 116/116、L3 3265/3291，runner 不变。
+
 ## 0.2.0
 
 - 嵌套空别名 import 的元素不再占用外层默认命名空间，直接导入的求值、typeRef 与 `instance of` 可见性一致。

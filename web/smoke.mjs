@@ -212,4 +212,94 @@ test("extreme month arithmetic retains identity and returns JSON range errors", 
   }
 });
 
+
+const ns = "https://www.omg.org/spec/DMN/20230324/MODEL/";
+const doc = (namespace, body) => `<definitions xmlns="${ns}" namespace="${namespace}">${body}</definitions>`;
+const imp = (namespace, name, location) => `<import namespace="${namespace}" name="${name}" locationURI="${location}" importType="${ns}"/>`;
+const literal = (id, name, expression, needs = "") => `<decision id="${id}" name="${name}">${needs}<literalExpression><text>${expression}</text></literalExpression></decision>`;
+const need = (namespace, id = "value") => `<informationRequirement><requiredDecision href="${namespace}#${id}"/></informationRequirement>`;
+const child = doc("urn:child", literal("value", "Value", "41"));
+const root = doc("urn:root", imp("urn:child", "Child", "./sub//child.dmn") +
+  literal("answer", "Answer", "Child.Value + 1",
+    '<informationRequirement><requiredDecision href="urn:child#value"/></informationRequirement>'));
+const imported = { xml: root, files: { "sub/./child.dmn": child }, decision: "Answer" };
+
+test("imports: parse, lint and evaluate namespace references", () => {
+  assert.equal(call("parse_dmn", imported).ok, true);
+  assert.equal(call("lint", imported).ok, true);
+  assert.equal(call("evaluate", imported).value, 42);
+});
+
+test("imports: missing files report a structured error on every API", () => {
+  for (const api of ["parse_dmn", "lint", "evaluate"]) {
+    const res = call(api, { ...imported, files: {} });
+    assert.equal(res.ok, false);
+    assert.equal(res.error.code, "E_IMPORT_NOT_FOUND");
+    assert.ok(res.error.line > 0);
+  }
+});
+
+test("imports: reject escaping paths, URLs and platform absolute paths", () => {
+  for (const path of ["../child.dmn", "sub/../../child.dmn", "/child.dmn",
+    "https://example.test/child.dmn", "//example.test/child.dmn",
+    "C:/child.dmn", "sub\\child.dmn", "%2e%2e/child.dmn"]) {
+    const xml = root.replace("./sub//child.dmn", path);
+    assert.equal(call("parse_dmn", { ...imported, xml }).error.code, "E_IMPORT_PATH", path);
+  }
+});
+
+test("imports: nested paths and a selected entry directory", () => {
+  const middle = doc("urn:middle", imp("urn:child", "Child", "../child.dmn") + literal("value", "Value", "Child.Value", need("urn:child")));
+  const xml = doc("urn:root", imp("urn:middle", "Middle", "sub/middle.dmn") + literal("answer", "Answer", "Middle.Value + 1", need("urn:middle")));
+  const res = call("evaluate", { xml, entry: "models/main.dmn", files: {
+    "models/sub/middle.dmn": middle, "models/child.dmn": child,
+  }, decision: "Answer" });
+  assert.equal(res.ok, true, JSON.stringify(res));
+  assert.equal(res.value, 42);
+});
+
+test("imports: empty aliases and namespace isolation use the engine", () => {
+  const xml = doc("urn:root", imp("urn:child", "", "child.dmn") + literal("answer", "Answer", "Value + 1", need("urn:child")));
+  assert.equal(call("evaluate", { ...imported, xml, files: { "child.dmn": child } }).value, 42);
+  const isolated = root.replace("Child.Value + 1", "Value + 1");
+  assert.equal(call("evaluate", { ...imported, xml: isolated }).ok, false);
+});
+
+test("imports: engine detects cycles and namespace mismatches", () => {
+  const cycle = doc("urn:child", imp("urn:root", "Root", "root.dmn"));
+  assert.equal(call("parse_dmn", { ...imported, files: {
+    "sub/child.dmn": cycle, "sub/root.dmn": root,
+  } }).error.code, "E_IMPORT_CYCLE");
+  assert.equal(call("parse_dmn", { ...imported, files: {
+    "sub/child.dmn": doc("urn:wrong", ""),
+  } }).error.code, "E_IMPORT_NAMESPACE");
+});
+
+test("imports: virtual table rejects normalized duplicate names and invalid values", () => {
+  for (const files of [{ "a.dmn": child, "./a.dmn": child }, { "a.dmn": 42 }, []]) {
+    assert.equal(call("parse_dmn", { ...imported, files }).error.code, "E_REQUEST");
+  }
+});
+
+test("imports: namespace-only lookup stays within the virtual directory", () => {
+  const xml = root.replace("./sub//child.dmn", "sub/");
+  assert.equal(call("evaluate", { ...imported, xml }).value, 42);
+});
+
+test("imports: root table replay keeps the resolver", () => {
+  const xml = doc("urn:root", imp("urn:child", "Child", "child.dmn") +
+    '<decision id="answer" name="Answer"><informationRequirement><requiredDecision href="urn:child#value"/></informationRequirement><decisionTable hitPolicy="UNIQUE"><input><inputExpression><text>Child.Value</text></inputExpression></input><output name="result"/><rule><inputEntry><text>41</text></inputEntry><outputEntry><text>42</text></outputEntry></rule></decisionTable></decision>');
+  const res = call("evaluate", { ...imported, xml, files: { "child.dmn": child } });
+  assert.equal(res.value, 42);
+  assert.deepEqual(res.tables.Answer.hits, [0]);
+});
+
+test("imports: JSON input binds imported inputs and declared types", () => {
+  const shared = doc("urn:child", '<itemDefinition name="Money"><typeRef>number</typeRef></itemDefinition><inputData id="amount" name="Amount"><variable typeRef="Money"/></inputData>' +
+    literal("value", "Value", "Amount + 1", '<informationRequirement><requiredInput href="#amount"/></informationRequirement>'));
+  assert.equal(call("parse_dmn", imported).hasImports, true);
+  const res = call("evaluate", { ...imported, files: { "sub/child.dmn": shared }, input: '{"Child":{"Amount":40}}' });
+  assert.equal(res.value, 42);
+});
+
 console.log(`${passed} passed`);
