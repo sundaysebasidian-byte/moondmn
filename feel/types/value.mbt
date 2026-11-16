@@ -101,16 +101,23 @@ pub fn Value::text(self : Value) -> String {
 fn time_compare(a : Time, b : Time) -> Int32 raise EngineError {
   match (a.zone, b.zone) {
     (Unzoned, Unzoned) => a.seconds().compare(b.seconds())
+    (Named(x), Named(y)) if x == y => a.seconds().compare(b.seconds())
     (Unzoned, _) | (_, Unzoned) =>
       raise fail("E_TYPE", "cannot compare zoned and unzoned times")
     _ => {
       let ao = match standard_zone_offset(a.zone) {
         Some(o) => o
-        None => raise fail("E_ZONE_UNSUPPORTED", "unknown time zone")
+        None =>
+          raise fail(
+            "E_ZONE_AMBIGUOUS", "time with named zone has no date to resolve DST offset",
+          )
       }
       let bo = match standard_zone_offset(b.zone) {
         Some(o) => o
-        None => raise fail("E_ZONE_UNSUPPORTED", "unknown time zone")
+        None =>
+          raise fail(
+            "E_ZONE_AMBIGUOUS", "time with named zone has no date to resolve DST offset",
+          )
       }
       (a.seconds() - ao.to_int64() * 1000000000L).compare(
         b.seconds() - bo.to_int64() * 1000000000L,

@@ -19,6 +19,10 @@ def run(*args, code=0):
     return json.loads(result.stdout)
 
 
+for expression in ("+".join(["1"] * 5000), "-" * 5000 + "1", "[1]" + "[1]" * 5000):
+    assert run("feel", expression, code=1)["error"] == "E_LIMIT"
+for expression in ("now(123)", "today(1)"):
+    assert run("feel", expression) is None
 assert run("feel", "0.1+0.2") == 0.3
 assert run("feel", "today()", "--now", "2024-02-29T23:30:00-05:00") == "2024-02-29"
 assert run("feel", "now()", "--now", "2024-02-29T23:30:00-05:00") == "2024-02-29T23:30:00-05:00"

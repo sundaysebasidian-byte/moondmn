@@ -10,6 +10,10 @@ pub fn compile(String, names? : Array[String], context? : Map[String, @types.Val
 
 pub fn compile_test(String, names? : Array[String]) -> Test raise @types.EngineError
 
+pub fn validate(Expr) -> Unit raise @types.EngineError
+
+pub fn validate_test(Test) -> Unit raise @types.EngineError
+
 // Errors
 
 // Types and methods

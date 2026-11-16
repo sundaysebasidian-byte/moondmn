@@ -28,6 +28,19 @@ function test(name, fn) {
   }
 }
 
+test("deep FEEL and DMN return diagnostics without throwing", () => {
+  const expression = Array(5000).fill("1").join("+");
+  for (const value of [expression, "-".repeat(5000) + "1", "[1]".repeat(5000)]) {
+    const result = call("feel_eval", {expression: value});
+    assert.equal(result.ok, false);
+    assert.equal(result.error.code, "E_LIMIT");
+  }
+  const xml = `<definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/"><decision id="d" name="d"><literalExpression><text>${expression}</text></literalExpression></decision></definitions>`;
+  const result = call("evaluate", {xml, decision: "d", input: {}});
+  assert.equal(result.ok, false);
+  assert.equal(result.error.code, "E_LIMIT");
+});
+
 const expectedShape = {
   loan: { inputs: 3, decisions: 5, lint: 0 },
   insurance: { inputs: 5, decisions: 8, lint: 3 },

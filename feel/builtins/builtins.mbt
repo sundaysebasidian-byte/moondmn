@@ -1132,11 +1132,13 @@ fn dispatch(
       arity(name, xs, 1, 1)
       num(date_value(xs[0], name).year)
     }
-    "today" | "now" =>
+    "today" | "now" => {
+      arity(name, xs, 0, 0)
       raise err(
         "E_BUILTIN_UNSUPPORTED",
         name + "() depends on the runtime clock and is not supported",
       )
+    }
     "before"
     | "after"
     | "meets"

@@ -558,3 +558,18 @@ pub extend Decimal with Eq::{equal, not_equal}
 
 ///|
 pub extend EngineError with Eq::{equal, not_equal}
+
+///|
+/// Human-readable structured diagnostic for callers catching EngineError.
+pub fn EngineError::to_string(self : EngineError) -> String {
+  match self {
+    Failure(code, line, column, message) =>
+      code +
+      " at " +
+      line.to_string() +
+      ":" +
+      column.to_string() +
+      ": " +
+      message
+  }
+}

@@ -1,4 +1,15 @@
 ///|
+/// Bound caller-built unary tests before recursive matching or input analysis.
+pub fn test_match_value(
+  check : @parser.Test,
+  input : @types.Value,
+  ctx : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  @parser.validate_test(check)
+  test_match_inner(check, input, ctx)
+}
+
+///|
 /// Three-valued negation used by unary test evaluation.
 fn not3(value : @types.Value) -> @types.Value {
   match value {
@@ -52,18 +63,18 @@ fn membership(
 ///|
 /// Evaluate a unary test with FEEL three-valued logic. A result of `Null`
 /// means the test is indeterminate and must propagate as null.
-pub fn test_match_value(
+fn test_match_inner(
   check : @parser.Test,
   input : @types.Value,
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
   match check {
     AnyTest => Boolean(true)
-    NotTest(inner) => not3(test_match_value(inner, input, ctx))
+    NotTest(inner) => not3(test_match_inner(inner, input, ctx))
     AnyOfTest(items) => {
       let mut result : @types.Value = Boolean(false)
       for item in items {
-        match test_match_value(item, input, ctx) {
+        match test_match_inner(item, input, ctx) {
           Boolean(true) => return Boolean(true)
           Boolean(false) => ()
           _ => result = Null

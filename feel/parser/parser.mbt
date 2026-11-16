@@ -220,9 +220,10 @@ fn temporal_value(
 ///|
 fn Parser::expr(p : Parser, minimum : Int32) -> Expr raise @types.EngineError {
   p.depth = p.depth + 1
-  if p.depth > 256 {
+  if p.depth > 128 {
     p.error("E_LIMIT", "expression nesting limit")
   }
+  let entry_depth = p.depth
   let mut left = p.unary()
   while true {
     let t = p.peek()
@@ -231,17 +232,20 @@ fn Parser::expr(p : Parser, minimum : Int32) -> Expr raise @types.EngineError {
       let low = p.expr(4)
       p.expect("and")
       let high = p.expr(4)
+      p.enter()
       left = Between(left, low, high)
       continue
     }
     if t.text == "in" && minimum <= 3 {
       ignore(p.take())
+      p.enter()
       left = In(left, p.in_operand())
       continue
     }
     if t.text == "instance" && p.peek_at(1).text == "of" && minimum <= 3 {
       ignore(p.take())
       ignore(p.take())
+      p.enter()
       left = InstanceOf(left, p.type_name())
       continue
     }
@@ -251,9 +255,10 @@ fn Parser::expr(p : Parser, minimum : Int32) -> Expr raise @types.EngineError {
     }
     let op = p.take().text
     let right = p.expr(prec + 1)
+    p.enter()
     left = Binary(op, left, right)
   }
-  p.depth = p.depth - 1
+  p.depth = entry_depth - 1
   left
 }
 
@@ -271,6 +276,7 @@ fn join_fields(fields : Array[String]) -> String {
 
 ///|
 fn Parser::type_name(p : Parser) -> String raise @types.EngineError {
+  p.enter()
   let t = p.take()
   if t.kind != "name" {
     raise @types.Failure("E_PARSE", t.line, t.column, "expected a type name")
@@ -323,6 +329,7 @@ fn Parser::type_name(p : Parser) -> String raise @types.EngineError {
       name = name + " and " + p.take().text
     }
   }
+  p.depth = p.depth - 1
   name
 }
 
@@ -331,17 +338,24 @@ fn Parser::unary(p : Parser) -> Expr raise @types.EngineError {
   let t = p.peek()
   if t.kind == "symbol" && (t.text == "-" || t.text == "+") {
     ignore(p.take())
-    return Unary(t.text, p.unary())
+    p.enter()
+    let inner = p.unary()
+    p.depth = p.depth - 1
+    return Unary(t.text, inner)
   }
   if t.text == "not" && p.peek_at(1).text != "(" && p.peek_at(1).kind != "eof" {
     ignore(p.take())
-    return Unary("not", p.unary())
+    p.enter()
+    let inner = p.unary()
+    p.depth = p.depth - 1
+    return Unary("not", inner)
   }
   p.postfix()
 }
 
 ///|
 fn Parser::postfix(p : Parser) -> Expr raise @types.EngineError {
+  let entry_depth = p.depth
   let mut value = p.atom()
   while true {
     let t = p.peek()
@@ -356,6 +370,7 @@ fn Parser::postfix(p : Parser) -> Expr raise @types.EngineError {
           "expected a property name",
         )
       }
+      p.enter()
       value = Path(
         value,
         if part.kind == "string" {
@@ -368,13 +383,16 @@ fn Parser::postfix(p : Parser) -> Expr raise @types.EngineError {
       ignore(p.take())
       let filter = p.expr(1)
       p.expect("]")
+      p.enter()
       value = Filter(value, filter)
     } else if t.text == "(" {
+      p.enter()
       value = p.call(value)
     } else {
       break
     }
   }
+  p.depth = entry_depth
   value
 }
 
@@ -493,6 +511,9 @@ fn Parser::bindings(
       Seq(low, p.expr(1))
     } else {
       low
+    }
+    if out.length() >= 128 {
+      p.error("E_LIMIT", "iteration bindings exceed 128")
     }
     out.push((name.text, source))
     if p.at(",") {
@@ -748,6 +769,7 @@ fn Parser::in_operand(p : Parser) -> Test raise @types.EngineError {
     }
     ignore(p.take())
     let result = p.test_list()
+    validate_test(result)
     p.expect(")")
     return result
   }
@@ -790,7 +812,9 @@ fn Parser::single_test(p : Parser) -> Test raise @types.EngineError {
   if t.text == "not" && after.text == "(" {
     ignore(p.take())
     ignore(p.take())
+    p.enter()
     let inner = p.test_list()
+    p.depth = p.depth - 1
     p.expect(")")
     return NotTest(inner)
   }
@@ -816,6 +840,7 @@ pub fn compile(
     properties: [],
   }
   let value = p.expr(1)
+  validate(value)
   if p.peek().kind != "eof" {
     let t = p.peek()
     raise @types.Failure(
@@ -916,4 +941,12 @@ fn Parser::known_name(p : Parser, first : @lexer.Token) -> String {
   }
   p.pos = p.pos + used
   best
+}
+
+///|
+fn Parser::enter(p : Parser) -> Unit raise @types.EngineError {
+  p.depth = p.depth + 1
+  if p.depth > 128 {
+    p.error("E_LIMIT", "expression nesting exceeds 128")
+  }
 }

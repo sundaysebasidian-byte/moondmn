@@ -1,4 +1,14 @@
 ///|
+/// Validate caller-built trees before recursive evaluation.
+pub fn evaluate(
+  expr : @parser.Expr,
+  ctx : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  @parser.validate(expr)
+  evaluate_inner(expr, ctx)
+}
+
+///|
 fn scope_with(
   ctx : Map[String, @types.Value],
   name : String,
@@ -16,12 +26,17 @@ fn err(code : String, message : String) -> @types.EngineError {
 
 ///|
 /// Evaluate a compiled expression in the supplied scope.
-pub fn evaluate(
+fn evaluate_inner(
   expr : @parser.Expr,
   ctx : Map[String, @types.Value],
+  depth~ : Int32 = 0,
 ) -> @types.Value raise @types.EngineError {
+  if depth > 128 {
+    raise err("E_LIMIT", "evaluation nesting exceeds 128")
+  }
   match expr {
-    External(descriptor) => invoke_external(evaluate(descriptor, ctx), [], ctx)
+    External(descriptor) =>
+      invoke_external(evaluate_inner(descriptor, ctx, depth=depth + 1), [], ctx)
     Lit(v) => v
     Name(n) =>
       match ctx.get(n) {
@@ -38,7 +53,7 @@ pub fn evaluate(
           }
       }
     Unary(op, e) => {
-      let value = evaluate(e, ctx)
+      let value = evaluate_inner(e, ctx, depth=depth + 1)
       match op {
         "=" | "!=" =>
           if value is Null {
@@ -78,13 +93,13 @@ pub fn evaluate(
       }
     }
     Binary(op, a, b) => {
-      let left = evaluate(a, ctx)
+      let left = evaluate_inner(a, ctx, depth=depth + 1)
       match op {
         "and" =>
           if left is Boolean(false) {
             Boolean(false)
           } else {
-            let right = evaluate(b, ctx)
+            let right = evaluate_inner(b, ctx, depth=depth + 1)
             if right is Boolean(false) {
               Boolean(false)
             } else if left is Boolean(true) && right is Boolean(true) {
@@ -97,7 +112,7 @@ pub fn evaluate(
           if left is Boolean(true) {
             Boolean(true)
           } else {
-            let right = evaluate(b, ctx)
+            let right = evaluate_inner(b, ctx, depth=depth + 1)
             if right is Boolean(true) {
               Boolean(true)
             } else if left is Boolean(false) && right is Boolean(false) {
@@ -107,7 +122,7 @@ pub fn evaluate(
             }
           }
         _ => {
-          let right = evaluate(b, ctx)
+          let right = evaluate_inner(b, ctx, depth=depth + 1)
           binary(op, left, right) catch {
             @types.Failure("E_DECIMAL_RANGE" | "E_NUMBER", _, _, _) => Null
             e => raise e
@@ -116,12 +131,12 @@ pub fn evaluate(
       }
     }
     IfThenElse(c, a, b) =>
-      match evaluate(c, ctx) {
-        Boolean(true) => evaluate(a, ctx)
-        Boolean(false) => evaluate(b, ctx)
-        _ => evaluate(b, ctx)
+      match evaluate_inner(c, ctx, depth=depth + 1) {
+        Boolean(true) => evaluate_inner(a, ctx, depth=depth + 1)
+        Boolean(false) => evaluate_inner(b, ctx, depth=depth + 1)
+        _ => evaluate_inner(b, ctx, depth=depth + 1)
       }
-    ListLit(xs) => List(xs.map(x => evaluate(x, ctx)))
+    ListLit(xs) => List(xs.map(x => evaluate_inner(x, ctx, depth=depth + 1)))
     ContextLit(entries) => {
       let scope = ctx.copy()
       let out = Map([])
@@ -129,7 +144,7 @@ pub fn evaluate(
         if out.contains(pair.0) {
           return Null
         }
-        let value = evaluate(pair.1, scope)
+        let value = evaluate_inner(pair.1, scope, depth=depth + 1)
         scope[pair.0] = value
         out[pair.0] = value
       }
@@ -137,11 +152,11 @@ pub fn evaluate(
     }
     RangeLit(start, start_included, end, end_included) => {
       let lower = match start {
-        Some(e) => Some(evaluate(e, ctx))
+        Some(e) => Some(evaluate_inner(e, ctx, depth=depth + 1))
         None => None
       }
       let upper = match end {
-        Some(e) => Some(evaluate(e, ctx))
+        Some(e) => Some(evaluate_inner(e, ctx, depth=depth + 1))
         None => None
       }
       if (lower is Some(l) && l is Null) || (upper is Some(u) && u is Null) {
@@ -157,17 +172,20 @@ pub fn evaluate(
       }
     }
     Seq(low, high) => {
-      let from = evaluate(low, ctx)
-      let to = evaluate(high, ctx)
+      let from = evaluate_inner(low, ctx, depth=depth + 1)
+      let to = evaluate_inner(high, ctx, depth=depth + 1)
       match sequence_items(from, to) {
         Some(items) => List(items)
         None => Null
       }
     }
-    Path(value, name) => path(evaluate(value, ctx), name)
-    Filter(value, filter) => filter_value(evaluate(value, ctx), filter, ctx)
+    Path(value, name) => path(evaluate_inner(value, ctx, depth=depth + 1), name)
+    Filter(value, filter) =>
+      filter_value(evaluate_inner(value, ctx, depth=depth + 1), filter, ctx)
     Call(callee, args) => {
-      let evaluated = args.map(a => (a.name, evaluate(a.value, ctx)))
+      let evaluated = args.map(a => {
+        (a.name, evaluate_inner(a.value, ctx, depth=depth + 1))
+      })
       match callee {
         Name(n) =>
           match ctx.get(n) {
@@ -181,7 +199,7 @@ pub fn evaluate(
               }
           }
         _ =>
-          match evaluate(callee, ctx) {
+          match evaluate_inner(callee, ctx, depth=depth + 1) {
             Function(f) => invoke(f, evaluated)
             _ => raise err("E_TYPE", "call target is not a function")
           }
@@ -194,7 +212,7 @@ pub fn evaluate(
           for env in envs {
             let scope = env.copy()
             scope["partial"] = List(out.copy())
-            out.push(evaluate(body, scope))
+            out.push(evaluate_inner(body, scope, depth=depth + 1))
           }
           List(out)
         }
@@ -227,9 +245,13 @@ pub fn evaluate(
             scope[param] = args[i]
           }
           if body is External(descriptor) {
-            invoke_external(evaluate(descriptor, scope), args, captured)
+            invoke_external(
+              evaluate_inner(descriptor, scope, depth=depth + 1),
+              args,
+              captured,
+            )
           } else {
-            evaluate(body, scope)
+            evaluate_inner(body, scope, depth=depth + 1)
           }
         },
       })
@@ -276,22 +298,24 @@ pub fn evaluate(
           }
           if body is External(descriptor) {
             invoke_external(
-              evaluate(descriptor, scope),
+              evaluate_inner(descriptor, scope, depth=depth + 1),
               parameters.map(p => scope[p.0]),
               captured,
             )
           } else {
-            evaluate(body, scope)
+            evaluate_inner(body, scope, depth=depth + 1)
           }
         },
       })
     }
     InstanceOf(value, type_name) =>
-      Boolean(instance_of(evaluate(value, ctx), type_name, ctx))
+      Boolean(
+        instance_of(evaluate_inner(value, ctx, depth=depth + 1), type_name, ctx),
+      )
     Between(value, low, high) => {
-      let x = evaluate(value, ctx)
-      let l = evaluate(low, ctx)
-      let h = evaluate(high, ctx)
+      let x = evaluate_inner(value, ctx, depth=depth + 1)
+      let l = evaluate_inner(low, ctx, depth=depth + 1)
+      let h = evaluate_inner(high, ctx, depth=depth + 1)
       if x is Null || l is Null || h is Null {
         Null
       } else {
@@ -300,7 +324,8 @@ pub fn evaluate(
         )
       }
     }
-    In(value, check) => test_match_value(check, evaluate(value, ctx), ctx)
+    In(value, check) =>
+      test_match_value(check, evaluate_inner(value, ctx, depth=depth + 1), ctx)
   }
 }
 
@@ -430,6 +455,9 @@ fn environments(
   scope : Map[String, @types.Value],
   count : Int32,
 ) -> Array[Map[String, @types.Value]]? raise @types.EngineError {
+  if index > 128 {
+    raise err("E_LIMIT", "iteration binding nesting exceeds 128")
+  }
   if count > 100000 {
     raise err("E_LIMIT", "iteration produces too many values")
   }
@@ -440,12 +468,13 @@ fn environments(
   let pair = bindings[index]
   let items = match pair.1 {
     Seq(low, high) =>
-      match sequence_items(evaluate(low, scope), evaluate(high, scope)) {
+      match
+        sequence_items(evaluate_inner(low, scope), evaluate_inner(high, scope)) {
         Some(xs) => xs
         None => return None
       }
     _ => {
-      let value = evaluate(pair.1, scope)
+      let value = evaluate_inner(pair.1, scope)
       match value {
         List(xs) => xs
         Range(_) => return None
@@ -473,7 +502,7 @@ fn quantify(
 ) -> @types.Value raise @types.EngineError {
   let mut has_null = false
   for env in envs {
-    match evaluate(body, env) {
+    match evaluate_inner(body, env) {
       Boolean(false) => if !some { return Boolean(false) }
       Boolean(true) => if some { return Boolean(true) }
       Null => has_null = true
@@ -798,7 +827,7 @@ fn filter_value(
   if items.is_empty() {
     return List([])
   }
-  let probe = evaluate(filter, filter_scope(ctx, items[0])) catch {
+  let probe = evaluate_inner(filter, filter_scope(ctx, items[0])) catch {
     @types.Failure("E_NAME", _, _, _) => Null
     e => raise e
   }
@@ -820,7 +849,7 @@ fn filter_value(
     _ => {
       let out = []
       for item in items {
-        let keep = evaluate(filter, filter_scope(ctx, item)) catch {
+        let keep = evaluate_inner(filter, filter_scope(ctx, item)) catch {
           _ => Boolean(false)
         }
         match keep {
@@ -1229,7 +1258,10 @@ fn datetime_add_ds(
 fn zone_offset(t : @types.Time) -> Int64 raise @types.EngineError {
   match @types.standard_zone_offset(t.zone) {
     Some(o) => o.to_int64()
-    None => raise err("E_ZONE_UNSUPPORTED", "unknown time zone")
+    None =>
+      raise err(
+        "E_ZONE_AMBIGUOUS", "time with named zone has no date to resolve DST offset",
+      )
   }
 }
 
@@ -1238,6 +1270,11 @@ fn time_difference(
   a : @types.Time,
   b : @types.Time,
 ) -> @types.DurationDS raise @types.EngineError {
+  if a.zone is Named(x) && b.zone is Named(y) && x == y {
+    return @types.duration_ds_of_nanos(
+      @bigint.BigInt::from_int64(a.seconds() - b.seconds()),
+    )
+  }
   let nanos = a.seconds() -
     zone_offset(a) * 1000000000L -
     (b.seconds() - zone_offset(b) * 1000000000L)
@@ -1279,7 +1316,7 @@ pub fn feel_eval(
   for k, _ in ctx {
     names.push(k)
   }
-  evaluate(@parser.compile(source, names~, context=ctx), ctx)
+  evaluate_inner(@parser.compile(source, names~, context=ctx), ctx)
 }
 
 ///|
