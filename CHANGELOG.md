@@ -1,3 +1,11 @@
+# 0.2.2 (unreleased)
+
+- Bound FEEL operator/postfix/unary/type/test nesting and validate mixed and caller-built ASTs with a bounded walker before evaluation; return E_LIMIT rather than overflowing backend stacks.
+- Check now/today arity before clock availability; forward CLI --now through every TCK invocable kind. L2 116/116, L3 3271/3291: 18 JVM cases and 2 fractional-second differences still fail.
+- Compare/subtract same-name zoned times without inventing a reference date; unresolved cross-zone time operations report E_ZONE_AMBIGUOUS.
+- Add EngineError.to_string(), tracked audit corpora, four-backend regressions and corrected source/published-version and coverage documentation.
+- Not published; GitHub topics/Release and the existing mooncakes page are unchanged.
+
 # Changelog
 
 所有值得注意的变更记录在此文件。格式参考 Keep a Changelog，版本号遵循 Semantic Versioning。

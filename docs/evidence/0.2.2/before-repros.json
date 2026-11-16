@@ -1,0 +1,17 @@
+[
+  {
+    "expression": "now(123)",
+    "exit": 1,
+    "output": "{\"error\":\"E_BUILTIN_UNSUPPORTED\",\"line\":1,\"column\":1,\"message\":\"now() depends on the runtime clock and is not supported\"}"
+  },
+  {
+    "expression": "today(1)",
+    "exit": 1,
+    "output": "{\"error\":\"E_BUILTIN_UNSUPPORTED\",\"line\":1,\"column\":1,\"message\":\"today() depends on the runtime clock and is not supported\"}"
+  },
+  {
+    "expression": "@\"10:10:10@Australia/Melbourne\" - @\"11:10:10@Australia/Melbourne\"",
+    "exit": 1,
+    "output": "{\"error\":\"E_ZONE_UNSUPPORTED\",\"line\":1,\"column\":1,\"message\":\"unknown time zone\"}"
+  }
+]

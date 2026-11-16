@@ -1,0 +1,24 @@
+fresh {'total': 3291, 'passed': 3271, 'failed': 20, 'skipped': 0}
+committed {'total': 3291, 'passed': 3265, 'failed': 26, 'skipped': 0}
+per-case identical: False
+Counter({'E_EXTERNAL_UNBOUND': 18, 'E_TCK_MISMATCH': 2})
+0068-feel-equality-test-01.xml time_005 E_TCK_MISMATCH actual false, expected true
+0068-feel-equality-test-01.xml datetime_003_a E_TCK_MISMATCH actual false, expected true
+0076-feel-external-java-test-01.xml boxed_001 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: max(double, double)
+0076-feel-external-java-test-01.xml incorrect_001 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: foo(double)
+0076-feel-external-java-test-01.xml incorrect_002 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Foo :: valueOf(double)
+0076-feel-external-java-test-01.xml incorrect_003 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: max(java.lang.String, java.lang.String)
+0076-feel-external-java-test-01.xml literal_001 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: cos(double)
+0076-feel-external-java-test-01.xml literal_002 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: max(double,double)
+0076-feel-external-java-test-01.xml literal_003 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: max(double,double)
+0076-feel-external-java-test-01.xml literal_004 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: max(int,int)
+0076-feel-external-java-test-01.xml literal_005 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Short :: valueOf(short)
+0076-feel-external-java-test-01.xml literal_006 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Byte :: valueOf(byte)
+0076-feel-external-java-test-01.xml literal_007 E_EXTERNAL_UNBOUND unregistered external function: java.lang.String :: valueOf(char)
+0076-feel-external-java-test-01.xml literal_007_a E_EXTERNAL_UNBOUND unregistered external function: java.lang.String :: valueOf(char)
+0076-feel-external-java-test-01.xml literal_008 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: max(long,long)
+0076-feel-external-java-test-01.xml literal_009 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Math :: max(float,float)
+0076-feel-external-java-test-01.xml literal_010 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Integer :: valueOf(java.lang.String)
+0076-feel-external-java-test-01.xml literal_011 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Float :: valueOf(java.lang.String)
+0076-feel-external-java-test-01.xml literal_012 E_EXTERNAL_UNBOUND unregistered external function: java.lang.Double :: valueOf(java.lang.String)
+0076-feel-external-java-test-01.xml varargs_001 E_EXTERNAL_UNBOUND unregistered external function: java.lang.String :: format(java.lang.String, [Ljava.lang.O

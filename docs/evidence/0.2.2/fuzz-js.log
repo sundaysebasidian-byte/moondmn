@@ -1,0 +1,2 @@
+total=550 defects=0
+slowest: [('big-table-50000/eval', 0.39, None), ('big-table-50000/lint', 0.32, None), ('deep-not-10000', 0.17, 'E_LIMIT'), ('deep-ctx-10000', 0.17, 'E_LIMIT'), ('deep-if-100000/viaxml', 0.15, 'E_LIMIT'), ('big-table-10000/eval', 0.15, None), ('deep-paren-10000', 0.13, 'E_LIMIT'), ('deep-list-10000', 0.13, 'E_LIMIT')]

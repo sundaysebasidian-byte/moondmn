@@ -30,7 +30,7 @@ moon run cmd/main --target native -- lint examples/imports/main.dmn
 let host = Map([])
 @moondmn.register_external(host, "Example", "echo(number)", args => args[0])
 let result = @moondmn.feel_eval(
-  "(function(n: number) external {java:{class: \"Example\", method signature: \"echo(number)\"}})([42])",
+  "(function(n: number) external {java:{class: \"Example\", method signature: \"echo(number)\"}})(42)",
   host~,
 )
 // result 为 JSON 字符串 "42"

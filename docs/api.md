@@ -31,9 +31,9 @@ moon run cmd/main -- feel 'today()' --now 2024-02-29T23:30:00-05:00
 | 函数 | 请求 | 成功响应 |
 | --- | --- | --- |
 | `feel_eval` | `{expression, context?, now?}` | `{ok, value, type, text}` |
-| `parse_dmn` | `{xml}` | `{ok, name, namespace, inputs, decisions, knowledge, itemDefinitions, edges}` |
-| `evaluate` | `{xml, decision, input?, now?}` | `{ok, value, type, text, values, tables}` |
-| `lint` | `{xml}` | `{ok, findings:[{code, decision, message, line, column}]}` |
+| `parse_dmn` | `{xml, files?, entry?}` | `{ok, name, namespace, inputs, decisions, knowledge, itemDefinitions, edges}` |
+| `evaluate` | `{xml, files?, entry?, decision, input?, now?}` | `{ok, value, type, text, values, tables}` |
+| `lint` | `{xml, files?, entry?}` | `{ok, findings:[{code, decision, message, line, column}]}` |
 
 - `context` 与 `input` 可以是对象，也可以是 JSON 文本；传文本可保留数字的全部位数。
 - `now` 是 ISO 日期时间，对应上面的 clock；不传则 `now()`、`today()` 报错。
@@ -51,3 +51,5 @@ const res = JSON.parse(dmn.feel_eval(JSON.stringify({ expression: "0.1 + 0.2" })
 ## 时态算术的受检边界
 
 底层月份参数/总月数使用 Int64，日期/时长转换和规范化可抛 E_DATE_RANGE / E_DURATION_RANGE。`DateTime::instant()` 只返回 Int64 纳秒；完整日期域使用 `DateTime::epoch_nanos()` BigInt。详细容量、调用方约束和回归见 [时态算术核验](temporal-arithmetic.md)。
+
+`xml` 必填，提供入口模型文本；`files` 是相对路径到被导入 XML 文本的对象，`entry` 指定入口虚拟路径（默认 main.dmn），用于解析相对 import。DMN 仅接受 1.3–1.5 命名空间，1.1/1.2 返回 E_DMN_NAMESPACE。无时钟的合法 now/today 调用返回 E_BUILTIN_UNSUPPORTED；参数错误先判定，按内置函数约定返回 null。

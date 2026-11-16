@@ -1,0 +1,23 @@
+[
+  {
+    "backend": "native",
+    "terms": 10000,
+    "exit": -11,
+    "stderr": "",
+    "stdout": ""
+  },
+  {
+    "backend": "js",
+    "terms": 5000,
+    "exit": 1,
+    "stderr": "4feel4eval8evaluate (file:///Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/js/debug/build/cmd/main/main.js:43814:53)\n    at _M0FP423sundaysebasidian_2dbyte7moondmn4feel4eval8evaluate (file:///Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/js/debug/build/cmd/main/main.js:43814:53)\n    at _M0FP423sundaysebasidian_2dbyte7moondmn4feel4eval8evaluate (file:///Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/js/debug/build/cmd/main/main.js:43814:53)\n    at _M0FP423sundaysebasidian_2dbyte7moondmn4feel4eval8evaluate (file:///Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/js/debug/build/cmd/main/main.js:43814:53)\n    at _M0FP423sundaysebasidian_2dbyte7moondmn4feel4eval8evaluate (file:///Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/js/debug/build/cmd/main/main.js:43814:53)\n    at _M0FP423sundaysebasidian_2dbyte7moondmn4feel4eval8evaluate (file:///Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/js/debug/build/cmd/main/main.js:43814:53)\n    at _M0FP423sundaysebasidian_2dbyte7moondmn4feel4eval8evaluate (file:///Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/js/debug/build/cmd/main/main.js:43814:53)\n    at _M0FP423sundaysebasidian_2dbyte7moondmn4feel4eval8evaluate (file:///Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/js/debug/build/cmd/main/main.js:43814:53)\n\nNode.js v24.18.0\n",
+    "stdout": ""
+  },
+  {
+    "backend": "wasm-gc",
+    "terms": 5000,
+    "exit": 1,
+    "stderr": "t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/feel/eval/eval.mbt:81 (wasm://wasm/004df866:wasm-function[173]:0x1484f)\n    at @sundaysebasidian-byte/moondmn/feel/eval.evaluate /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/feel/eval/eval.mbt:81 (wasm://wasm/004df866:wasm-function[173]:0x1484f)\n    at @sundaysebasidian-byte/moondmn/feel/eval.evaluate /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/feel/eval/eval.mbt:81 (wasm://wasm/004df866:wasm-function[173]:0x1484f)\n    at @sundaysebasidian-byte/moondmn/feel/eval.evaluate /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/feel/eval/eval.mbt:81 (wasm://wasm/004df866:wasm-function[173]:0x1484f)\n    at @sundaysebasidian-byte/moondmn/feel/eval.evaluate /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/feel/eval/eval.mbt:81 (wasm://wasm/004df866:wasm-function[173]:0x1484f)\n    at @sundaysebasidian-byte/moondmn/feel/eval.evaluate /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/feel/eval/eval.mbt:81 (wasm://wasm/004df866:wasm-function[173]:0x1484f)\n    at @sundaysebasidian-byte/moondmn/feel/eval.evaluate /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/feel/eval/eval.mbt:81 (wasm://wasm/004df866:wasm-function[173]:0x1484f)\n    at @sundaysebasidian-byte/moondmn/feel/eval.evaluate /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/feel/eval/eval.mbt:81 (wasm://wasm/004df866:wasm-function[173]:0x1484f)\n",
+    "stdout": ""
+  }
+]

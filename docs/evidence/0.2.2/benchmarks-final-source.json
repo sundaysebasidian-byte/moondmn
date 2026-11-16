@@ -1,0 +1,22 @@
+[
+  {
+    "round": 1,
+    "build": "main",
+    "output": "compiled_10000_ms=17.175832999999997\nparsed_10000_ms=311.149125\ntable_1000_rules_10000_ms=14341.102208"
+  },
+  {
+    "round": 1,
+    "build": "compat",
+    "output": "compiled_10000_ms=30.477625\nparsed_10000_ms=248.095834\ntable_1000_rules_10000_ms=13303.010625"
+  },
+  {
+    "round": 2,
+    "build": "compat",
+    "output": "compiled_10000_ms=14.522791999999999\nparsed_10000_ms=237.693291\ntable_1000_rules_10000_ms=13273.165917"
+  },
+  {
+    "round": 2,
+    "build": "main",
+    "output": "compiled_10000_ms=15.025417\nparsed_10000_ms=251.041125\ntable_1000_rules_10000_ms=14579.692792"
+  }
+]

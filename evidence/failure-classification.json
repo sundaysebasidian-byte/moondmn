@@ -1,30 +1,10 @@
 {
-  "total": 26,
+  "total": 20,
   "categories": {
-    "覆盖边界": 2,
     "规范/TCK 差异待确认": 2,
-    "驱动环境未提供": 4,
     "未实现特性": 18
   },
   "cases": [
-    {
-      "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
-      "id": "subtract_lhs_time_minus_rhs_time_005",
-      "status": "E_ZONE_UNSUPPORTED",
-      "detail": "unknown time zone",
-      "suite": "0100-arithmetic",
-      "category": "覆盖边界",
-      "reason": "time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
-      "id": "subtract_lhs_time_minus_rhs_time_006",
-      "status": "E_ZONE_UNSUPPORTED",
-      "detail": "unknown time zone",
-      "suite": "0100-arithmetic",
-      "category": "覆盖边界",
-      "reason": "time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。"
-    },
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
       "id": "time_005",
@@ -32,7 +12,7 @@
       "detail": "actual false, expected true",
       "suite": "0068-feel-equality",
       "category": "规范/TCK 差异待确认",
-      "reason": "TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。"
+      "reason": "TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.5 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；规范原文依据见 docs/conformance.md 小数秒依据；尚未获上游裁定，仍计失败。"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0068-feel-equality/0068-feel-equality-test-01.xml",
@@ -41,25 +21,7 @@
       "detail": "actual false, expected true",
       "suite": "0068-feel-equality",
       "category": "规范/TCK 差异待确认",
-      "reason": "TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1148-feel-now-function/1148-feel-now-function-test-01.xml",
-      "id": "001",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "now() depends on the runtime clock and is not supported",
-      "suite": "1148-feel-now-function",
-      "category": "驱动环境未提供",
-      "reason": "库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1148-feel-now-function/1148-feel-now-function-test-01.xml",
-      "id": "002",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "now() depends on the runtime clock and is not supported",
-      "suite": "1148-feel-now-function",
-      "category": "驱动环境未提供",
-      "reason": "库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。"
+      "reason": "TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.5 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；规范原文依据见 docs/conformance.md 小数秒依据；尚未获上游裁定，仍计失败。"
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0076-feel-external-java/0076-feel-external-java-test-01.xml",
@@ -222,24 +184,6 @@
       "suite": "0076-feel-external-java",
       "category": "未实现特性",
       "reason": "已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1149-feel-today-function/1149-feel-today-function-test-01.xml",
-      "id": "001",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "today() depends on the runtime clock and is not supported",
-      "suite": "1149-feel-today-function",
-      "category": "驱动环境未提供",
-      "reason": "库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。"
-    },
-    {
-      "file": ".tck/TestCases/compliance-level-3/1149-feel-today-function/1149-feel-today-function-test-01.xml",
-      "id": "002",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "today() depends on the runtime clock and is not supported",
-      "suite": "1149-feel-today-function",
-      "category": "驱动环境未提供",
-      "reason": "库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。"
     }
   ]
 }

@@ -1,0 +1,2 @@
+[sundaysebasidian-byte/moondmn] test audit_temporal_test.mbt:2 ("arity precedes unavailable clock and named time arithmetic is determinate") failed: sundaysebasidian-byte/moondmn/feel/types.EngineError.Failure
+Total tests: 1, passed: 0, failed: 1.

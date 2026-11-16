@@ -1,13 +1,11 @@
 {
   "total": 3291,
-  "passed": 3265,
-  "failed": 26,
+  "passed": 3271,
+  "failed": 20,
   "skipped": 0,
   "empty_files": 0,
   "failures": {
-    "E_ZONE_UNSUPPORTED": 2,
     "E_TCK_MISMATCH": 2,
-    "E_BUILTIN_UNSUPPORTED": 4,
     "E_EXTERNAL_UNBOUND": 18
   },
   "cases": [
@@ -3926,14 +3924,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
       "id": "subtract_lhs_time_minus_rhs_time_005",
-      "status": "E_ZONE_UNSUPPORTED",
-      "detail": "unknown time zone"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
       "id": "subtract_lhs_time_minus_rhs_time_006",
-      "status": "E_ZONE_UNSUPPORTED",
-      "detail": "unknown time zone"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0100-arithmetic/0100-arithmetic-test-01.xml",
@@ -13934,14 +13932,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1148-feel-now-function/1148-feel-now-function-test-01.xml",
       "id": "001",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "now() depends on the runtime clock and is not supported"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1148-feel-now-function/1148-feel-now-function-test-01.xml",
       "id": "002",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "now() depends on the runtime clock and is not supported"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1150-boxed-conditional/1150-boxed-conditional-test-01.xml",
@@ -15476,14 +15474,14 @@
     {
       "file": ".tck/TestCases/compliance-level-3/1149-feel-today-function/1149-feel-today-function-test-01.xml",
       "id": "001",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "today() depends on the runtime clock and is not supported"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/1149-feel-today-function/1149-feel-today-function-test-01.xml",
       "id": "002",
-      "status": "E_BUILTIN_UNSUPPORTED",
-      "detail": "today() depends on the runtime clock and is not supported"
+      "status": "PASS",
+      "detail": ""
     },
     {
       "file": ".tck/TestCases/compliance-level-3/0056-feel-modulo-function/0056-feel-modulo-function-test-01.xml",

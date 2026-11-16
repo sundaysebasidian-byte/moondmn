@@ -1,0 +1,29 @@
+Warning: [0035]
+    ╭─[ /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/depth_test.mbt:79:5 ]
+    │
+ 79 │     namespace in [
+    │     ────┬────  
+    │         ╰────── Warning (reserved_keyword): The word `namespace` is reserved for possible future use. Please consider using another name.
+────╯
+Warning: [0035]
+    ╭─[ /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/depth_test.mbt:83:60 ]
+    │
+ 83 │       ignore(@moondmn.parse_model("<definitions xmlns='" + namespace + "'/>"))
+    │                                                            ────┬────  
+    │                                                                ╰────── Warning (reserved_keyword): The word `namespace` is reserved for possible future use. Please consider using another name.
+────╯
+Warning: [0035]
+    ╭─[ /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/depth_test.mbt:90:7 ]
+    │
+ 90 │   for namespace in ["20191111", "20211108", "20230324"] {
+    │       ────┬────  
+    │           ╰────── Warning (reserved_keyword): The word `namespace` is reserved for possible future use. Please consider using another name.
+────╯
+Warning: [0035]
+    ╭─[ /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/depth_test.mbt:94:9 ]
+    │
+ 94 │         namespace +
+    │         ────┬────  
+    │             ╰────── Warning (reserved_keyword): The word `namespace` is reserved for possible future use. Please consider using another name.
+────╯
+Total tests: 306, passed: 306, failed: 0.

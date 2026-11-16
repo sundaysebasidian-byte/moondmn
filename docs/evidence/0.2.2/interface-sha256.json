@@ -1,0 +1,17 @@
+{
+  "pkg.generated.mbti": "5c5e4e712ab7cee421054efd38711b26f83f6a3bec1d58797c88051ed485195c",
+  "playground/pkg.generated.mbti": "424b4008250dd52043a26c493fea08cf1d6493d293ab860d62ceadfcd00faaf9",
+  "tck/pkg.generated.mbti": "3c73e3ddd40c0f6f9b965ba1a4fb5aac8e4205bc5693f3a612a317458625cf18",
+  "benchmarks/pkg.generated.mbti": "de508a741b2d61b77cd514973eb193eef82abd84d0116a767a4fce18792a6f40",
+  "dmn/xml/pkg.generated.mbti": "33854cf4c0f393be464e68382bb15931fe8d7fe12b1afd146eeb63272e404e0b",
+  "dmn/loader/pkg.generated.mbti": "f3355918e137191d50ff436632fa87fa6b837180f1136d8e093e51b6a76552ea",
+  "dmn/model/pkg.generated.mbti": "7b2ed9a14ba77378ce96466156d3b9787977f617c24af13ed053411defec2f4d",
+  "feel/types/pkg.generated.mbti": "8af1ea22003c2ec9d5f358a4af8736155836fd9732ca050091979db1de0a9c1e",
+  "feel/lexer/pkg.generated.mbti": "7f4f39707a40edf397fdd136710d2dee0ae4d331e4b7e04b9f05558978b1737f",
+  "feel/parser/pkg.generated.mbti": "10124e24fece2a1149b3c6033d8ec8b6a374a0c1612e874cc3b3293e915182a0",
+  "feel/builtins/pkg.generated.mbti": "db72510db82d020e00e16c7111418a146407c36e996dbfbbbfd30431f30ecd24",
+  "feel/eval/pkg.generated.mbti": "7d7e61897519e5097a03b50089d504946d59e2cf7fb32ff86745238210f23440",
+  "examples/host-bridge/pkg.generated.mbti": "17d305de190dcbfa480959a97bee16b4499865535bcc1387c026ddc4c5dad2b7",
+  "examples/api-demo/pkg.generated.mbti": "a74a3f01c9953a49e72fc3610de203e0a41108a0738432f4e91c499f02515e02",
+  "cmd/main/pkg.generated.mbti": "ed672cc44ff5382bdc22a3ed7c21d2d9892db205d30805b91f7befa31e0b28f5"
+}

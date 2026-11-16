@@ -1,0 +1,8 @@
+Using cached Milky2018/xml@0.6.1
+Using cached moonbitlang/x@0.5.7
+Finished. moon: ran 40 tasks, now up to date
+Artifacts:
+  sundaysebasidian-byte/moondmn/benchmarks  native  /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/native/release/build/benchmarks/benchmarks.exe
+Finished. moon: ran 49 tasks, now up to date
+Artifacts:
+  sundaysebasidian-byte/moondmn/cmd/main  native  /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/.baseline/_build/native/debug/build/cmd/main/main.exe

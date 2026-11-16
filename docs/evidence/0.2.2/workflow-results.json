@@ -1,0 +1,222 @@
+[
+  {
+    "command": [
+      "moon",
+      "version",
+      "--all"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-01.log"
+  },
+  {
+    "command": [
+      "moon",
+      "update"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-02.log"
+  },
+  {
+    "command": [
+      "moon",
+      "fmt",
+      "--check"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-03.log"
+  },
+  {
+    "command": [
+      "moon",
+      "check",
+      "--deny-warn",
+      "--target",
+      "all"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-04.log"
+  },
+  {
+    "command": [
+      "moon",
+      "build",
+      "--target",
+      "native"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-05.log"
+  },
+  {
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "native"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-06.log"
+  },
+  {
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "wasm-gc"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-07.log"
+  },
+  {
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "js"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-08.log"
+  },
+  {
+    "command": [
+      "moon",
+      "test",
+      "--target",
+      "wasm"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-09.log"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/check-readme-version.py"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-10.log"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test-cli.py"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-11.log"
+  },
+  {
+    "command": [
+      "moon",
+      "info"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-12.log"
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "examples/api-demo"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-13.log"
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--",
+      "feel",
+      "sum([1, 2, 3]) * 2"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-14.log"
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--",
+      "lint",
+      "examples/eligibility.dmn"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-15.log"
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--",
+      "eval",
+      "examples/eligibility.dmn",
+      "--decision",
+      "Eligible",
+      "--input",
+      "examples/input.json"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-16.log"
+  },
+  {
+    "command": [
+      "bash",
+      "scripts/build-web.sh"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-17.log"
+  },
+  {
+    "command": [
+      "node",
+      "web/smoke.mjs"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-18.log"
+  },
+  {
+    "command": [
+      "bash",
+      "scripts/fetch-tck.sh"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-19.log"
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--target",
+      "native",
+      "--",
+      "tck",
+      ".tck/TestCases/compliance-level-2",
+      "--now",
+      "2026-01-01T00:00:00Z",
+      "--json",
+      "evidence/tck-level-2.json"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-20.log"
+  },
+  {
+    "command": [
+      "moon",
+      "run",
+      "cmd/main",
+      "--target",
+      "native",
+      "--",
+      "tck",
+      ".tck/TestCases/compliance-level-3",
+      "--now",
+      "2026-01-01T00:00:00Z",
+      "--json",
+      "evidence/tck-level-3.json"
+    ],
+    "exit": 0,
+    "log": "docs/evidence/0.2.2/step-21.log"
+  }
+]

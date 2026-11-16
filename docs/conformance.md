@@ -5,20 +5,14 @@
 <!-- summary:start -->
 ## 结论
 
-Level 2 为 116/116。Level 3 为 3265/3291（99.21%），剩余 26 个失败，没有跳过，也没有被隐藏的用例。
+Level 2 为 116/116。Level 3 为 3271/3291（99.39%），剩余 20 个失败，没有跳过，也没有被隐藏的用例。
 
-当前失败中，22 个属于未实现的 JVM 调用或测试环境，另有覆盖边界与规范/TCK 差异共 4 个；已归类已知缺陷 0 个。这不代表引擎没有其他缺陷。
+当前失败为 18 个未实现的 Java/JVM 调用，以及 2 个保留小数秒的规范/TCK 差异。审计发现的 6 个失败已修复；不据此声称其他缺陷为零。
 
-| 分类 | 失败数 | 占失败比例 | 含义 |
-| --- | ---: | ---: | --- |
-| 已知缺陷 | 0 | 0.0% | 范围内的行为不正确，是待修的缺陷 |
-| 未实现 | 18 | 69.2% | 尚未实现或明确不做 |
-| 覆盖边界 | 2 | 7.7% | 实现主动拒绝，不猜测 |
-| 规范与 TCK 存在差异 | 2 | 7.7% | 实现依据规范文本，与 TCK 期望不一致；仍计为失败 |
-| 驱动未提供时钟 | 4 | 15.4% | TCK 驱动不提供时钟；API 与 CLI 注入时钟后可用 |
-
-未实现的 18 个中，Java 外部函数 18 个，DMN `import` 0 个。
-
+| 分类 | 失败数 | 占失败比例 |
+| --- | ---: | ---: |
+| Java/JVM 未实现 | 18 | 90% |
+| 小数秒规范/TCK 差异 | 2 | 10% |
 
 数字的来源：
 
@@ -31,7 +25,7 @@ Level 2 为 116/116。Level 3 为 3265/3291（99.21%），剩余 26 个失败，
 
 L2 保持 116/116；L3 从 3258/3291 提高至 3265/3291（99.21%），无新增失败、无跳过。0086-import 2/2、1160-multiple-imports 4/4、0089-nested-inputdata-imports 1/1；0076-feel-external-java 仍为 0/18。只增加 namespace 输入绑定与模型加载，runner 的比较、容差、错误白名单未变。
 
-多文件导入与宿主桥的设计、错误码、限制、示例见 [接入文档](imports-and-host-functions.md)。CI 最低通过数提高至 3265。当前 TCK 逐例结果与失败分类在 evidence/；命令退出码、测试计数、接口指纹和七个新增通过用例见 `evidence/0.2.0-validation.json`。
+多文件导入与宿主桥的设计、错误码、限制、示例见 [接入文档](imports-and-host-functions.md)。0.2.0 的 CI 最低通过数为 3265；0.2.2 提高至 3271。当前 TCK 逐例结果与失败分类在 evidence/；命令退出码、测试计数、接口指纹和七个新增通过用例见 `evidence/0.2.0-validation.json`。
 
 ## 0.1.3 修复与实测
 
@@ -47,7 +41,7 @@ L2 保持 116/116；L3 从 3251/3291（40 个失败）提高到 3258/3291（33 �
 
 N1 及同类时态整数窄化风险已修复：日期月份先用 Int64，duration/epoch 纳秒在 BigInt 中计算，越界返回 E_DATE_RANGE 或 E_DURATION_RANGE。相关回归测试已并入各后端的测试集；两级 TCK 数字未变。逐项排查依据、容量范围和测试见 [时态算术核验](temporal-arithmetic.md)。0.1.1 的语义修正和当前 TCK 数字见上文。
 
-## 0.1.1 语义修正与边界
+## 0.1.1 语义修正与边界（历史记录）
 
 依据 [DMN 1.5](https://www.omg.org/spec/DMN/1.5/PDF) §10.3.2、§10.3.4、§10.4 的求值、内建函数和 invocable 语义，补充 31 个独立测试块。测试不依赖 TCK 文件，期望值为固定的规范结果。
 
@@ -62,8 +56,8 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 - Unicode/XPath 正则 6：底层正则缺少完整 Unicode 大小写折叠、字符类相减和反向引用；需要独立实现或更换兼容的正则基础。
 - 比较式区间相等 1：当前值表示丢失一元测试与双端区间的区别，需扩展表示及相等规则。
 - 小数秒相等 2：保留精度，规范/TCK 差异仍待核对，不为通过测试丢弃小数秒。
-- 无日期命名时区 time 相减 2：DST offset 无法唯一确定，继续明确拒绝。
-- now()/today() 4：驱动未注入时钟，按要求继续失败并披露。
+- 当时的无日期命名时区相减 2 例已在 0.2.2 修复（同区名）。
+- 当时的 now()/today() 4 例已在 0.2.2 修复；其中参数错误 2 例此前错误地归为环境问题。
 
 解析器 AST 增加 TypedFunctionDef 以保留类型声明；直接穷举 Expr 的调用方需补充分支。FEEL 调用与顶层决策的类型不匹配现在产生 null，基础 API 的其他显式错误仍保留错误码。
 
@@ -71,33 +65,30 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 - TCK 仓库：https://github.com/dmn-tck/tck
 - 固定提交：`1e349176e5ae689d924a2a2c7a8df25c220d8b07`（由 `scripts/fetch-tck.sh` 拉取到被忽略的 `.tck/`）
-- 工具链：MoonBit 0.1.20261028；0.2.0 TCK 使用 native 文件加载器，单元回归另覆盖四后端
-- 驱动：`moondmn tck <目录> --json <文件>`，读取 `<modelName>` 指向的模型并按 `resultNode/@type` 分派
-- 判定：number 使用绝对差 ≤ 1e-8，list/context 递归比较，其他值使用引擎结构/时态相等；errorResult 只接受现有白名单错误或期望 null 时的 null。未改 runner 或容差
+- 工具链：MoonBit 0.1.20261104；0.2.0 TCK 使用 native 文件加载器，单元回归另覆盖四后端
+- 驱动：`moondmn tck <目录> --now 2026-01-01T00:00:00Z --json <文件>`，读取 `<modelName>` 指向的模型并按 `resultNode/@type` 分派
+- 判定：number 使用绝对差 ≤ 1e-8，list/context 递归比较，其他值使用引擎结构/时态相等；errorResult 只接受现有白名单错误或期望 null 时的 null。比较器与容差未改；runner 新增显式时钟注入
 
 ## 汇总
 
 | 级别 | 用例总数 | 通过 | 失败 | 通过率 | 原始报告 |
 | --- | --- | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 0 | 100.00% | `evidence/tck-level-2.json` |
-| Level 3 | 3291 | 3265 | 26 | 99.21% | `evidence/tck-level-3.json` |
+| Level 3 | 3291 | 3271 | 20 | 99.39% | `evidence/tck-level-3.json` |
 
 目标为 Level 2 ≥ 95%、Level 3 ≥ 80%，两项均已达到。
 
 ## 测试规模
 
-- 单元测试 302 个 test block，native、wasm-gc、js、wasm 四个目标各 302/302 通过；另有 33 项 CLI 进程级检查（`scripts/test-cli.py`）。
+- 单元测试 306 个 test block，native、wasm-gc、js、wasm 四个目标各 306/306 通过；另有 38 项 CLI 进程级检查（`scripts/test-cli.py`）。
 - 正则新增独立解析/匹配实现和自动生成的 Unicode 大小写映射表；生成输入与许可一并保留。
-- 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 36 项。
-- 4 个动态时间用例（`1148-feel-now-function`、`1149-feel-today-function`）因 TCK 驱动不提供时钟而失败；API 与 CLI 注入时钟后 `now()`、`today()` 可用。
+- 测试期望值由人工给定；另有独立 Python decimal128 oracle 验证 120 组带固定种子的四则运算。另有 1200 次 XML 截断/变异测试（固定种子），Playground 冒烟测试 37 项。
 
 ## 失败状态码（Level 3）
 
 | 状态码 | 用例数 |
 | --- | --- |
 | `E_EXTERNAL_UNBOUND` | 18 |
-| `E_BUILTIN_UNSUPPORTED` | 4 |
-| `E_ZONE_UNSUPPORTED` | 2 |
 | `E_TCK_MISMATCH` | 2 |
 
 下表按引擎返回的状态码统计，和上面“结论”里按原因的分类是两个维度。`E_TCK_MISMATCH` 表示求值成功但值与期望不同；`E_TCK_EXPECTED_ERROR` 表示期望错误/空值而引擎给出了值；其余为引擎语义错误。
@@ -106,7 +97,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 
 - 外部 Java 函数支持宿主桥；TCK 未注册 JDK 回调，18 个用例返回 E_EXTERNAL_UNBOUND。
 - DMN 1.5 导入的 7 个用例已全部通过。
-- 动态时间 TCK 未注入运行时钟，仍报不支持；库 API 可注入 clock，CLI 可使用 `--now`。
+- 动态时间 TCK 现通过 CLI `--now` 注入固定时钟；库 API 可注入 clock。
 
 ## Level 2 全量矩阵（28 个套件，116 例）
 
@@ -224,7 +215,7 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 0097-feel-month-of-year-function | 12 | 12 | 0 |
 | 0098-feel-week-of-year-function | 19 | 19 | 0 |
 | 0099-arithmetic-negation | 14 | 14 | 0 |
-| 0100-arithmetic | 1087 | 1085 | 2 |
+| 0100-arithmetic | 1087 | 1087 | 0 |
 | 0103-feel-is-function | 50 | 50 | 0 |
 | 1100-feel-decimal-function | 10 | 10 | 0 |
 | 1101-feel-floor-function | 17 | 17 | 0 |
@@ -253,8 +244,8 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 | 1145-feel-context-function | 18 | 18 | 0 |
 | 1146-feel-context-put-function | 30 | 30 | 0 |
 | 1147-feel-context-merge-function | 14 | 14 | 0 |
-| 1148-feel-now-function | 2 | 0 | 2 |
-| 1149-feel-today-function | 2 | 0 | 2 |
+| 1148-feel-now-function | 2 | 2 | 0 |
+| 1149-feel-today-function | 2 | 2 | 0 |
 | 1150-boxed-conditional | 3 | 3 | 0 |
 | 1151-boxed-filter | 4 | 4 | 0 |
 | 1152-boxed-for | 2 | 2 | 0 |
@@ -271,8 +262,8 @@ L2 保持 116/116；L3 从 3170/3291、121 个失败变为 3251/3291、40 个失
 ```bash
 export PATH="$HOME/.moon/bin:$PATH"
 ./scripts/fetch-tck.sh
-moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 --json evidence/tck-level-2.json
-moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 --json evidence/tck-level-3.json
+moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 --now 2026-01-01T00:00:00Z --json evidence/tck-level-2.json
+moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 --now 2026-01-01T00:00:00Z --json evidence/tck-level-3.json
 ```
 
 作为人工核对，可直接运行不写文件的模式：
@@ -298,8 +289,8 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 - 生成器：`python3 scripts/generate-tzdata.py /usr/share/zoneinfo`；要求 `+VERSION` 为 2026e，来源指纹见 `scripts/tzdata-sources.json`。其他系统可用同版本 IANA 源经 zic 构建 TZif 目录再生成。数据许可见 NOTICE 和 [IANA 数据说明](https://data.iana.org/time-zones/tz-link.html)。
 - UTC 窗口为 `[1970-01-01T00:00:00Z,2101-01-01T00:00:00Z)`，解析偏移时本地年份也要求 1970–2100；窗口端点附近可能因偏移越界而拒绝。超范围 E_ZONE_RANGE / 边界不可解析 E_ZONE_GAP；未知名称 E_ZONE_UNSUPPORTED。内置函数把这些无效参数转换为 FEEL null，核心解析/求值入口仍返回可匹配错误。
-- 超范围年份可保留为本地日历值并做不需要偏移的本地计算，但不能据此解析 IANA instant。只有名称、没有日期的 time：同名同本地时间可判相等；需要 DST 偏移的相减/跨区比较明确拒绝，不假设参考日期。
-- 时刻存储为纳秒。TCK 中两条“忽略毫秒”期望与当前基于 DMN 1.5 decimal second 的实现不一致，仍计失败并待上游确认。不是通过放宽比较器消除差异。
+- 超范围年份可保留为本地日历值并做不需要偏移的本地计算，但不能据此解析 IANA instant。只有名称、没有日期的 time：同名时间可比较并相减；不同命名区需要 DST 偏移的相减/跨区比较明确拒绝（E_ZONE_AMBIGUOUS），不假设参考日期。
+- 时刻存储为纳秒。TCK 中两条“忽略毫秒”期望与当前基于 DMN 1.5 decimal second 的实现不一致，仍计失败，依据见下文“小数秒依据”。不是通过放宽比较器消除差异。
 - 未来规则是 2026e 的投影，政策变化需要显式更新数据；运行时不依赖本机 zoneinfo。DST 年月算术、极端年份和部分时间构造仍有已列出的语义缺口，不把此子集标为完整时区支持。
 
 名称（含 UT/Z 兼容别名）：
@@ -308,12 +299,12 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 ## 逐例明细
 
-每一行是一个失败用例，共 26 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。
+每一行是一个失败用例，共 20 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。
 
 | 套件 / 测试文件 | case ID | 分类 | 原因 |
 | --- | --- | --- | --- |
-| 0068-feel-equality/0068-feel-equality-test-01.xml | `datetime_003_a` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。 |
-| 0068-feel-equality/0068-feel-equality-test-01.xml | `time_005` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；需向上游核对该旧期望，当前仍计失败。 |
+| 0068-feel-equality/0068-feel-equality-test-01.xml | `datetime_003_a` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.5 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；当前仍计失败；规范原文依据见下文“小数秒依据”。 |
+| 0068-feel-equality/0068-feel-equality-test-01.xml | `time_005` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.5 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；当前仍计失败；规范原文依据见下文“小数秒依据”。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `boxed_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_002` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
@@ -332,9 +323,13 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_011` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `literal_012` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `varargs_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
-| 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_time_minus_rhs_time_005` | 覆盖边界 | time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。 |
-| 0100-arithmetic/0100-arithmetic-test-01.xml | `subtract_lhs_time_minus_rhs_time_006` | 覆盖边界 | time 只有 IANA 名称而没有日期，不能唯一计算 Melbourne 的 DST 偏移；显式拒绝该相减，不猜测参考日期。 |
-| 1148-feel-now-function/1148-feel-now-function-test-01.xml | `001` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
-| 1148-feel-now-function/1148-feel-now-function-test-01.xml | `002` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
-| 1149-feel-today-function/1149-feel-today-function-test-01.xml | `001` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
-| 1149-feel-today-function/1149-feel-today-function-test-01.xml | `002` | 驱动未提供时钟 | 库已支持注入 clock，但 TCK 驱动未注入时钟；不使用隐含系统时间。 |
+
+## 0.2.2 审计修复
+
+L3 从 3265/3291 增至 3271/3291：now/today 参数检查顺序修正（2），自家 TCK runner 注入固定时钟（2），同名 Melbourne time 相减（2）。此前将时钟相关失败全部归为环境问题不准确。比较容差和语义错误白名单未变；0103-feel-is-function 为 50/50。
+
+## 小数秒依据
+
+[DMN 1.5](https://www.omg.org/spec/DMN/1.5/PDF) §10.3.2.3.4、§10.3.2.3.5 的 valuet/valuedt 定义及表 66 的 second 属性是本实现保留小数秒的依据。仍保留纳秒，不截断以迎合 0068 的两个旧期望；两例继续计为失败，未声称上游已确认。
+
+规范表 66 原文：“The second of the minute as a decimal in the interval [0. .60)”。§10.3.2.3.4 原文：“The valuet function is one-to-one”。这是保留精度的实现依据；与 TCK 旧期望的冲突尚未获上游裁定。

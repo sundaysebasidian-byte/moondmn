@@ -1,0 +1,6 @@
+Finished. moon: ran 34 tasks, now up to date
+Artifacts:
+  sundaysebasidian-byte/moondmn/benchmarks            native  /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/_build/native/debug/build/benchmarks/benchmarks.exe
+  sundaysebasidian-byte/moondmn/cmd/main              native  /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/_build/native/debug/build/cmd/main/main.exe
+  sundaysebasidian-byte/moondmn/examples/api-demo     native  /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/_build/native/debug/build/examples/api-demo/api-demo.exe
+  sundaysebasidian-byte/moondmn/examples/host-bridge  native  /Users/sebasidian/.t3/projects/moonbit-nov/.wt/moondmn-r2/_build/native/debug/build/examples/host-bridge/host-bridge.exe

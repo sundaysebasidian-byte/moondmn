@@ -13,7 +13,7 @@ FEEL 求值、决策表全部命中策略、InputData / ItemDefinition / BKM / �
 
 ## 规范覆盖矩阵
 
-目标标准：OMG DMN 1.5 与 FEEL，以官方 DMN TCK（固定提交 `1e349176`，无跳过）验证：Level 2 为 116/116，Level 3 为 3265/3291（99.21%）。状态为已支持或明确不支持。
+目标标准：OMG DMN 1.5 与 FEEL，以官方 DMN TCK（固定提交 `1e349176`，无跳过）验证：Level 2 为 116/116，Level 3 为 3271/3291（99.39%）。状态为已支持或明确不支持。
 
 | 范围 | 状态 | 说明 |
 | --- | --- | --- |
@@ -28,22 +28,20 @@ FEEL 求值、决策表全部命中策略、InputData / ItemDefinition / BKM / �
 
 18 个 TCK 用例（占 Level 3 的 0.55%）全部是 `external {java:{class, method signature}}`，调用 JDK 类库（`java.lang.Math`、`Integer.valueOf`、`String.format` 等）。只有使用这种写法的模型受影响，决策表、FEEL 表达式、BKM、决策服务不受影响。wasm-gc 与 js 没有 JVM，引擎也不模拟 JDK，所以不实现 JVM 调用，这 18 个用例继续计为失败。已交付宿主函数桥：宿主按 class 加 method signature 注册回调，模型即可在三个后端调用宿主函数；未注册时返回明确错误码，不静默返回 null。
 
-## 已知失败（Level 3 剩余 26 个）
+## 已知失败（Level 3 剩余 20 个）
 
 | 原因 | 用例数 | 处理 |
 | --- | ---: | --- |
 | Java 外部函数 | 18 | 不实现 JVM 调用，见上 |
-| TCK 驱动不提供时钟 | 4 | 库已支持注入，不改 |
 | 小数秒相等 | 2 | 保留精度，与 TCK 期望存在差异，依据 DMN 1.5 §10.3.2.3 |
-| 无日期的命名时区 time 相减 | 2 | DST 偏移无法唯一确定，显式拒绝 |
 
-范围内行为不正确的已知缺陷：0 个。
+本次审计确认的参数检查、驱动时钟及同名时区相减问题已修复；剩余失败按下表计数。
 
 ## 已完成交付
 
-1. 多文件 import：解析 `import` 元素，由宿主回调（CLI 按相对路径，Playground 使用虚拟文件表）提供被导入模型；支持别名、嵌套 import、命名空间隔离，以及 `别名.名称` 形式的 FEEL 与类型引用。实测：Level 3 增加 7 个通过用例，达到 3265/3291。
+1. 多文件 import：解析 `import` 元素，由宿主回调（CLI 按相对路径，Playground 使用虚拟文件表）提供被导入模型；支持别名、嵌套 import、命名空间隔离，以及 `别名.名称` 形式的 FEEL 与类型引用。实测：Level 3 增加 7 个通过用例，当时达到 3265/3291；0.2.2 审计修复后为 3271/3291。
 2. 宿主函数桥：库 API 注册外部函数回调，native、wasm-gc、js 行为一致；CLI 不暴露回调注册。
-3. 0.2.0 已发布；0.2.1 增加 Playground 多文件输入与内存 resolver，同步文档和变更记录，待发布。
+3. 0.2.1 已发布，包含 Playground 多文件输入与内存 resolver；0.2.2 为未发布审计修复工作版本。
 
 ## 基础与本期工作
 
@@ -58,3 +56,5 @@ FEEL 求值、决策表全部命中策略、InputData / ItemDefinition / BKM / �
 实现、测试、示例模型均为原创。参考：OMG DMN 1.5 规范；dmn-tck 测试用例（https://github.com/dmn-tck/tck，Apache-2.0，用例采用 CC 署名-相同方式共享），只在运行时下载，不入库；IANA tzdata 2026e（公有领域）生成时区子集。
 
 多文件和宿主桥 API、错误码、路径限制与可运行示例见 [接入文档](imports-and-host-functions.md)。Playground 已支持多文件 import。文件 import 需 native/js 是 CLI 的平台说明；wasm-gc 无文件系统，通过 resolver 回调传入文件，浏览器 JS 构建使用内存虚拟文件表，不计为功能缺陷。
+
+详细元素及非目标矩阵见 [README 支持边界](../README.md#支持边界)：DMN 1.1/1.2 明确拒绝，1.3–1.5 接受，DMNDI 布局及 knowledgeSource/authorityRequirement 不参与求值。

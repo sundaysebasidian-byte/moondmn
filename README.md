@@ -12,7 +12,7 @@ MoonDMN 是用 MoonBit 从零写的 OMG DMN 1.5 决策引擎和 FEEL 表达式�
 
 English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. It runs without a JVM,
 compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
-(Level 2: 116/116, Level 3: 3265/3291).
+(Level 2: 116/116, Level 3: 3271/3291).
 
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
@@ -23,20 +23,20 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 当前源码 | 0.2.1，待发布 | 包含 Playground 多文件 import 与宿主函数桥；已发布 0.2.0 的源码对应 tag `v0.2.0` |
-| mooncakes | `sundaysebasidian-byte/moondmn@0.2.0` | 包内容固定，不随 main 变化 |
-| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.2.0 |
+| 当前源码 | 0.2.2，未发布 | 审计修复工作版本；已发布版本为 0.2.1（tag `v0.2.1`） |
+| mooncakes | `sundaysebasidian-byte/moondmn@0.2.1` | 包内容固定，不随 main 变化 |
+| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.2.1 |
 
-定位发布提交：`git rev-list -n 1 v0.2.0`。下面三条命令分别复现三个面：
+定位发布提交：`git rev-list -n 1 v0.2.1`。下面三条命令分别复现三个面：
 
 ```bash
 # 源码测试
-git checkout v0.2.0
+git checkout v0.2.1
 moon test --target all
 
 # 安装包调用：在仓库外新建模块，把“安装与接入”中的 import 和示例原样放入 cmd/main
 moon new consumer && cd consumer
-moon add sundaysebasidian-byte/moondmn@0.2.0
+moon add sundaysebasidian-byte/moondmn@0.2.1
 moon run cmd/main
 
 # 线上引擎：打开 Pages；对应的构建见 Actions 中 Pages 工作流的运行记录
@@ -75,7 +75,7 @@ python3 -m http.server -d web/dist 8000
 
 ## 环境要求
 
-- MoonBit 工具链 0.1.20261028 或更新版本（`moon version --all` 查看）。
+- MoonBit 工具链 0.1.20261104 或更新版本（`moon version --all` 查看）。
 - 首次构建会从 mooncakes 拉取 `Milky2018/xml` 和 `moonbitlang/x`。
 - 运行 Playground 的冒烟测试需要 Node.js（CI 使用 22）。
 
@@ -184,9 +184,9 @@ moon run cmd/main -- lint examples/eligibility.dmn
 ```bash
 ./scripts/fetch-tck.sh
 moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 \
-  --json evidence/tck-level-2.json
+  --now 2026-01-01T00:00:00Z --json evidence/tck-level-2.json
 moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 \
-  --json evidence/tck-level-3.json
+  --now 2026-01-01T00:00:00Z --json evidence/tck-level-3.json
 ```
 
 不加 `--json` 会把完整报告打印到标准输出：
@@ -219,20 +219,18 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 级别 | 用例数 | 通过 | 通过率 |
 | --- | --- | --- | --- |
 | Level 2 | 116 | 116 | 100.0% |
-| Level 3 | 3291 | 3265 | 99.21% |
+| Level 3 | 3291 | 3271 | 99.39% |
 
 目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。
 
-### 已知失败（Level 3 剩余 26 个）
+### 已知失败（Level 3 剩余 20 个）
 
 | 原因 | 用例数 | 性质 |
 | --- | ---: | --- |
 | Java 外部函数（`0076-feel-external-java`） | 18 | 宿主桥已支持；不调用 JVM、不模拟 JDK，未注册时 E_EXTERNAL_UNBOUND |
-| 驱动不提供时钟（`1148`、`1149`） | 4 | 库已支持注入时钟，TCK 驱动未注入 |
 | 小数秒相等（`0068`） | 2 | 实现保留小数秒；TCK 期望忽略毫秒，与 DMN 1.5 §10.3.2.3 的文本存在差异 |
-| 无日期的命名时区 time 相减（`0100`） | 2 | 无日期无法唯一确定 DST 偏移，显式拒绝 |
 
-范围内行为不正确的已知缺陷：0 个。这些数字不代表完整 DMN 兼容。
+本次审计确认的参数检查、驱动时钟及同名时区相减问题已修复；剩余失败按下表计数。这些数字不代表完整 DMN 兼容。
 结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。
 
 ## 和同类实现的区别
@@ -253,7 +251,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 302 个单元测试，另有 33 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 36 项 Playground 冒烟测试。
+每个后端 306 个单元测试，另有 38 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 37 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
@@ -265,13 +263,41 @@ CLI 的文件 import 需要 native/js 文件加载器。wasm-gc 无文件系统�
 ## 限制与路线图
 
 - Java 外部函数仅调用显式注册的宿主回调；不提供 JVM。
-- TCK Level 3 还有 26 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
+- TCK Level 3 还有 20 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
 - 时区只有 39 个名称，只覆盖 1970–2100 年。
 - `now()`、`today()` 没有隐含的系统时钟，必须由调用方注入。
-- 部分隐式转换和函数元数据（`0103-feel-is-function`）还有差距。
 - 决策表里的 FEEL 每次求值时重新编译，整表预编译还没做；性能数字见 [docs/performance.md](docs/performance.md)。
 - Playground 的命中规则只覆盖决策自己的决策表，BKM 内的决策表不显示命中。
 
 ## 许可证
 
 Apache License 2.0，见 [LICENSE](LICENSE)；上游项目和测试数据来源见 [NOTICE](NOTICE)。
+
+### 支持边界
+
+| 元素/特性 | 行为 |
+| --- | --- |
+| DMN 1.3 / 1.4 / 1.5 MODEL 命名空间 | 接受 |
+| DMN 1.1 / 1.2 MODEL 命名空间 | 拒绝，E_DMN_NAMESPACE；不自动升级 |
+| literalExpression | 求值 FEEL 文本 |
+| decisionTable | 按命中策略求值 |
+| context | 按顺序绑定条目 |
+| invocation | 调用函数与绑定参数 |
+| list | 列表求值 |
+| relation | 关系表求值 |
+| functionDefinition | 用户函数与宿主桥 |
+| conditional | 条件分支 |
+| filter | 盒式过滤 |
+| for | 盒式迭代 |
+| some | 存在量词 |
+| every | 全称量词 |
+| DMNDI | XML 保留节点；引擎忽略其布局，不渲染标准 DMNDI；Playground 图由 DRG 生成 |
+| knowledgeSource / authorityRequirement | 不参与求值；不执行授权或权威规则 |
+| FEEL instance of | 支持 |
+| FEEL 函数类型 | 支持参数/返回类型描述 |
+| FEEL 区间字面量 | 支持含单侧无界及开闭端点 |
+| FEEL @ 时态字面量 | 支持 |
+| FEEL 命名参数 | 支持 |
+| FEEL 多词名称 | 根据作用域名称与上下文键识别 |
+
+FEEL 解析嵌套与构造链、AST 和求值深度均限 128，超限返回 E_LIMIT；XML 嵌套限 128。

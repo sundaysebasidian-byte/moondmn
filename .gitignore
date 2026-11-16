@@ -8,3 +8,9 @@ target/
 
 web/dist/
 .DS_Store
+
+.baseline/
+
+# Reproducible audit temporary inputs are retained locally; keep result JSON.
+docs/evidence/0.2.2/fuzz*/dmnfz-*/
+!docs/evidence/0.2.2/*.log

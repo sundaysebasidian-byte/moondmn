@@ -1,0 +1,162 @@
+[
+  {
+    "round": 0,
+    "build": "main",
+    "warmup": true,
+    "metrics": {
+      "compiled_10000_ms": 15.139209000000001,
+      "parsed_10000_ms": 256.443333
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 0,
+    "build": "compat",
+    "warmup": true,
+    "metrics": {
+      "compiled_10000_ms": 15.01025,
+      "parsed_10000_ms": 248.21620800000002
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 1,
+    "build": "compat",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 14.853625,
+      "parsed_10000_ms": 245.933875
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 1,
+    "build": "main",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 14.773833,
+      "parsed_10000_ms": 252.440375
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 2,
+    "build": "main",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.0865,
+      "parsed_10000_ms": 261.461291
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 2,
+    "build": "compat",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.018666000000001,
+      "parsed_10000_ms": 245.323209
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 3,
+    "build": "compat",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 14.79675,
+      "parsed_10000_ms": 247.244458
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 3,
+    "build": "main",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.361334000000001,
+      "parsed_10000_ms": 254.92495799999998
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 4,
+    "build": "main",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.205875,
+      "parsed_10000_ms": 253.59104200000002
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 4,
+    "build": "compat",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.066208000000001,
+      "parsed_10000_ms": 249.094209
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 5,
+    "build": "compat",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.141791000000001,
+      "parsed_10000_ms": 250.917125
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 5,
+    "build": "main",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.288541,
+      "parsed_10000_ms": 257.357167
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 6,
+    "build": "main",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.348875,
+      "parsed_10000_ms": 258.362084
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 6,
+    "build": "compat",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 15.30125,
+      "parsed_10000_ms": 258.077709
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 7,
+    "build": "compat",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 14.613833000000001,
+      "parsed_10000_ms": 247.236708
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  },
+  {
+    "round": 7,
+    "build": "main",
+    "warmup": false,
+    "metrics": {
+      "compiled_10000_ms": 16.776792,
+      "parsed_10000_ms": 264.69133400000004
+    },
+    "table": "intentionally stopped before table; full table measurements in benchmarks-final-source.json"
+  }
+]
