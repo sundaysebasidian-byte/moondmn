@@ -769,7 +769,9 @@ fn Parser::in_operand(p : Parser) -> Test raise @types.EngineError {
     }
     ignore(p.take())
     let result = p.test_list()
-    validate_test(result)
+    if p.tokens.length() > 64 {
+      validate_test(result)
+    }
     p.expect(")")
     return result
   }
@@ -840,7 +842,11 @@ pub fn compile(
     properties: [],
   }
   let value = p.expr(1)
-  validate(value)
+  // At most two AST nodes per token (including unary-test wrappers).
+  // Small expressions cannot reach the 128-node nesting boundary.
+  if p.tokens.length() > 64 {
+    validate(value)
+  }
   if p.peek().kind != "eof" {
     let t = p.peek()
     raise @types.Failure(
