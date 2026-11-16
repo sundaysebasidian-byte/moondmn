@@ -27,7 +27,7 @@ fn run(args : Array[String]) -> Unit raise Error {
   match args[1] {
     "lint" => println(@model.lint(@loader.load(args[2])).stringify(indent=2))
     "tck" => {
-      let report = @tck.run(args[2]).stringify(indent=2)
+      let report = @tck.run(args[2], clock~).stringify(indent=2)
       if args.contains("--json") {
         @fs.write_string_to_file(option(args, "--json"), report)
       } else {

@@ -134,7 +134,9 @@ fn case_value(
   invocable : String,
   result : @xml.Node,
   inputs : Map[String, @types.Value],
+  clock : (() -> @types.DateTime)?,
 ) -> @types.Value raise @types.EngineError {
+  let inputs = @eval.with_clock(inputs, clock)
   if kind == "bkm" {
     @model.evaluate_bkm(model, invocable, inputs)
   } else if kind == "decisionService" {
@@ -172,6 +174,7 @@ fn semantic_error(code : String) -> Bool {
 fn check_case(
   model : @model.Model,
   case : @xml.Node,
+  clock : (() -> @types.DateTime)?,
 ) -> Unit raise @types.EngineError {
   let kind = case.attr("type")
   if !["", "decision", "bkm", "decisionService"].contains(kind) {
@@ -192,7 +195,7 @@ fn check_case(
     raise @types.fail("E_TCK_RESULT", "no result nodes")
   }
   for result in results {
-    let actual = Ok(case_value(model, kind, invocable, result, inputs)) catch {
+    let actual = Ok(case_value(model, kind, invocable, result, inputs, clock)) catch {
       e => Err(e)
     }
     if result.attr("errorResult") == "true" {
@@ -259,7 +262,10 @@ fn collect(
 
 ///|
 /// Run every TCK case beneath a directory and return a JSON report.
-pub fn run(directory : String) -> Json raise Error {
+pub fn run(
+  directory : String,
+  clock~ : (() -> @types.DateTime)? = None,
+) -> Json raise Error {
   let files = []
   collect(directory, files, 0)
   let rows = []
@@ -285,7 +291,7 @@ pub fn run(directory : String) -> Json raise Error {
       let mut detail = ""
       let outcome = try {
         match model {
-          Ok(m) => check_case(m, case)
+          Ok(m) => check_case(m, case, clock)
           Err(e) => raise e
         }
         "PASS"

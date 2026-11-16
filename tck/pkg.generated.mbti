@@ -10,7 +10,7 @@ import {
 // Values
 pub fn equal(@types.Value, @types.Value) -> Bool raise @types.EngineError
 
-pub fn run(String) -> @json.Json raise
+pub fn run(String, clock? : (() -> @types.DateTime)?) -> @json.Json raise
 
 pub fn value(@xml.Node) -> @types.Value raise @types.EngineError
 

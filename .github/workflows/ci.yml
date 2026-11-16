@@ -72,6 +72,13 @@ jobs:
         shell: bash
         run: moon test --target js
 
+      - name: Test (wasm)
+        shell: bash
+        run: moon test --target wasm
+
+      - name: README version
+        run: python3 scripts/check-readme-version.py
+
       - name: CLI integration
         shell: bash
         run: python scripts/test-cli.py
@@ -144,12 +151,12 @@ jobs:
       - name: Level 2 conformance
         run: |
           moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 \
-            --json evidence/tck-level-2.json
+            --now 2026-01-01T00:00:00Z --json evidence/tck-level-2.json
 
       - name: Level 3 conformance
         run: |
           moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 \
-            --json evidence/tck-level-3.json
+            --now 2026-01-01T00:00:00Z --json evidence/tck-level-3.json
 
       - name: Summarise
         run: |
@@ -160,7 +167,7 @@ jobs:
                   report = json.load(handle)
               print(f"Level {level}: {report['passed']}/{report['total']} passed")
               assert report['skipped'] == 0 and report['total'] > 0
-              expected_total, minimum = (116, 116) if level == 2 else (3291, 3265)
+              expected_total, minimum = (116, 116) if level == 2 else (3291, 3271)
               assert report['total'] == expected_total
               assert report['passed'] >= minimum
           EOF
