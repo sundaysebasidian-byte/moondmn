@@ -33,7 +33,7 @@ FEEL 求值、决策表全部命中策略、InputData / ItemDefinition / BKM / �
 | 原因 | 用例数 | 处理 |
 | --- | ---: | --- |
 | Java 外部函数 | 18 | 不实现 JVM 调用，见上 |
-| 小数秒相等 | 2 | 保留精度，与 TCK 期望存在差异，依据 DMN 1.5 §10.3.2.3 |
+| 小数秒相等 | 2 | `time_005`、`datetime_003_a` 期望相差 100 微秒的两个值相等；引擎保留小数秒，判为不等。规范的值语义（DMN 1.5 表 66 等）未给出截断依据，这是我们的解读，未获上游确认；[证据](evidence/0.2.2/fractional-seconds/README.md) |
 
 本次审计确认的参数检查、驱动时钟及同名时区相减问题已修复；剩余失败按下表计数。
 
@@ -41,8 +41,12 @@ FEEL 求值、决策表全部命中策略、InputData / ItemDefinition / BKM / �
 
 1. 多文件 import：解析 `import` 元素，由宿主回调（CLI 按相对路径，Playground 使用虚拟文件表）提供被导入模型；支持别名、嵌套 import、命名空间隔离，以及 `别名.名称` 形式的 FEEL 与类型引用。实测：Level 3 增加 7 个通过用例，当时达到 3265/3291；0.2.2 审计修复后为 3271/3291。
 2. 宿主函数桥：库 API 注册外部函数回调，native、wasm-gc、js 行为一致；CLI 不暴露回调注册。
-3. 0.2.1 已发布，包含 Playground 多文件输入与内存 resolver；0.2.2 为未发布审计修复工作版本。
+3. 0.2.1 已发布，包含 Playground 多文件输入与内存 resolver；0.2.2 已发布，包含审计修复。
 
+## 生态贡献
+
+- 下游示例：[moondmn-pricing](https://github.com/sundaysebasidian-byte/moondmn-pricing)（[mooncakes](https://mooncakes.io/docs/sundaysebasidian-byte/moondmn-pricing)），通过 mooncakes 依赖已发布的 `moondmn@0.2.2`：一份 DMN 1.3 保险定价模型（决策表、BKM、日期运算、三层决策依赖），经 OMG DMN XSD 校验，附库、命令行、覆盖每个规则分支和错误输入的测试（预期值手工推导，未用其他 DMN 引擎交叉验证）与 CI。它由 MoonDMN 作者编写，是示例，不代表第三方采用。
+- 目前没有第三方使用记录，也没有提交 TCK 结果或上游问题。
 ## 基础与本期工作
 
 2026-10-31 新建仓库，此前没有代码基础；仓库全部提交均为本期工作。技术路线：命名空间感知 XML 解析 → 作用域感知的 FEEL 词法/语法 → Decimal128 精确数值求值 → DRG 依赖图求值，同一库编译到 native、wasm-gc、js。
