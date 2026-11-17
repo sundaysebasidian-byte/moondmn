@@ -23,6 +23,10 @@ Level 3: 3271/3291 passed
 
 `moon info` was regenerated and committed; `moon info && git diff --exit-code -- '*.mbti'` passes after the interface commits. TCK pinned commit: `1e349176e5ae689d924a2a2c7a8df25c220d8b07`. Both TCK runs use `--now 2026-01-01T00:00:00Z`. `tck-delta.json` records exactly six improvements and no regressions. 0103 is 50/50, 0100 is 1087/1087, 1148 and 1149 each 2/2. Remaining 20 failures are 18 JVM cases and two fractional-second differences. No error whitelist or comparison tolerance was changed.
 
+## Fractional-second re-check
+
+A fresh audit at `3f0b070` reproduces `time_005` and `datetime_003_a` in 0068: expected true, actual false. Each pair differs by 100 microseconds. No parsing/formatting/arithmetic precision loss was found; the pinned TCK explicitly assumes whole-second equality. DMN 1.5 table 53 compares values and table 66 preserves decimal seconds, so no semantics-preserving fix was identified. These two failures are not classified as JVM artifacts. Exact expressions, source references, 18 precision probes, four-target 306/306 checks, L2 116/116, L3 3271/3291 before/after and zero-change delta: [fractional-seconds/README.md](fractional-seconds/README.md).
+
 ## Workflow step ledger
 
 Local execution covers executable bodies, not GitHub-hosted actions or OS matrix certification. Duplicate workflow steps refer to the same local executable checks below.

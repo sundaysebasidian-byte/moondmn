@@ -1,0 +1,92 @@
+{
+  "scope": ".",
+  "base_commit": "3f0b070b24143c9c33fcad2be8c444bfa5c1ad4f",
+  "branch": "eco-r3",
+  "delivery": "Local evidence-only commit; no push, tag or publication.",
+  "candidates": [],
+  "moved": [],
+  "blocked": [],
+  "restore_mapping": [],
+  "operation_log": [],
+  "retained": [
+    {
+      "path": ".",
+      "reason": "Current worktree and all tracked/untracked changes retained."
+    },
+    {
+      "path": "_build",
+      "reason": "Current four-target validation and native TCK executable; needed to reproduce probes."
+    },
+    {
+      "path": ".mooncakes",
+      "reason": "Current project dependencies; no shared environment cleanup."
+    },
+    {
+      "path": ".tck",
+      "reason": "Pinned clean upstream input at 1e349176e5ae689d924a2a2c7a8df25c220d8b07."
+    },
+    {
+      "path": ".reference",
+      "reason": "Official specification PDF, extracted text, and local pypdf 6.3.0 extraction dependency retained; not delivery files."
+    },
+    {
+      "path": "docs/evidence/0.2.2/fractional-seconds",
+      "reason": "Raw reports, precision probes, validation output and final evidence retained."
+    }
+  ],
+  "backup_verification": "No source copies selected for removal. No complete remote backup audited or assumed; existing Git base retained.",
+  "activity": {
+    "owned_child_processes": [
+      {
+        "name": "tck-before",
+        "pid": 19609,
+        "exit": 0
+      },
+      {
+        "name": "spec",
+        "pid": 20585,
+        "exit": 1
+      },
+      {
+        "name": "validation",
+        "pid": 20821,
+        "exit": 0
+      },
+      {
+        "name": "tck-l2",
+        "pid": 20822,
+        "exit": 0
+      },
+      {
+        "name": "pdf-tools",
+        "pid": 22382,
+        "exit": 0
+      },
+      {
+        "name": "tck-after",
+        "pid": 28686,
+        "exit": 0
+      }
+    ],
+    "servers_started": 0,
+    "browser_tabs_opened": 0,
+    "cwd_occupation": {
+      "exit": 0,
+      "matching_cwd_records": [
+        "p47995\nclsof\nfcwd\nn."
+      ],
+      "stderr": ""
+    },
+    "inspection_limit": "cwd inspection is not a complete open-file or other-agent audit. All artifacts retained; no deletion relies on absence of occupancy.",
+    "resolved_extraction_error": "Initial spec text extraction could not import pymupdf (exit 1); subsequent extraction with locally installed pypdf 6.3.0 succeeded (exit 0)."
+  },
+  "disk": {
+    "unit": "KiB",
+    "before_available": 115018020,
+    "after_available": 115007748,
+    "moved_logical_bytes": 0,
+    "attributable_reclaimed_bytes": 0,
+    "note": "No Trash movement; observed free-space changes must not be attributed to this task.",
+    "observed_available_delta": -10272
+  }
+}

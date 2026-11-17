@@ -1,4 +1,6 @@
-# 0.2.2 (unreleased)
+# 0.2.2 (Unreleased)
+
+- Reproduce and audit fractional-second equality cases `time_005` / `datetime_003_a`: retain exact fractions under DMN 1.5 value equality; document expected/actual, 18 precision probes and a zero-change TCK delta. L3 remains 3271/3291; no engine or runner changes.
 
 - Bound FEEL operator/postfix/unary/type/test nesting and validate mixed and caller-built ASTs with a bounded walker before evaluation; return E_LIMIT rather than overflowing backend stacks.
 - Check now/today arity before clock availability; forward CLI --now through every TCK invocable kind. L2 116/116, L3 3271/3291: 18 JVM cases and 2 fractional-second differences still fail.

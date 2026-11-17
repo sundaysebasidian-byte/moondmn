@@ -228,7 +228,7 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 原因 | 用例数 | 性质 |
 | --- | ---: | --- |
 | Java 外部函数（`0076-feel-external-java`） | 18 | 宿主桥已支持；不调用 JVM、不模拟 JDK，未注册时 E_EXTERNAL_UNBOUND |
-| 小数秒相等（`0068`） | 2 | 实现保留小数秒；TCK 期望忽略毫秒，与 DMN 1.5 §10.3.2.3 的文本存在差异 |
+| 小数秒相等（`0068`） | 2 | `time_005` / `datetime_003_a` 各相差 100 微秒；TCK 期望 true，实现按时间值判等返回 false。[复核证据](docs/evidence/0.2.2/fractional-seconds/README.md) |
 
 本次审计确认的参数检查、驱动时钟及同名时区相减问题已修复；剩余失败按下表计数。这些数字不代表完整 DMN 兼容。
 结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。

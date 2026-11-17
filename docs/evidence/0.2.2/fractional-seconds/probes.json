@@ -1,0 +1,218 @@
+[
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(\"10:30:00.0001\") = time(\"10:30:00.0002\")"
+    ],
+    "exit": 0,
+    "actual": "false",
+    "stderr": "",
+    "expected": "false",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "date and time(\"2018-12-08T00:00:00.0001\") = date and time(\"2018-12-08T00:00:00.0000\")"
+    ],
+    "exit": 0,
+    "actual": "false",
+    "stderr": "",
+    "expected": "false",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(\"10:30:00.0001\")"
+    ],
+    "exit": 0,
+    "actual": "\"10:30:00.0001\"",
+    "stderr": "",
+    "expected": "\"10:30:00.0001\"",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(\"10:30:00.0002\")"
+    ],
+    "exit": 0,
+    "actual": "\"10:30:00.0002\"",
+    "stderr": "",
+    "expected": "\"10:30:00.0002\"",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(\"10:30:00.0001\").second"
+    ],
+    "exit": 0,
+    "actual": "0.0001",
+    "stderr": "",
+    "expected": "0.0001",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(10, 30, 0.0001) = time(\"10:30:00.0001\")"
+    ],
+    "exit": 0,
+    "actual": "true",
+    "stderr": "",
+    "expected": "true",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(\"10:30:00.0002\") - time(\"10:30:00.0001\")"
+    ],
+    "exit": 0,
+    "actual": "\"PT0.0001S\"",
+    "stderr": "",
+    "expected": "\"PT0.0001S\"",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(\"10:30:00.0001\") < time(\"10:30:00.0002\")"
+    ],
+    "exit": 0,
+    "actual": "true",
+    "stderr": "",
+    "expected": "true",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(\"10:30:00.0001\") = time(\"10:30:00.0001000\")"
+    ],
+    "exit": 0,
+    "actual": "true",
+    "stderr": "",
+    "expected": "true",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "date and time(\"2018-12-08T00:00:00.0001\")"
+    ],
+    "exit": 0,
+    "actual": "\"2018-12-08T00:00:00.0001\"",
+    "stderr": "",
+    "expected": "\"2018-12-08T00:00:00.0001\"",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "date and time(\"2018-12-08T00:00:00.0000\")"
+    ],
+    "exit": 0,
+    "actual": "\"2018-12-08T00:00:00\"",
+    "stderr": "",
+    "expected": "\"2018-12-08T00:00:00\"",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "date and time(\"2018-12-08T00:00:00.0001\").second"
+    ],
+    "exit": 0,
+    "actual": "0.0001",
+    "stderr": "",
+    "expected": "0.0001",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "date and time(\"2018-12-08T00:00:00.0001\") - date and time(\"2018-12-08T00:00:00.0000\")"
+    ],
+    "exit": 0,
+    "actual": "\"PT0.0001S\"",
+    "stderr": "",
+    "expected": "\"PT0.0001S\"",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "date and time(\"2018-12-08T00:00:00.0000\") < date and time(\"2018-12-08T00:00:00.0001\")"
+    ],
+    "exit": 0,
+    "actual": "true",
+    "stderr": "",
+    "expected": "true",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "date and time(\"2018-12-08T00:00:00.0001\") = date and time(\"2018-12-08T00:00:00.0001000\")"
+    ],
+    "exit": 0,
+    "actual": "true",
+    "stderr": "",
+    "expected": "true",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "duration(\"PT0.0001S\") = duration(\"PT0.0002S\")"
+    ],
+    "exit": 0,
+    "actual": "false",
+    "stderr": "",
+    "expected": "false",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "time(\"10:30:00.0001\") + duration(\"PT0.0001S\")"
+    ],
+    "exit": 0,
+    "actual": "\"10:30:00.0002\"",
+    "stderr": "",
+    "expected": "\"10:30:00.0002\"",
+    "matches": true
+  },
+  {
+    "command": [
+      "_build/native/debug/build/cmd/main/main.exe",
+      "feel",
+      "date and time(\"2018-12-08T00:00:00.0000\") + duration(\"PT0.0001S\")"
+    ],
+    "exit": 0,
+    "actual": "\"2018-12-08T00:00:00.0001\"",
+    "stderr": "",
+    "expected": "\"2018-12-08T00:00:00.0001\"",
+    "matches": true
+  }
+]

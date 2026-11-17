@@ -1,0 +1,706 @@
+{
+  "total": 116,
+  "passed": 116,
+  "failed": 0,
+  "skipped": 0,
+  "empty_files": 0,
+  "failures": {},
+  "cases": [
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "004",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "005",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "006",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "007",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "008",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "009",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "010",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "011",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "012",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "013",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "014",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "015",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "016",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "017",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "018",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "019",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "020",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "021",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "022",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "023",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "024",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "025",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "026",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "027",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "028",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "029",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "030",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "031",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "032",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0105-feel-math/0105-feel-math-test-01.xml",
+      "id": "033",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0004-simpletable-U/0004-simpletable-U-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0004-simpletable-U/0004-simpletable-U-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0004-simpletable-U/0004-simpletable-U-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0005-simpletable-A/0005-simpletable-A-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0005-simpletable-A/0005-simpletable-A-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0005-simpletable-A/0005-simpletable-A-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0008-LX-arithmetic/0008-LX-arithmetic-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0008-LX-arithmetic/0008-LX-arithmetic-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0008-LX-arithmetic/0008-LX-arithmetic-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0006-simpletable-P1/0006-simpletable-P1-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0006-simpletable-P1/0006-simpletable-P1-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0006-simpletable-P1/0006-simpletable-P1-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0007-simpletable-P2/0007-simpletable-P2-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0007-simpletable-P2/0007-simpletable-P2-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0007-simpletable-P2/0007-simpletable-P2-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0010-multi-output-U/0010-multi-output-U-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0010-multi-output-U/0010-multi-output-U-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0010-multi-output-U/0010-multi-output-U-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0100-feel-constants/0100-feel-constants-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0101-feel-constants/0101-feel-constants-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0101-feel-constants/0101-feel-constants-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0101-feel-constants/0101-feel-constants-test-01.xml",
+      "id": "004",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0101-feel-constants/0101-feel-constants-test-01.xml",
+      "id": "005",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0101-feel-constants/0101-feel-constants-test-01.xml",
+      "id": "007",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0101-feel-constants/0101-feel-constants-test-01.xml",
+      "id": "008",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0102-feel-constants/0102-feel-constants-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0102-feel-constants/0102-feel-constants-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0102-feel-constants/0102-feel-constants-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0102-feel-constants/0102-feel-constants-test-01.xml",
+      "id": "004",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0108-first-hitpolicy/0108-first-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0108-first-hitpolicy/0108-first-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0108-first-hitpolicy/0108-first-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0001-input-data-string/0001-input-data-string-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0002-input-data-number/0002-input-data-number-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "004",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "005",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "006",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "007",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "008",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0106-feel-ternary-logic/0106-feel-ternary-logic-test-01.xml",
+      "id": "009",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0109-ruleOrder-hitpolicy/0109-ruleOrder-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0109-ruleOrder-hitpolicy/0109-ruleOrder-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0109-ruleOrder-hitpolicy/0109-ruleOrder-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0117-multi-any-hitpolicy/0117-multi-any-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0117-multi-any-hitpolicy/0117-multi-any-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0117-multi-any-hitpolicy/0117-multi-any-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0009-invocation-arithmetic/0009-invocation-arithmetic-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0009-invocation-arithmetic/0009-invocation-arithmetic-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0009-invocation-arithmetic/0009-invocation-arithmetic-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0110-outputOrder-hitpolicy/0110-outputOrder-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0110-outputOrder-hitpolicy/0110-outputOrder-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0110-outputOrder-hitpolicy/0110-outputOrder-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0114-min-collect-hitpolicy/0114-min-collect-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0114-min-collect-hitpolicy/0114-min-collect-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0114-min-collect-hitpolicy/0114-min-collect-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0115-sum-collect-hitpolicy/0115-sum-collect-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0115-sum-collect-hitpolicy/0115-sum-collect-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0115-sum-collect-hitpolicy/0115-sum-collect-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0107-feel-ternary-logic-not/0107-feel-ternary-logic-not-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0107-feel-ternary-logic-not/0107-feel-ternary-logic-not-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0107-feel-ternary-logic-not/0107-feel-ternary-logic-not-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0116-count-collect-hitpolicy/0116-count-collect-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0116-count-collect-hitpolicy/0116-count-collect-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0116-count-collect-hitpolicy/0116-count-collect-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0119-multi-collect-hitpolicy/0119-multi-collect-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0119-multi-collect-hitpolicy/0119-multi-collect-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0119-multi-collect-hitpolicy/0119-multi-collect-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0118-multi-priority-hitpolicy/0118-multi-priority-hitpolicy-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0118-multi-priority-hitpolicy/0118-multi-priority-hitpolicy-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0118-multi-priority-hitpolicy/0118-multi-priority-hitpolicy-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0111-first-hitpolicy-singleoutputcol/0111-first-hitpolicy-singleoutputcol-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0111-first-hitpolicy-singleoutputcol/0111-first-hitpolicy-singleoutputcol-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0111-first-hitpolicy-singleoutputcol/0111-first-hitpolicy-singleoutputcol-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0003-input-data-string-allowed-values/0003-input-data-string-allowed-values-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0112-ruleOrder-hitpolicy-singleinoutcol/0112-ruleOrder-hitpolicy-singleinoutcol-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0112-ruleOrder-hitpolicy-singleinoutcol/0112-ruleOrder-hitpolicy-singleinoutcol-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0112-ruleOrder-hitpolicy-singleinoutcol/0112-ruleOrder-hitpolicy-singleinoutcol-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0113-outputOrder-hitpolicy-singleinoutcol/0113-outputOrder-hitpolicy-singleinoutcol-test-01.xml",
+      "id": "001",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0113-outputOrder-hitpolicy-singleinoutcol/0113-outputOrder-hitpolicy-singleinoutcol-test-01.xml",
+      "id": "002",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "file": ".tck/TestCases/compliance-level-2/0113-outputOrder-hitpolicy-singleinoutcol/0113-outputOrder-hitpolicy-singleinoutcol-test-01.xml",
+      "id": "003",
+      "status": "PASS",
+      "detail": ""
+    }
+  ]
+}

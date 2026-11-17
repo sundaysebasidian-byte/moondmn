@@ -303,8 +303,8 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 | 套件 / 测试文件 | case ID | 分类 | 原因 |
 | --- | --- | --- | --- |
-| 0068-feel-equality/0068-feel-equality-test-01.xml | `datetime_003_a` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.5 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；当前仍计失败；规范原文依据见下文“小数秒依据”。 |
-| 0068-feel-equality/0068-feel-equality-test-01.xml | `time_005` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.5 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；当前仍计失败；规范原文依据见下文“小数秒依据”。 |
+| 0068-feel-equality/0068-feel-equality-test-01.xml | `datetime_003_a` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；当前仍计失败；规范原文依据见下文“小数秒依据”。 |
+| 0068-feel-equality/0068-feel-equality-test-01.xml | `time_005` | 规范与 TCK 存在差异 | TCK 描述要求忽略毫秒并判相等；实现保留小数秒，返回 false。DMN 1.5 §10.3.2.3.4/.6 的 valuet/valuedt 单射与表 66 的 decimal second 语义支持保留精度；当前仍计失败；规范原文依据见下文“小数秒依据”。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `boxed_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_001` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
 | 0076-feel-external-java/0076-feel-external-java-test-01.xml | `incorrect_002` | 未实现 | 已支持宿主注册桥；TCK 未注册 JDK 回调，引擎不调用 JVM、不模拟 JDK，返回 E_EXTERNAL_UNBOUND，继续计为失败。 |
@@ -330,6 +330,8 @@ L3 从 3265/3291 增至 3271/3291：now/today 参数检查顺序修正（2），
 
 ## 小数秒依据
 
-[DMN 1.5](https://www.omg.org/spec/DMN/1.5/PDF) §10.3.2.3.4、§10.3.2.3.5 的 valuet/valuedt 定义及表 66 的 second 属性是本实现保留小数秒的依据。仍保留纳秒，不截断以迎合 0068 的两个旧期望；两例继续计为失败，未声称上游已确认。
+[DMN 1.5](https://www.omg.org/spec/DMN/1.5/PDF) §10.3.2.3.4、§10.3.2.3.6 的 valuet/valuedt 定义及表 66 的 second 属性是本实现保留小数秒的依据。仍保留纳秒，不截断以迎合 0068 的两个旧期望；两例继续计为失败，未声称上游已确认。
 
 规范表 66 原文：“The second of the minute as a decimal in the interval [0. .60)”。§10.3.2.3.4 原文：“The valuet function is one-to-one”。这是保留精度的实现依据；与 TCK 旧期望的冲突尚未获上游裁定。
+
+0.2.2 小数秒复核：`time_005` 和 `datetime_003_a` 的输入各相差 0.0001 秒（100 微秒），并非解析精度损失。表 53 的时间值相等规则及表 66 的小数秒属性支持当前 false 结果；未找到能保持这些语义而返回 TCK 所需 true 的修复，也未证明期望源于 JVM 行为。四目标各 306/306，L2 116/116，L3 前后均 3271/3291，3291 例状态全部相同；原始报告、18 项精度探针和规范引用见 [复核证据](evidence/0.2.2/fractional-seconds/README.md)。未获上游裁定，仍计两例失败。
