@@ -1,6 +1,10 @@
 {
   "tck_commit": "1e349176e5ae689d924a2a2c7a8df25c220d8b07",
   "now": "2026-01-01T00:00:00Z",
+  "before_report": "evidence/tck-level-3.json",
+  "before_commit": "3f0b070b24143c9c33fcad2be8c444bfa5c1ad4f",
+  "before_sha256": "3d5edb5c7bbd4ced4db9e91ab37bb280d8f2e4d485c644b3af1525725e6aba47",
+  "after_report": "docs/evidence/0.2.2/fractional-seconds/tck-level-3-after.json",
   "before": {
     "total": 3291,
     "passed": 3271,

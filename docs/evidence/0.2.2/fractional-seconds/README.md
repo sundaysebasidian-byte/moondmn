@@ -36,22 +36,21 @@ Truncating in the parser would lose the observed `.second` and duration differen
 [DMN 1.5, formal/24-01-01](https://www.omg.org/spec/DMN/1.5/PDF) was downloaded and the relevant sections and tables checked in its extracted text. Local source fingerprint SHA-256: `196c80d0f483446a6e616ba096be5d44be0f8d1820684f59a41c80bfefc52e0f` (retained under ignored `.reference/dmn-1.5.pdf`).
 
 - Section 10.3.2.2 directs equality to the semantic mappings; section 10.3.2.15, table 53 (printed p.126), compares time and date-time by their values, referring to sections 10.3.2.3.4 and 10.3.2.3.6 respectively. The latter is date-time; .5 is date, correcting the older evidence's citation.
-- Sections 10.3.2.3.4/.6 (p.108) define seconds-based, one-to-one value mappings. Table 66 (p.133) specifies decimal seconds, unlike integer hour/minute fields. These clauses provide no rule to truncate fractions for equality.
+- Section 10.3.2.3.4 (p.108) defines a seconds-based, one-to-one `valuet` mapping for time. Section 10.3.2.3.6 defines `valuedt` only for date-times that have a UTC form (a UTC offset). The `datetime_003_a` inputs have no offset, so that mapping does not directly support this case. For these local date-times, the argument relies on table 66 (p.133): `second` is a decimal, unlike integer hour/minute fields. It provides no rule to truncate fractional seconds for equality.
 - Section 10.3.2.3.7 and table 57 retain seconds-based duration values in subtraction. The observed nonzero differences are consistent with these rules.
 
 These are our inferences from the normative text, not an upstream adjudication. [XML Schema Part 2 sections 3.2.7-3.2.8](https://www.w3.org/TR/xmlschema-2/#time), referenced by DMN's time datatype, also support fractional seconds. [Java 11 LocalTime documentation](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/LocalTime.html) specifies nanosecond precision, so whole-second equality is not an inherent Java time limitation. No Java runtime comparison or historical provenance investigation was performed; which upstream engine introduced this expectation remains unverified. No upstream issue was filed.
 
 ## Reproduction and validation
 
-Fetch/verify the clean pinned corpus with `bash scripts/fetch-tck.sh`; dependencies with `moon update`. Both exited 0. TCK uses the documented native command and clock, with only the JSON destination changed to retain separate audit evidence:
+Fetch/verify the clean pinned corpus with `bash scripts/fetch-tck.sh`; dependencies with `moon update`. Both exited 0. Use the committed baseline linked below. The after-run and L2 reports use the documented native command and clock, with only the JSON destinations changed to retain separate audit evidence:
 
 ```sh
-moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 --now 2026-01-01T00:00:00Z --json docs/evidence/0.2.2/fractional-seconds/tck-level-3-before.json
 moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 --now 2026-01-01T00:00:00Z --json docs/evidence/0.2.2/fractional-seconds/tck-level-3-after.json
 moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 --now 2026-01-01T00:00:00Z --json docs/evidence/0.2.2/fractional-seconds/tck-level-2.json
 ```
 
-All three commands exited 0. Before and after L3: 3271/3291 passed, 20 failed, zero skipped (18 `E_EXTERNAL_UNBOUND`, two `E_TCK_MISMATCH`). L2: 116/116, zero failures/skips. [tck-delta.json](tck-delta.json) compares every file/ID/status: 0 improvements, 0 regressions, 0 added/removed cases, 3291 unchanged. Baseline case statuses AND details match the previously committed `evidence/tck-level-3.json` exactly.
+The original before-run and both commands above exited 0. Before and after L3: 3271/3291 passed, 20 failed, zero skipped (18 `E_EXTERNAL_UNBOUND`, two `E_TCK_MISMATCH`). L2: 116/116, zero failures/skips. [tck-delta.json](tck-delta.json) compares every file/ID/status: 0 improvements, 0 regressions, 0 added/removed cases, 3291 unchanged. The baseline is the previously committed [evidence/tck-level-3.json](../../../../evidence/tck-level-3.json) at `3f0b070b24143c9c33fcad2be8c444bfa5c1ad4f`; the fresh before-run was byte-identical to it (SHA-256 `3d5edb5c7bbd4ced4db9e91ab37bb280d8f2e4d485c644b3af1525725e6aba47`). The delta uses that committed report directly; only the after-run report is retained here.
 
 [validation.txt](validation.txt) records the successful sequential commands:
 
