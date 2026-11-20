@@ -11,8 +11,8 @@ MoonDMN 是用 MoonBit 从零写的 OMG DMN 1.5 决策引擎和 FEEL 表达式�
 不依赖 JVM，能编译到 native、wasm-gc 和 js，并用官方 DMN TCK 逐例验证。
 
 English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. It runs without a JVM,
-compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
-(Level 2: 116/116, Level 3: 3271/3291).
+compiles to native, wasm-gc and JavaScript, and is tested against the official DMN TCK.
+Recorded results: Level 2 116/116, Level 3 3271/3291.
 
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
@@ -23,23 +23,28 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 当前源码 | 0.2.2，未发布 | 审计修复工作版本；已发布版本为 0.2.1（tag `v0.2.1`） |
-| mooncakes | `sundaysebasidian-byte/moondmn@0.2.1` | 包内容固定，不随 main 变化 |
-| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.2.1 |
+| 默认分支 | `main`，模块版本 `0.2.2` | 持续维护的源码，不等于已发布包 |
+| Git 标签 | [`v0.2.2`](https://github.com/sundaysebasidian-byte/moondmn/tree/v0.2.2)（[`3f0b070`](https://github.com/sundaysebasidian-byte/moondmn/commit/3f0b070b24143c9c33fcad2be8c444bfa5c1ad4f)） | 固定的源码快照 |
+| Mooncakes | [`sundaysebasidian-byte/moondmn@0.2.2`](https://mooncakes.io/docs/sundaysebasidian-byte/moondmn@0.2.2/) | 已发布，安装命令见下文 |
+| Pages | `main` 的独立构建 | [`pages.yml`](.github/workflows/pages.yml) 记录部署，不能用它判定包版本 |
 
-定位发布提交：`git rev-list -n 1 v0.2.1`。下面三条命令分别复现三个面：
+测试与性能数字以各自链接中的记录为准，不是对 Mooncakes `0.2.2` 安装包的重新验收。
+
+### 历史复现：`0.2.1`
+
+下列源码测试和安装示例针对 `0.2.1`。请从 `v0.2.1` 标签取示例，不要用 `main` 的示例替换。
 
 ```bash
 # 源码测试
 git checkout v0.2.1
 moon test --target all
 
-# 安装包调用：在仓库外新建模块，把“安装与接入”中的 import 和示例原样放入 cmd/main
+# 安装包调用：在仓库外新建模块，复制 v0.2.1 的 examples/api-demo 中的 main.mbt 和 moon.pkg 到 cmd/main
 moon new consumer && cd consumer
 moon add sundaysebasidian-byte/moondmn@0.2.1
 moon run cmd/main
 
-# 线上引擎：打开 Pages；对应的构建见 Actions 中 Pages 工作流的运行记录
+# Pages 独立于上述历史复现：查看工作流的运行记录
 gh run list --workflow pages.yml --limit 1
 ```
 
@@ -90,7 +95,7 @@ moon build
 在已有 MoonBit 模块中安装：
 
 ```bash
-moon add sundaysebasidian-byte/moondmn
+moon add sundaysebasidian-byte/moondmn@0.2.2
 ```
 
 从源码构建并运行 CLI：
@@ -214,7 +219,7 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 ## 一致性结果
 
-固定提交 `1e349176e5ae689d924a2a2c7a8df25c220d8b07` 的官方 TCK，本地实测：
+以下为官方 TCK 固定提交 `1e349176e5ae689d924a2a2c7a8df25c220d8b07` 的历史本地实测记录：
 
 | 级别 | 用例数 | 通过 | 通过率 |
 | --- | --- | --- | --- |
@@ -251,7 +256,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 306 个单元测试，另有 38 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 37 项 Playground 冒烟测试。
+既有源码验证记录：每个后端 306 个单元测试，另有 38 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 37 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
