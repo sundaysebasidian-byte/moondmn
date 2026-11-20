@@ -191,10 +191,10 @@ pub fn decimal(text : String) -> Decimal raise EngineError {
   if count == 0 || (exponent && exponent_digits == 0) {
     raise fail("E_DECIMAL_SYNTAX", "invalid decimal: " + text)
   }
-  normalize(
-    @bigint.BigInt::from_string(digits.to_string()),
-    scale - exp_sign * exp,
-  )
+  let coefficient = @string.parse_bigint(digits.to_string()[:]) catch {
+    _ => raise fail("E_DECIMAL_SYNTAX", "invalid decimal: " + text)
+  }
+  normalize(coefficient, scale - exp_sign * exp)
 }
 
 ///|
