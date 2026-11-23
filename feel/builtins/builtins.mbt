@@ -1197,7 +1197,16 @@ fn dispatch(
     | "started by"
     | "coincides" => {
       arity(name, xs, 2, 2)
-      if xs.iter().any(v => v is Range(r) && r.comparison == Some("!=")) {
+      let a_range = xs[0] is Range(_)
+      let b_range = xs[1] is Range(_)
+      let valid = match name {
+        "before" | "after" => true
+        "coincides" => a_range == b_range
+        "starts" | "finishes" | "during" => b_range
+        "started by" | "finished by" | "includes" => a_range
+        _ => a_range && b_range
+      }
+      if !valid || xs.iter().any(v => v is Range(r) && r.comparison == Some("!=")) {
         Null
       } else {
         Boolean(range_relation(name, xs[0], xs[1]))
