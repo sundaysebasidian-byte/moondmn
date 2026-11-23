@@ -434,7 +434,9 @@ fn bind_args(
         }
         if at < 0 {
           let target = match key {
-            "keys" => "key"
+            "keys" if name == "context put" => "key"
+            "match" if name == "index of" => "element"
+            "negand" if name == "not" => "n"
             "range1" if names == ["point1", "point2"] && arg.1 is Range(_) =>
               "point1"
             "range2" if names == ["point1", "point2"] && arg.1 is Range(_) =>
