@@ -700,41 +700,29 @@ fn dispatch(
     }
     "number" => {
       arity(name, xs, 1, 3)
-      match xs[0] {
-        Text(s) => {
-          if xs.length() == 3 &&
-            !(xs[1] is Null) &&
-            !(xs[2] is Null) &&
-            xs[1].equals(xs[2]) {
-            return Null
-          }
-          let mut body = s
-          if xs.length() > 1 {
-            let grouping = if xs[1] is Null { "" } else { text(xs[1], name) }
-            if !(xs[1] is Null) && ![".", ",", " "].contains(grouping) {
-              return Null
-            }
-            if grouping != "" {
-              body = body.replace_all(old=grouping, new="")
-            }
-          }
-          if xs.length() > 2 {
-            let decimal_sep = if xs[2] is Null {
-              "."
-            } else {
-              text(xs[2], name)
-            }
-            if ![".", ","].contains(decimal_sep) {
-              return Null
-            }
-            if decimal_sep != "" && decimal_sep != "." {
-              body = body.replace_all(old=decimal_sep, new=".")
-            }
-          }
-          Number(@types.decimal(body))
-        }
-        _ => raise err("E_TYPE", "number requires a string")
+      let mut body = text(xs[0], name)
+      let grouping = if xs.length() > 1 && !(xs[1] is Null) {
+        text(xs[1], name)
+      } else {
+        ""
       }
+      let separator = if xs.length() > 2 && !(xs[2] is Null) {
+        text(xs[2], name)
+      } else {
+        ""
+      }
+      if (xs.length() > 1 && !(xs[1] is Null) && ![".", ",", " "].contains(grouping)) ||
+        (xs.length() > 2 && !(xs[2] is Null) && ![".", ","].contains(separator)) ||
+        (grouping != "" && grouping == separator) {
+        return Null
+      }
+      if grouping != "" {
+        body = body.replace_all(old=grouping, new="")
+      }
+      if separator == "," {
+        body = body.replace_all(old=",", new=".")
+      }
+      Number(@types.decimal(body))
     }
     "not" => {
       arity(name, xs, 1, 1)
