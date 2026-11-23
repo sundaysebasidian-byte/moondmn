@@ -25,6 +25,7 @@ fn number(
 ) -> @types.Decimal raise @types.EngineError {
   match v {
     Number(n) => n
+    List([Number(n)]) => n
     _ => raise err("E_TYPE", name + " requires a number")
   }
 }
@@ -33,7 +34,7 @@ fn number(
 fn text(v : @types.Value, name : String) -> String raise @types.EngineError {
   match v {
     Text(s) => s
-    List([one]) => text(one, name)
+    List([Text(s)]) => s
     _ => raise err("E_TYPE", name + " requires a string")
   }
 }
@@ -838,7 +839,10 @@ fn dispatch(
       let parts = []
       for item in items {
         if !(item is Null) {
-          parts.push(text(item, name))
+          match item {
+            Text(s) => parts.push(s)
+            _ => raise err("E_TYPE", "string join requires a list of strings")
+          }
         }
       }
       Text(prefix + parts.join(delimiter) + suffix)
@@ -1480,6 +1484,17 @@ fn flatten_into(
 }
 
 ///|
+fn member_number(
+  item : @types.Value,
+  name : String,
+) -> @types.Decimal raise @types.EngineError {
+  match item {
+    Number(n) => n
+    _ => raise err("E_TYPE", name + " requires a list of numbers")
+  }
+}
+
+///|
 fn numeric_aggregate(
   name : String,
   xs : Array[@types.Value],
@@ -1495,14 +1510,14 @@ fn numeric_aggregate(
   if name == "product" {
     let mut acc = @types.decimal_int(1)
     for item in items {
-      acc = acc.multiply(number(item, name))
+      acc = acc.multiply(member_number(item, name))
     }
     return Number(acc)
   }
   if name == "median" {
     let values = []
     for item in items {
-      values.push(number(item, name))
+      values.push(member_number(item, name))
     }
     values.sort_by((a, b) => a.compare(b))
     let n = values.length()
@@ -1515,7 +1530,7 @@ fn numeric_aggregate(
   if name == "mean" {
     let values = []
     for item in items {
-      values.push(number(item, name))
+      values.push(member_number(item, name))
     }
     return Number(@types.Decimal::mean(values))
   }
@@ -1525,13 +1540,13 @@ fn numeric_aggregate(
     }
     let values = []
     for item in items {
-      values.push(number(item, name))
+      values.push(member_number(item, name))
     }
     return Number(@types.Decimal::sample_deviation(values))
   }
   let values = []
   for item in items {
-    values.push(number(item, name))
+    values.push(member_number(item, name))
   }
   Number(@types.Decimal::sum(values))
 }
@@ -1594,7 +1609,7 @@ fn numeric_mode(
 ) -> @types.Value raise @types.EngineError {
   let ordered : Array[(@types.Decimal, Int32)] = []
   for i, item in items {
-    ordered.push((number(item, "mode"), i))
+    ordered.push((member_number(item, "mode"), i))
   }
   ordered.sort_by((a, b) => {
     let order = a.0.compare(b.0)
