@@ -68,10 +68,15 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
         DaysSeconds(days)
       }
     }
-    "xsd:dayTimeDuration" | "xs:dayTimeDuration" =>
-      DaysSeconds(@types.parse_duration(text).0)
-    "xsd:yearMonthDuration" | "xs:yearMonthDuration" =>
-      YearsMonths(@types.parse_duration(text).1)
+    "xsd:dayTimeDuration" | "xs:dayTimeDuration"
+    | "xsd:yearMonthDuration" | "xs:yearMonthDuration" => {
+      let (days, months) = @types.parse_duration(text)
+      let calendar = text.contains("Y") || (text.contains("M") && !text.contains("T"))
+      if calendar != kind.has_suffix("yearMonthDuration") {
+        raise @types.fail("E_TCK_VALUE", "duration is outside the declared XML Schema subtype")
+      }
+      if calendar { YearsMonths(months) } else { DaysSeconds(days) }
+    }
     other => raise @types.fail("E_TCK_TYPE_UNSUPPORTED", other)
   }
 }
