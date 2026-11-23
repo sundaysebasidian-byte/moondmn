@@ -391,6 +391,23 @@ fn expression(node : @xml.Node) -> @xml.Node raise @types.EngineError {
 }
 
 ///|
+fn function_formals(logic : @xml.Node) -> Array[@xml.Node] raise @types.EngineError {
+  let formals = logic.all("formalParameter")
+  let names : Map[String, Bool] = Map([])
+  for formal in formals {
+    let name = formal.attr("name")
+    if name.trim().is_empty() || names.contains(name) {
+      raise @types.Failure(
+        "E_DMN_FUNCTION", formal.line, formal.column,
+        "missing or duplicate formal parameter: " + name,
+      )
+    }
+    names[name] = true
+  }
+  formals
+}
+
+///|
 fn bkm_function(
   model : Model,
   node : @xml.Node,
@@ -404,7 +421,8 @@ fn bkm_function(
     Some(n) => n
     None => raise @types.fail("E_DMN_BKM", "missing encapsulatedLogic")
   }
-  let params = logic.all("formalParameter").map(p => p.attr("name"))
+  let formals = function_formals(logic)
+  let params = formals.map(p => p.attr("name"))
   let body = expression_child(logic)
   let captured = outer.copy()
   captured["$types"] = Context(type_registry(model))
@@ -444,7 +462,7 @@ fn bkm_function(
       for i, param in params {
         scope[param] = coerce_type(
           model,
-          logic.all("formalParameter")[i].attr("typeRef"),
+          item_type_name(formals[i]),
           args[i],
           0,
         )
@@ -850,7 +868,8 @@ fn boxed_raw(
       List(rows)
     }
     "functionDefinition" => {
-      let params = node.all("formalParameter").map(p => p.attr("name"))
+      let formals = function_formals(node)
+      let params = formals.map(p => p.attr("name"))
       let body = expression_child(node)
       let captured = ctx.copy()
       Function({
@@ -867,7 +886,7 @@ fn boxed_raw(
           for i, param in params {
             scope[param] = coerce_type(
               model,
-              node.all("formalParameter")[i].attr("typeRef"),
+              item_type_name(formals[i]),
               args[i],
               0,
             )
