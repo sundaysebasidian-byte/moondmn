@@ -192,6 +192,12 @@ fn load_model(
       "itemDefinition"
       | "import"
       | "knowledgeSource"
+      | "textAnnotation"
+      | "association"
+      | "group"
+      | "elementCollection"
+      | "organizationUnit"
+      | "performanceIndicator"
       | "DMNDI"
       | "description"
       | "extensionElements" => ()
