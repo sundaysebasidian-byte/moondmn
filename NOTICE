@@ -69,3 +69,6 @@ All trademarks and copyrights remain the property of their respective owners.
              scripts/generate-unicode-lowercase.py derives unconditional
              lowercase tables in feel/builtins/unicode_lower_data.mbt
              from the same two files.
+             scripts/generate-xpath-categories.py derives XPath digit and word
+             classes in feel/builtins/unicode_xpath_categories.mbt from
+             UnicodeData.txt.

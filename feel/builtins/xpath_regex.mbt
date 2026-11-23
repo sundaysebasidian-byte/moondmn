@@ -2,6 +2,7 @@
 priv enum XPathSet {
   Span(Int32, Int32)
   Property(@string.Regex)
+  CategoryRanges(Array[(Int32, Int32)])
   Union(Array[XPathSet])
   Negate(XPathSet)
   Subtract(XPathSet, XPathSet)
@@ -71,7 +72,11 @@ fn XPathParser::escape(p : XPathParser) -> XPathSet raise @types.EngineError {
     't' => xpath_literal('\t')
     's' => Union([' ', '\t', '\n', '\r'].map(xpath_literal))
     'S' => Negate(Union([' ', '\t', '\n', '\r'].map(xpath_literal)))
-    'd' | 'D' | 'w' | 'W' | 'p' | 'P' => {
+    'd' => CategoryRanges(xpath_digits)
+    'D' => Negate(CategoryRanges(xpath_digits))
+    'w' => CategoryRanges(xpath_word_chars)
+    'W' => Negate(CategoryRanges(xpath_word_chars))
+    'p' | 'P' => {
       let b = StringBuilder()
       b.write_char('\\')
       b.write_char(c)
@@ -318,6 +323,21 @@ fn xpath_set_matches(s : XPathSet, c : Char, insensitive : Bool) -> Bool {
       .any(v => v >= a && v <= b)
     }
     Property(re) => re.execute(c.to_string()) is Some(_)
+    CategoryRanges(ranges) => {
+      // Category membership is unaffected by the case-insensitive flag.
+      let value = c.to_int()
+      let mut low = 0
+      let mut high = ranges.length()
+      while low < high {
+        let mid = (low + high) / 2
+        if ranges[mid].1 < value {
+          low = mid + 1
+        } else {
+          high = mid
+        }
+      }
+      low < ranges.length() && ranges[low].0 <= value
+    }
     Union(xs) => xs.iter().any(x => xpath_set_matches(x, c, insensitive))
     Negate(x) => !xpath_set_matches(x, c, insensitive)
     Subtract(a, b) =>

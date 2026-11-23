@@ -1782,15 +1782,6 @@ fn sort_with(
 }
 
 ///|
-fn translate_pattern(pattern : String) -> String {
-  pattern
-  .replace_all(old="\\d", new="[[:digit:]]")
-  .replace_all(old="\\w", new="[[:alnum:]_]")
-  .replace_all(old="\\s", new="[[:space:]]")
-  .replace_all(old="\\D", new="[^[:digit:]]")
-}
-
-///|
 fn compile_regex(
   pattern : String,
   flags : String,
@@ -1819,7 +1810,7 @@ fn compile_regex(
   let out = StringBuilder()
   let mut escaped = false
   let mut in_class = false
-  for ch in translate_pattern(normalized).to_array() {
+  for ch in normalized.to_array() {
     if escaped {
       out.write_char(ch)
       escaped = false
