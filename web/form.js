@@ -40,7 +40,9 @@ function stripZone(text) {
 
 /** Editable tree from example JSON. */
 export function toTree(shape, json) {
-  if (json === undefined || json === null) return shape.collection ? [] : emptyFor(shape);
+  if (json === undefined) return emptyFor(shape);
+  if (shape.base === "any" && !shape.collection) return JSON.stringify(json);
+  if (json === null) return emptyFor(shape);
   if (shape.collection) {
     const items = Array.isArray(json) ? json : [json];
     return items.map((item) => toTree(element(shape), item));
@@ -55,8 +57,6 @@ export function toTree(shape, json) {
       return json === true || json === "true";
     case "dateTime":
       return stripZone(String(json));
-    case "any":
-      return typeof json === "string" ? json : JSON.stringify(json);
     default:
       return String(json);
   }

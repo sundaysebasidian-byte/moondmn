@@ -23,3 +23,13 @@ test("numeric form input emits legal JSON without rounding decimal digits", () =
   }
   assert.equal(wire(type, " "), "{}");
 });
+
+test("loading an Any field keeps the original JSON type on the wire", () => {
+  const type = {base: "any"};
+  for (const seed of ["123", "true", "null", "[]", '{"a":1}', " spaced ", "", "plain", 17, false, null, ["7"], {a:2}]) {
+    assert.deepEqual(JSON.parse(wire(type, toTree(type, seed))), {x:seed});
+  }
+  assert.equal(wire(type, toTree(type, undefined)), "{}");
+  assert.deepEqual(JSON.parse(wire(type, "plain")), {x:"plain"});
+  assert.deepEqual(JSON.parse(wire(type, "[true]")), {x:[true]});
+});
