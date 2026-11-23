@@ -37,7 +37,7 @@ fn definition_descriptor(
       fields.push(
         component.attr("name") +
         ": " +
-        type_descriptor(model, item_type_name(component), depth + 1),
+        definition_descriptor(model, component, depth + 1),
       )
     }
     "context<" + join_specs(fields) + ">"
