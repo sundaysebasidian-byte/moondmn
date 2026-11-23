@@ -34,14 +34,15 @@ fn expression_child(node : @xml.Node) -> @xml.Node raise @types.EngineError {
 }
 
 ///|
-fn is_requirement_reference(req : @xml.Node, ref : @xml.Node) -> Bool {
-  ref.uri == req.uri && ref.name != "description" && ref.name != "extensionElements"
+fn is_requirement_reference(req : @xml.Node, reference : @xml.Node) -> Bool {
+  reference.uri == req.uri &&
+  reference.name != "description" &&
+  reference.name != "extensionElements"
 }
 
 ///|
 let dmn_model_namespaces : Array[String] = [
-  "https://www.omg.org/spec/DMN/20191111/MODEL/",
-  "https://www.omg.org/spec/DMN/20211108/MODEL/",
+  "https://www.omg.org/spec/DMN/20191111/MODEL/", "https://www.omg.org/spec/DMN/20211108/MODEL/",
   "https://www.omg.org/spec/DMN/20230324/MODEL/",
 ]
 
@@ -168,7 +169,9 @@ fn load_model(
     }
     if imported.root.uri != import_type {
       raise @types.Failure(
-        "E_IMPORT_TYPE", node.line, node.column,
+        "E_IMPORT_TYPE",
+        node.line,
+        node.column,
         "importType does not match the imported DMN model version",
       )
     }
@@ -193,7 +196,10 @@ fn load_model(
         let name = if declared == "" { id } else { declared }
         if (id != "" && ids.contains(id)) || drg_names.contains(name) {
           raise @types.Failure(
-            "E_DUPLICATE", node.line, node.column, "duplicate DMN id or name: " + name,
+            "E_DUPLICATE",
+            node.line,
+            node.column,
+            "duplicate DMN id or name: " + name,
           )
         }
         drg_names[name] = true

@@ -15,7 +15,11 @@ fn item_type_name(node : @xml.Node) -> String {
   let reference = node.attr("typeRef").trim().to_owned()
   builtin_type_name(
     node,
-    if reference != "" { reference } else { node.content("typeRef") },
+    if reference != "" {
+      reference
+    } else {
+      node.content("typeRef")
+    },
   )
 }
 

@@ -7,7 +7,10 @@ fn fixture_nil(node : @xml.Node) -> Bool raise @types.EngineError {
       match flag.trim().to_owned() {
         "false" | "0" => false
         "true" | "1" => {
-          if !node.children.is_empty() || !node.text.is_empty() {
+          // Retain scalar placeholders already accepted by the TCK adapter;
+          // nil structured elements cannot contain another value.
+          if !node.children.is_empty() ||
+            (node.name != "value" && !node.text.is_empty()) {
             raise @types.fail("E_TCK_VALUE", "nil element must be empty")
           }
           true
@@ -23,16 +26,24 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
   let lists = node.all("list")
   let components = node.all("component")
   let scalars = node.all("value")
-  let shapes = lists.length() + scalars.length() + (if components.is_empty() { 0 } else { 1 })
+  let shapes = lists.length() +
+    scalars.length() +
+    (if components.is_empty() { 0 } else { 1 })
   if shapes != 1 {
-    raise @types.fail("E_TCK_VALUE", "expected exactly one list, context or scalar value")
+    raise @types.fail(
+      "E_TCK_VALUE", "expected exactly one list, context or scalar value",
+    )
   }
   if lists.length() == 1 {
     let list = lists[0]
-    return if fixture_nil(list) { Null } else { List(list.all("item").map(value)) }
+    return if fixture_nil(list) {
+      Null
+    } else {
+      List(list.all("item").map(value))
+    }
   }
   if !components.is_empty() {
-    let out = Map([])
+    let out : Map[String, @types.Value] = Map([])
     for c in components {
       let name = c.attr("name")
       if out.contains(name) {
@@ -64,7 +75,9 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
       }
     "xsd:decimal" | "xs:decimal" => {
       if text.contains("e") || text.contains("E") {
-        raise @types.fail("E_TCK_VALUE", "decimal lexical form cannot have an exponent")
+        raise @types.fail(
+          "E_TCK_VALUE", "decimal lexical form cannot have an exponent",
+        )
       }
       Number(@types.decimal(text)) catch {
         @types.Failure("E_DECIMAL_SYNTAX", _, _, _) =>
@@ -72,10 +85,8 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
         e => raise e
       }
     }
-    "xsd:double"
-    | "xs:double"
-    | "xsd:float"
-    | "xs:float" => Number(@types.decimal(text))
+    "xsd:double" | "xs:double" | "xsd:float" | "xs:float" =>
+      Number(@types.decimal(text))
     "xsd:integer"
     | "xs:integer"
     | "xsd:int"
