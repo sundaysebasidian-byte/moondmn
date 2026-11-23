@@ -1231,10 +1231,10 @@ fn temporal_literal(text : String) -> @types.Value raise @types.EngineError {
     } else {
       DaysSeconds(days)
     }
+  } else if text.length() >= 3 && text.at(2) == 58 {
+    Time(@types.parse_time(text))
   } else if text.contains("T") {
     DateTime(@types.parse_datetime(text))
-  } else if text.contains(":") {
-    Time(@types.parse_time(text))
   } else {
     Date(@types.parse_date(text))
   }
