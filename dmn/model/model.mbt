@@ -39,6 +39,13 @@ fn is_requirement_reference(req : @xml.Node, ref : @xml.Node) -> Bool {
 }
 
 ///|
+let dmn_model_namespaces : Array[String] = [
+  "https://www.omg.org/spec/DMN/20191111/MODEL/",
+  "https://www.omg.org/spec/DMN/20211108/MODEL/",
+  "https://www.omg.org/spec/DMN/20230324/MODEL/",
+]
+
+///|
 /// Parse namespace-aware DMN XML and index its named elements.
 pub fn parse_model(
   source : String,
@@ -57,11 +64,7 @@ fn load_model(
   source_location : String,
 ) -> Model raise @types.EngineError {
   let root = @xml.parse(source)
-  if root.name != "definitions" ||
-    ![
-      "https://www.omg.org/spec/DMN/20191111/MODEL/", "https://www.omg.org/spec/DMN/20211108/MODEL/",
-      "https://www.omg.org/spec/DMN/20230324/MODEL/",
-    ].contains(root.uri) {
+  if root.name != "definitions" || !dmn_model_namespaces.contains(root.uri) {
     raise @types.Failure(
       "E_DMN_NAMESPACE",
       root.line,
@@ -107,7 +110,8 @@ fn load_model(
         "duplicate import qualifier: " + qualifier,
       )
     }
-    if node.attr("importType") != root.uri {
+    let import_type = node.attr("importType").trim().to_owned()
+    if !dmn_model_namespaces.contains(import_type) {
       raise @types.Failure(
         "E_IMPORT_TYPE",
         node.line,
@@ -161,6 +165,12 @@ fn load_model(
       }
       @types.Failure(code, _, _, message) =>
         raise @types.Failure(code, node.line, node.column, message)
+    }
+    if imported.root.uri != import_type {
+      raise @types.Failure(
+        "E_IMPORT_TYPE", node.line, node.column,
+        "importType does not match the imported DMN model version",
+      )
     }
     imports.push((qualifier, imported))
   }
