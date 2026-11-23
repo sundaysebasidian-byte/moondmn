@@ -1,4 +1,23 @@
 ///|
+fn fixture_nil(node : @xml.Node) -> Bool raise @types.EngineError {
+  let schema_instance = "http://www.w3.org/2001/XMLSchema-instance"
+  match node.attr_namespace(schema_instance, "nil") {
+    None => false
+    Some(flag) =>
+      match flag.trim().to_owned() {
+        "false" | "0" => false
+        "true" | "1" => {
+          if !node.children.is_empty() || !node.text.is_empty() {
+            raise @types.fail("E_TCK_VALUE", "nil element must be empty")
+          }
+          true
+        }
+        _ => raise @types.fail("E_TCK_VALUE", "invalid xsi:nil")
+      }
+  }
+}
+
+///|
 /// TCK values are parsed without a binary floating-point conversion.
 pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
   let lists = node.all("list")
@@ -9,7 +28,8 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     raise @types.fail("E_TCK_VALUE", "expected exactly one list, context or scalar value")
   }
   if lists.length() == 1 {
-    return List(lists[0].all("item").map(value))
+    let list = lists[0]
+    return if fixture_nil(list) { Null } else { List(list.all("item").map(value)) }
   }
   if !components.is_empty() {
     let out = Map([])
@@ -18,17 +38,14 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
       if out.contains(name) {
         raise @types.fail("E_TCK_VALUE", "duplicate context field: " + name)
       }
-      out[name] = value(c)
+      out[name] = if fixture_nil(c) { Null } else { value(c) }
     }
     return Context(out)
   }
   let v = scalars[0]
   let schema_instance = "http://www.w3.org/2001/XMLSchema-instance"
-  if v.attr_namespace(schema_instance, "nil") is Some(flag) {
-    let flag = flag.trim().to_owned()
-    if flag == "true" || flag == "1" {
-      return Null
-    }
+  if fixture_nil(v) {
+    return Null
   }
   let kind = match v.attr_namespace(schema_instance, "type") {
     Some(raw) => schema_type_name(v, raw)
