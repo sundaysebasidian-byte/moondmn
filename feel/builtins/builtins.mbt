@@ -1097,7 +1097,7 @@ fn dispatch(
         }
         _ => raise err("E_TYPE", "sort requires a function")
       }
-      insertion_sort(items, compares)
+      sort_with(items, compares)
       List(items)
     }
     "get value" => {
@@ -1728,25 +1728,52 @@ fn quantify_builtin(
 }
 
 ///|
-fn insertion_sort(
+fn sort_with(
   items : Array[@types.Value],
   precedes : @types.FunctionValue,
 ) -> Unit raise @types.EngineError {
-  for i = 1; i < items.length(); i = i + 1 {
-    let value = items[i]
-    let mut j = i
-    while j > 0 {
-      let order = call_function(precedes, [value, items[j - 1]])
-      if order is Boolean(true) {
-        items[j] = items[j - 1]
-        j = j - 1
-      } else if order is Boolean(false) {
-        break
-      } else {
-        raise err("E_TYPE", "sort comparator must return a boolean")
+  let n = items.length()
+  if n < 2 {
+    return
+  }
+  let mut from = items
+  let mut to = items.copy()
+  let mut width = 1
+  while width < n {
+    let mut start = 0
+    while start < n {
+      let middle = start + (n - start).min(width)
+      let end = middle + (n - middle).min(width)
+      let mut left = start
+      let mut right = middle
+      for k = start; k < end; k = k + 1 {
+        let use_right = if left == middle {
+          true
+        } else if right == end {
+          false
+        } else {
+          match call_function(precedes, [from[right], from[left]]) {
+            Boolean(b) => b
+            _ => raise err("E_TYPE", "sort comparator must return a boolean")
+          }
+        }
+        if use_right {
+          to[k] = from[right]
+          right += 1
+        } else {
+          to[k] = from[left]
+          left += 1
+        }
       }
+      start = end
     }
-    items[j] = value
+    let tmp = from
+    from = to
+    to = tmp
+    width = width + (n - width).min(width)
+  }
+  for i, item in from {
+    items[i] = item
   }
 }
 
