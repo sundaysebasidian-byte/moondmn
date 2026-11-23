@@ -43,8 +43,8 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     | "xsd:double"
     | "xs:double"
     | "xsd:float"
-    | "xs:float"
-    | "xsd:integer"
+    | "xs:float" => Number(@types.decimal(text))
+    "xsd:integer"
     | "xs:integer"
     | "xsd:int"
     | "xs:int"
@@ -55,7 +55,26 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     | "xsd:byte"
     | "xs:byte"
     | "xsd:nonNegativeInteger"
-    | "xs:nonNegativeInteger" => Number(@types.decimal(text))
+    | "xs:nonNegativeInteger" => {
+      let digits = if text.has_prefix("-") || text.has_prefix("+") { text[1:] } else { text[:] }
+      if digits.is_empty() || !digits.iter().all(ch => ch >= '0' && ch <= '9') {
+        raise @types.fail("E_TCK_VALUE", "invalid integer lexical form")
+      }
+      let value = @types.decimal(text)
+      let bounds = match kind {
+        "xsd:byte" | "xs:byte" => Some(("-128", "127"))
+        "xsd:short" | "xs:short" => Some(("-32768", "32767"))
+        "xsd:int" | "xs:int" => Some(("-2147483648", "2147483647"))
+        "xsd:long" | "xs:long" => Some(("-9223372036854775808", "9223372036854775807"))
+        _ => None
+      }
+      if (kind.has_suffix("nonNegativeInteger") && value.is_negative()) ||
+        (bounds is Some((lo, hi)) &&
+         (value.compare(@types.decimal(lo)) < 0 || value.compare(@types.decimal(hi)) > 0)) {
+        raise @types.fail("E_TCK_VALUE", "integer is outside the declared XML Schema subtype")
+      }
+      Number(value)
+    }
     "xsd:date" | "xs:date" => Date(@types.parse_date(text))
     "xsd:time" | "xs:time" => Time(@types.parse_time(text))
     "xsd:dateTime" | "xs:dateTime" | "xsd:date-time" | "xs:date-time" =>
