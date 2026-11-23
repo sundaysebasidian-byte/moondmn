@@ -145,14 +145,20 @@ test "r251 imported model namespace URI follows declared DMN version" {
 
 ///|
 test "r251 decision table output clauses enforce their declared type for rules and defaults" {
-  let p = "<decision name='D'><decisionTable><input><inputExpression><text>1</text></inputExpression></input><output typeRef='number'><defaultOutputEntry><text>"
-  let m = "</text></defaultOutputEntry></output><rule><inputEntry><text>"
+  let p = "<decision name='D'><decisionTable><input><inputExpression><text>1</text></inputExpression></input><output name='amount' typeRef='number'><defaultOutputEntry><text>"
+  let m = "</text></defaultOutputEntry></output><output name='unit' typeRef='string'><defaultOutputEntry><text>\"USD\"</text></defaultOutputEntry></output><rule><inputEntry><text>"
   let e = "</text></inputEntry><outputEntry><text>"
-  let s = "</text></outputEntry></rule></decisionTable></decision>"
+  let s = "</text></outputEntry><outputEntry><text>\"USD\"</text></outputEntry></rule></decisionTable></decision>"
   assert_eq(r251_eval(p + "9" + m + "1" + e + "\"word\"" + s), "null")
   assert_eq(r251_eval(p + "\"default\"" + m + "2" + e + "8" + s), "null")
-  assert_eq(r251_eval(p + "[9]" + m + "2" + e + "8" + s), "9")
-  assert_eq(r251_eval(p + "9" + m + "1" + e + "[8]" + s), "8")
+  assert_eq(
+    r251_eval(p + "[9]" + m + "2" + e + "8" + s),
+    "{\"amount\":9,\"unit\":\"USD\"}",
+  )
+  assert_eq(
+    r251_eval(p + "9" + m + "1" + e + "[8]" + s),
+    "{\"amount\":8,\"unit\":\"USD\"}",
+  )
 }
 
 ///|

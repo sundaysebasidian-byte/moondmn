@@ -756,7 +756,7 @@ fn dispatch(
       let body = text(xs[0], name)
       let start = number(xs[1], name).to_int()
       let length = if xs.length() == 3 && !(xs[2] is Null) {
-        Some(number(xs[2], name).floor().to_int())
+        Some(number(xs[2], name))
       } else {
         None
       }
@@ -1210,8 +1210,7 @@ fn dispatch(
         "started by" | "finished by" | "includes" => a_range
         _ => a_range && b_range
       }
-      if !valid ||
-        xs.iter().any(v => v is Range(r) && r.comparison == Some("!=")) {
+      if !valid || !xs.iter().all(range_relation_operand) {
         Null
       } else {
         Boolean(range_relation(name, xs[0], xs[1]))
@@ -1434,7 +1433,11 @@ fn ym_between(
 }
 
 ///|
-fn substring_of(body : String, start : Int32, length : Int32?) -> @types.Value {
+fn substring_of(
+  body : String,
+  start : Int32,
+  length : @types.Decimal?,
+) -> @types.Value raise @types.EngineError {
   let chars = body.to_array()
   let n = chars.length()
   if start == 0 || start < -n || start > n {
@@ -1443,10 +1446,13 @@ fn substring_of(body : String, start : Int32, length : Int32?) -> @types.Value {
   let begin = if start > 0 { start - 1 } else { n + start }
   let finish = match length {
     Some(l) => {
-      if l < 1 || l > n - begin {
+      if l.compare(@types.decimal_int(1)) < 0 ||
+        l.compare(@types.decimal_int(n - begin)) > 0 {
         return Null
       }
-      begin + l
+      // Preserve the existing flooring of fractional lengths, but only
+      // after validating the input against the exact domain.
+      begin + l.floor().to_int()
     }
     None => n
   }
@@ -1845,6 +1851,22 @@ fn compile_regex(
   }
   @string.Regex::Regex(body) catch {
     _ => raise err("E_REGEX", "invalid regular expression: " + pattern)
+  }
+}
+
+///|
+fn range_relation_operand(value : @types.Value) -> Bool {
+  match value {
+    Number(_)
+    | Text(_)
+    | Boolean(_)
+    | Date(_)
+    | DateTime(_)
+    | Time(_)
+    | DaysSeconds(_)
+    | YearsMonths(_) => true
+    Range(r) => r.comparison != Some("!=")
+    _ => false
   }
 }
 

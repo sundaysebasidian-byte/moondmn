@@ -26,6 +26,7 @@ test "r251 substring rejects out of domain bounds without clipping or overflow" 
     source in [
       "substring(\"abc\",0)", "substring(\"abc\",-4)", "substring(\"abc\",4)", "substring(\"abc\",2.5)",
       "substring(\"abc\",2,0)", "substring(\"abc\",2,3)", "substring(\"abc\",2,2147483647)",
+      "substring(\"abc\",2,2.99)", "substring(\"a😀b\",-2,2.0000000001)",
     ] {
     assert_eq(@eval.feel_eval(source).json().stringify(), "null")
   }
@@ -83,6 +84,7 @@ test "r251 bounds relations accept only applicable point or interval signatures"
   for
     source in [
       "meets(1,1)", "overlaps(2,[1..3])", "starts([1..2],1)", "coincides([1..1],1)",
+      "before(null,(<5))", "before([1],(<5))", "after((>5),{k:1})",
     ] {
     assert_eq(@eval.feel_eval(source).text(), "null")
   }
