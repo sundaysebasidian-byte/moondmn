@@ -1,21 +1,28 @@
 ///|
 /// TCK values are parsed without a binary floating-point conversion.
 pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
-  if node.child("list") is Some(list) {
-    return List(list.all("item").map(value))
-  }
+  let lists = node.all("list")
   let components = node.all("component")
+  let scalars = node.all("value")
+  let shapes = lists.length() + scalars.length() + (if components.is_empty() { 0 } else { 1 })
+  if shapes != 1 {
+    raise @types.fail("E_TCK_VALUE", "expected exactly one list, context or scalar value")
+  }
+  if lists.length() == 1 {
+    return List(lists[0].all("item").map(value))
+  }
   if !components.is_empty() {
     let out = Map([])
     for c in components {
-      out[c.attr("name")] = value(c)
+      let name = c.attr("name")
+      if out.contains(name) {
+        raise @types.fail("E_TCK_VALUE", "duplicate context field: " + name)
+      }
+      out[name] = value(c)
     }
     return Context(out)
   }
-  let v = match node.child("value") {
-    Some(v) => v
-    None => raise @types.fail("E_TCK_VALUE", "missing value")
-  }
+  let v = scalars[0]
   let schema_instance = "http://www.w3.org/2001/XMLSchema-instance"
   if v.attr_namespace(schema_instance, "nil") is Some(flag) {
     let flag = flag.trim().to_owned()
