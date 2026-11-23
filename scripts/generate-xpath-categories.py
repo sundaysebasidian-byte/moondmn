@@ -4,7 +4,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 sets = {"xpath_digits": [], "xpath_word_chars": []}
 start = None
-for line in (root / "scripts/UnicodeData-17.0.0.txt").read_text().splitlines():
+for line in (root / "scripts/UnicodeData-17.0.0.txt").read_text(encoding="utf-8").splitlines():
     value, name, category, *_ = line.split(";")
     cp = int(value, 16)
     if name.endswith(", First>"):
@@ -36,4 +36,4 @@ for key, ranges in sets.items():
     out.extend(["///|", f"let {key} : Array[(Int32, Int32)] = ["])
     out.extend(f"  ({lo}, {hi})," for lo, hi in ranges)
     out.extend(["]", ""])
-(root / "feel/builtins/unicode_xpath_categories.mbt").write_text("\n".join(out))
+(root / "feel/builtins/unicode_xpath_categories.mbt").write_text("\n".join(out), encoding="utf-8", newline="\n")

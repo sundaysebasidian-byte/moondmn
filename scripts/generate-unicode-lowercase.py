@@ -4,11 +4,11 @@ import json
 
 root = Path(__file__).resolve().parents[1]
 mapping = {}
-for line in (root/"scripts/UnicodeData-17.0.0.txt").read_text().splitlines():
+for line in (root/"scripts/UnicodeData-17.0.0.txt").read_text(encoding="utf-8").splitlines():
     fields = line.split(";")
     if fields[13]:
         mapping[int(fields[0], 16)] = [int(fields[13], 16)]
-for line in (root/"scripts/SpecialCasing-17.0.0.txt").read_text().splitlines():
+for line in (root/"scripts/SpecialCasing-17.0.0.txt").read_text(encoding="utf-8").splitlines():
     fields = line.partition("#")[0].split(";")
     if len(fields) >= 5 and not fields[4].strip():
         mapping[int(fields[0],16)] = [int(x,16) for x in fields[1].split()]
@@ -39,4 +39,4 @@ else:
     lines += ["let lower_expansions : Map[Int32, String] = {"]
     lines += [f"  {entry}," for entry in expansion_entries]
     lines += ["}", ""]
-(root/"feel/builtins/unicode_lower_data.mbt").write_text("\n".join(lines))
+(root/"feel/builtins/unicode_lower_data.mbt").write_text("\n".join(lines), encoding="utf-8", newline="\n")
