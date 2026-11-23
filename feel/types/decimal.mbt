@@ -735,7 +735,9 @@ pub fn Decimal::log10(self : Decimal) -> Decimal raise EngineError {
   if self.coefficient <= 0N {
     raise fail("E_NUMBER", "logarithm of a non-positive number")
   }
-  from_double(@math.log10(self.to_double()), 8)
+  // The coefficient has at most 34 digits even when the value is outside binary64.
+  let coefficient : Decimal = { coefficient: self.coefficient, scale: 0 }
+  from_double(@math.log10(coefficient.to_double()) - self.scale.to_double(), 8)
 }
 
 ///|
