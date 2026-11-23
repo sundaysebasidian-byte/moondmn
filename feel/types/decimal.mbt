@@ -707,7 +707,26 @@ pub fn Decimal::sample_deviation(
 ///|
 /// Compute the exponential through the floating-point bridge.
 pub fn Decimal::exp(self : Decimal) -> Decimal raise EngineError {
-  from_double(@math.exp(self.to_double()), 8)
+  // Split by a decimal exponent only when direct binary64 exp loses its range.
+  // This remains a binary64 approximation, not a correctly rounded decimal exp.
+  let x = self.to_double()
+  if x > 15000.0 {
+    raise fail("E_NUMBER", "exponential exceeds decimal128 range")
+  }
+  if x < -15000.0 {
+    return zero()
+  }
+  if x > -700.0 && x < 700.0 {
+    return decimal(@math.exp(x).to_string())
+  }
+  let log_ten = @math.ln(10.0)
+  let exponent = (x / log_ten).to_int()
+  let mantissa = decimal(@math.exp(x - exponent.to_double() * log_ten).to_string())
+  normalize(mantissa.coefficient, mantissa.scale - exponent) catch {
+    Failure("E_DECIMAL_RANGE", _, _, _) =>
+      raise fail("E_NUMBER", "exponential exceeds decimal128 range")
+    e => raise e
+  }
 }
 
 ///|
