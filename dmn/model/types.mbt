@@ -224,17 +224,6 @@ fn validate_definition(
 }
 
 ///|
-fn validate_variable(
-  model : Model,
-  node : @xml.Node,
-  value : @types.Value,
-) -> Unit raise @types.EngineError {
-  if node.child("variable") is Some(variable) {
-    validate_type(model, variable.attr("typeRef"), value, 0)
-  }
-}
-
-///|
 /// Apply FEEL singleton adaptation before checking the declared type.
 fn coerce_type(
   model : Model,

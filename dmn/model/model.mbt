@@ -339,8 +339,7 @@ fn evaluate_named(
             Some(n) => n
             None => raise @types.fail("E_REFERENCE", "unknown decision: " + dep)
           }
-          validate_variable(model, node, value)
-          ctx[dep] = value
+          ctx[dep] = coerce_variable(model, node, value)
         } else {
           ctx[dep] = evaluate_named(model, dep, inputs, cache, visiting)
         }
