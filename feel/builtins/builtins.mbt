@@ -949,7 +949,7 @@ fn dispatch(
     "insert before" => {
       arity(name, xs, 3, 3)
       let items = list(xs[0], name).copy()
-      let position = index_of_value(xs[1], name)
+      let position = number(xs[1], name).to_int()
       let at = if position < 0 {
         items.length() + position
       } else {
@@ -964,7 +964,7 @@ fn dispatch(
     "remove" => {
       arity(name, xs, 2, 2)
       let items = list(xs[0], name).copy()
-      let position = index_of_value(xs[1], name)
+      let position = number(xs[1], name).to_int()
       let at = if position < 0 {
         items.length() + position
       } else {
