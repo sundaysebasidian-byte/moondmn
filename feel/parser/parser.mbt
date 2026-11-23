@@ -291,12 +291,42 @@ fn Parser::type_name(p : Parser) -> String raise @types.EngineError {
         p.expect(":")
         let ty = p.type_name()
         fields.push(field.text + ": " + ty)
-        if p.at(",") {
-          ignore(p.take())
+        if p.at(">") {
+          break
+        }
+        p.expect(",")
+        if p.at(">") {
+          let end = p.peek()
+          raise @types.Failure(
+            "E_PARSE",
+            end.line,
+            end.column,
+            "expected a context type field after comma",
+          )
         }
       }
       p.expect(">")
       name = name + "<" + join_fields(fields) + ">"
+    } else if name.to_lower() == "function" {
+      let types = []
+      while !p.at(">") && p.peek().kind != "eof" {
+        types.push(p.type_name())
+        if p.at(">") {
+          break
+        }
+        p.expect(",")
+        if p.at(">") {
+          let end = p.peek()
+          raise @types.Failure(
+            "E_PARSE",
+            end.line,
+            end.column,
+            "expected a function parameter type after comma",
+          )
+        }
+      }
+      p.expect(">")
+      name = name + "<" + join_fields(types) + ">"
     } else {
       let inner = p.type_name()
       p.expect(">")

@@ -1,4 +1,11 @@
-# 0.2.2 (Unreleased)
+# 0.3.0
+
+- FEEL 区间可解析带引号和转义的端点，并可用字符串往返文本、日期、时间及时长区间。补齐命名点／区间关系、嵌套结构类型和多参数函数类型声明的支持。
+- 决策表与模型检查能区分缺失和错误类型的依赖，识别不完整的规则和不受支持的表达式语言，并校验默认输出及重复输出列。
+- 减少十进制求和、时间解析、决策表排序和覆盖检查的重复工作。优化保持所测输入的输出与顺序。
+- 保留以往的小数秒精度行为及未绑定 Java 函数的限制。
+
+# 0.2.2
 
 - Reproduce and audit fractional-second equality cases `time_005` / `datetime_003_a`: retain exact fractions under DMN 1.5 value equality; document expected/actual, 18 precision probes and a zero-change TCK delta. L3 remains 3271/3291; no engine or runner changes.
 
@@ -6,7 +13,6 @@
 - Check now/today arity before clock availability; forward CLI --now through every TCK invocable kind. L2 116/116, L3 3271/3291: 18 JVM cases and 2 fractional-second differences still fail.
 - Compare/subtract same-name zoned times without inventing a reference date; unresolved cross-zone time operations report E_ZONE_AMBIGUOUS.
 - Add EngineError.to_string(), tracked audit corpora, four-backend regressions and corrected source/published-version and coverage documentation.
-- Not published; GitHub topics/Release and the existing mooncakes page are unchanged.
 
 # Changelog
 

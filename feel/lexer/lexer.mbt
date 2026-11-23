@@ -15,11 +15,14 @@ fn slice(chars : Array[Char], start : Int32, end : Int32) -> String {
 
 ///|
 fn word_char(ch : Char) -> Bool {
-  name_start(ch) ||
-  ch.is_ascii_digit() ||
-  ch == '\u00B7' ||
-  (ch.to_int() >= 0x300 && ch.to_int() <= 0x36F) ||
-  (ch.to_int() >= 0x203F && ch.to_int() <= 0x2040)
+  !space_char(ch) &&
+  (
+    name_start(ch) ||
+    ch.is_ascii_digit() ||
+    ch == '\u00B7' ||
+    (ch.to_int() >= 0x300 && ch.to_int() <= 0x36F) ||
+    (ch.to_int() >= 0x203F && ch.to_int() <= 0x2040)
+  )
 }
 
 ///|
@@ -120,6 +123,12 @@ fn decode_string(
 }
 
 ///|
+fn vertical_space(ch : Char) -> Bool {
+  let code = ch.to_int()
+  code >= 0xA && code <= 0xD
+}
+
+///|
 /// Scan a double quoted string starting at the opening quote. Returns the
 /// index just after the closing quote.
 fn scan_string(
@@ -132,12 +141,15 @@ fn scan_string(
   let mut closed = false
   while i < chars.length() {
     let ch = chars[i]
-    if ch == '\n' || ch == '\r' {
+    if vertical_space(ch) {
       raise @types.Failure("E_LEX", line, column, "newline in string")
     }
     if ch == '\\' {
       if i + 1 >= chars.length() {
         raise @types.Failure("E_LEX", line, column, "unterminated escape")
+      }
+      if vertical_space(chars[i + 1]) {
+        raise @types.Failure("E_LEX", line, column, "newline in string")
       }
       i = i + 2
     } else if ch == '"' {
@@ -156,7 +168,20 @@ fn scan_string(
 
 ///|
 fn space_char(ch : Char) -> Bool {
-  ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r'
+  let c = ch.to_int()
+  (c >= 0x9 && c <= 0xD) ||
+  c == 0x20 ||
+  c == 0x85 ||
+  c == 0xA0 ||
+  c == 0x1680 ||
+  c == 0x180E ||
+  (c >= 0x2000 && c <= 0x200B) ||
+  c == 0x2028 ||
+  c == 0x2029 ||
+  c == 0x202F ||
+  c == 0x205F ||
+  c == 0x3000 ||
+  c == 0xFEFF
 }
 
 ///|
@@ -187,17 +212,42 @@ fn name_at(chars : Array[Char], at : Int32, name : String) -> Int32 {
 }
 
 ///|
+fn by_initial(names : Array[String]) -> Map[Char, Array[String]] {
+  let index : Map[Char, Array[String]] = Map([])
+  for name in names {
+    match name.iter().next() {
+      Some(first) =>
+        match index.get(first) {
+          Some(group) => group.push(name)
+          None => index[first] = [name]
+        }
+      None => ()
+    }
+  }
+  index
+}
+
+///|
 /// Length of the longest known name starting at `at`, or zero.
 fn known_length(
   chars : Array[Char],
   at : Int32,
   names : Array[String],
+  index : Map[Char, Array[String]]?,
 ) -> Int32 {
   if at > 0 && word_char(chars[at - 1]) {
     return 0
   }
   let mut best = 0
-  for name in names {
+  let group = match index {
+    Some(groups) =>
+      match groups.get(chars[at]) {
+        Some(group) => group
+        None => return 0
+      }
+    None => names
+  }
+  for name in group {
     let n = name_at(chars, at, name)
     if n > best {
       let end = at + n
@@ -240,8 +290,21 @@ pub fn lex(
   properties~ : Array[String] = [],
 ) -> Array[Token] raise @types.EngineError {
   let chars = source.to_array()
-  let scoped_properties = names.copy()
-  scoped_properties.append(properties)
+  let scoped_properties = if properties.is_empty() {
+    names
+  } else {
+    let all = names.copy()
+    all.append(properties)
+    all
+  }
+  // Short rules and numeric literals do not amortize building the index.
+  let use_index = chars.length() >= 32 && names.length() >= 16
+  let known_names = if use_index { Some(by_initial(names)) } else { None }
+  let known_properties = if !use_index || properties.is_empty() {
+    known_names
+  } else {
+    Some(by_initial(scoped_properties))
+  }
   if chars.length() > 100000 {
     raise @types.fail("E_LIMIT", "expression too long")
   }
@@ -251,9 +314,11 @@ pub fn lex(
   let mut col = 1
   while i < chars.length() {
     let ch = chars[i]
-    if ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n' {
-      if ch == '\n' {
-        line = line + 1
+    if space_char(ch) {
+      if ch == '\n' || ch == '\r' {
+        if !(ch == '\n' && i > 0 && chars[i - 1] == '\r') {
+          line = line + 1
+        }
         col = 1
       } else {
         col = col + 1
@@ -262,17 +327,19 @@ pub fn lex(
       continue
     }
     if ch == '/' && i + 1 < chars.length() && chars[i + 1] == '/' {
+      let start = i
       i = i + 2
-      while i < chars.length() && chars[i] != '\n' {
+      while i < chars.length() && chars[i] != '\n' && chars[i] != '\r' {
         i = i + 1
       }
-      col = col + 1
+      col = col + i - start
       continue
     }
     if ch == '/' && i + 1 < chars.length() && chars[i + 1] == '*' {
       let start_line = line
       let start_col = col
       i = i + 2
+      col = col + 2
       let mut closed = false
       while i + 1 < chars.length() {
         if chars[i] == '*' && chars[i + 1] == '/' {
@@ -280,8 +347,10 @@ pub fn lex(
           closed = true
           break
         }
-        if chars[i] == '\n' {
-          line = line + 1
+        if chars[i] == '\n' || chars[i] == '\r' {
+          if !(chars[i] == '\n' && chars[i - 1] == '\r') {
+            line = line + 1
+          }
           col = 1
         } else {
           col = col + 1
@@ -293,7 +362,7 @@ pub fn lex(
           "E_LEX", start_line, start_col, "unterminated comment",
         )
       }
-      col = col + 1
+      col = col + 2
       continue
     }
     let start = i
@@ -363,9 +432,6 @@ pub fn lex(
           }
         }
       }
-    } else if ch == '?' {
-      kind = "name"
-      i = i + 1
     } else if known_length(
         chars,
         i,
@@ -373,6 +439,11 @@ pub fn lex(
           scoped_properties
         } else {
           names
+        },
+        if out.get(out.length() - 1) is Some(t) && t.text == "." {
+          known_properties
+        } else {
+          known_names
         },
       ) >
       0 {
@@ -385,6 +456,11 @@ pub fn lex(
             scoped_properties
           } else {
             names
+          },
+          if out.get(out.length() - 1) is Some(t) && t.text == "." {
+            known_properties
+          } else {
+            known_names
           },
         )
     } else if name_start(ch) || ch == '_' {
@@ -445,6 +521,7 @@ pub fn lex(
 fn name_start(ch : Char) -> Bool {
   let c = ch.to_int()
   ch.is_ascii_alphabetic() ||
+  ch == '?' ||
   ch == '_' ||
   (c >= 0xC0 && c <= 0xD6) ||
   (c >= 0xD8 && c <= 0xF6) ||

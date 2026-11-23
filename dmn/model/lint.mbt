@@ -3,20 +3,35 @@
 pub fn lint(model : Model) -> Json {
   let findings = []
   for name, decision in model.decisions {
-    for req in decision.all("informationRequirement") {
+    let requirements = decision.all("informationRequirement")
+    requirements.append(decision.all("knowledgeRequirement"))
+    for req in requirements {
       for reference in req.children {
+        if reference.uri != req.uri ||
+          reference.name == "description" ||
+          reference.name == "extensionElements" {
+          continue
+        }
         let href = reference.attr("href")
         let valid = try {
           if href.has_prefix("#") ||
             href.has_prefix(model.root.attr("namespace") + "#") {
-            ignore(href_id(model, href))
+            let target = href_id(model, href)
+            if reference.name == "requiredKnowledge" {
+              check_requirement_target(model, reference, target)
+            }
             true
           } else {
             model.imports.any(pair => {
-              href.has_prefix(pair.1.root.attr("namespace") + "#") &&
-              pair.1.ids.contains(
-                href.split("#").to_array().last().unwrap_or("").to_owned(),
-              )
+              if href.has_prefix(pair.1.root.attr("namespace") + "#") {
+                let target = href_id(pair.1, href)
+                if reference.name == "requiredKnowledge" {
+                  check_requirement_target(pair.1, reference, target)
+                }
+                true
+              } else {
+                false
+              }
             })
           }
         } catch {
@@ -36,10 +51,35 @@ pub fn lint(model : Model) -> Json {
     }
     let expr = expression(decision) catch { _ => continue }
     if expr.name == "decisionTable" {
+      let policy = expr.attr("hitPolicy")
+      if expr.attr("aggregation") != "" &&
+        !["COLLECT", "C+", "C<", "C>", "C#"].contains(policy) {
+        findings.push(
+          finding(
+            "W_IGNORED_AGGREGATION", name, "aggregation applies only to Collect policies",
+            expr,
+          ),
+        )
+      }
       let signatures = Map([])
+      let columns = expr.all("input").length()
+      let outputs = expr.all("output").length()
       let mut wildcard = false
       for rule in expr.all("rule") {
-        let tests = rule.all("inputEntry").map(n => n.content("text"))
+        let cells = rule.all("inputEntry")
+        let tests = cells.map(n => n.content("text"))
+        let supported = cells
+          .iter()
+          .all(cell => lint_feel_language(model, cell))
+        if !supported {
+          for cell in cells {
+            if !lint_feel_language(model, cell) {
+              findings.push(
+                finding("E_LANGUAGE", name, "non-FEEL input entry", cell),
+              )
+            }
+          }
+        }
         let signature = Json(tests).stringify()
         if signatures.contains(signature) {
           findings.push(
@@ -50,7 +90,11 @@ pub fn lint(model : Model) -> Json {
           )
         }
         signatures[signature] = true
-        if tests.iter().all(t => t == "-") {
+        if supported &&
+          outputs > 0 &&
+          tests.length() == columns &&
+          rule.all("outputEntry").length() == outputs &&
+          tests.iter().all(t => t == "-" || t == "") {
           wildcard = true
         }
       }
@@ -86,6 +130,16 @@ fn finding(
 }
 
 ///|
+fn lint_feel_language(model : Model, node : @xml.Node) -> Bool {
+  try {
+    require_feel_language(model, node)
+    true
+  } catch {
+    _ => false
+  }
+}
+
+///|
 fn enumeration(text : String) -> Array[@types.Value]? {
   let result = @eval.feel_eval("[" + text + "]") catch { _ => return None }
   match result {
@@ -116,6 +170,9 @@ fn declared_domain(
   if depth > 32 {
     return None
   }
+  if imported_type(model, name) is Some((child, rest)) {
+    return declared_domain(child, rest, depth + 1)
+  }
   for definition in model.root.all("itemDefinition") {
     if definition.attr("name") == name {
       if definition.child("allowedValues") is Some(allowed) {
@@ -133,6 +190,9 @@ fn proves_coverage(model : Model, table : @xml.Node) -> Bool {
   let mut combinations = 1
   for input in table.all("input") {
     let domain = if input.child("inputValues") is Some(allowed) {
+      if !lint_feel_language(model, allowed) {
+        return false
+      }
       enumeration(allowed.content("text"))
     } else {
       let expression = match input.child("inputExpression") {
@@ -162,12 +222,34 @@ fn proves_coverage(model : Model, table : @xml.Node) -> Bool {
   if domains.is_empty() {
     return false
   }
-  let predicates = table
+  let output_columns = table.all("output").length()
+  if output_columns == 0 ||
+    table
     .all("rule")
-    .map(rule => rule.all("inputEntry").map(entry => entry.content("text")))
+    .iter()
+    .any(rule => rule.all("outputEntry").length() != output_columns) {
+    return false
+  }
+  let rules = table.all("rule")
+  if rules
+    .iter()
+    .any(rule => {
+      rule
+      .all("inputEntry")
+      .iter()
+      .any(entry => !lint_feel_language(model, entry))
+    }) {
+    return false
+  }
+  let predicates = rules.map(rule => {
+    rule.all("inputEntry").map(entry => entry.content("text"))
+  })
   if predicates.iter().any(rule => rule.length() != domains.length()) {
     return false
   }
+  let compiled : Map[String, @parser.Test] = Map([])
+  let lexical_names = @builtins.names()
+  lexical_names.push("?")
   for combination = 0; combination < combinations; combination = combination + 1 {
     let tuple = []
     let mut index = combination
@@ -179,9 +261,22 @@ fn proves_coverage(model : Model, table : @xml.Node) -> Bool {
     for rule in predicates {
       let mut matched = true
       for i, predicate in rule {
-        if !(@eval.unary_test(predicate, tuple[i], Map([])) catch {
-            _ => return false
-          }) {
+        let hit = try {
+          let check = match compiled.get(predicate) {
+            Some(check) => check
+            None => {
+              let check = @parser.compile_test(predicate, names=lexical_names)
+              if compiled.length() < 256 && predicate.length() <= 4096 {
+                compiled[predicate] = check
+              }
+              check
+            }
+          }
+          @eval.test_matches(check, tuple[i], Map([("?", tuple[i])]))
+        } catch {
+          _ => return false
+        }
+        if !hit {
           matched = false
         }
       }

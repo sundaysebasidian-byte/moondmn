@@ -133,6 +133,7 @@ fn imported_requirement(
       @types.Failure(code, _, _, message) =>
         raise @types.Failure(code, reference.line, reference.column, message)
     }
+    check_requirement_target(child, reference, name)
     if !import_visible(model, qualifier, child, name) {
       return true
     }

@@ -77,17 +77,29 @@ pub fn Range::overlaps(a : Range, b : Range) -> Bool raise EngineError {
 }
 
 ///|
+fn range_literal_text(value : Value) -> String {
+  match value {
+    Text(s) => Json(s).stringify()
+    // A zone name can itself contain T (e.g. Asia/Tokyo).
+    Time(_) => "time(" + Json(value.text()).stringify() + ")"
+    Date(_) | DateTime(_) | DaysSeconds(_) | YearsMonths(_) =>
+      "@" + Json(value.text()).stringify()
+    _ => value.text()
+  }
+}
+
+///|
 /// Format range endpoints and inclusion brackets.
 pub fn Range::text(range : Range) -> String {
   if range.comparison is Some(op) && range.start is Some(bound) {
     return "(" + op + bound.text() + ")"
   }
   let low = match range.start {
-    Some(v) => v.text()
+    Some(v) => range_literal_text(v)
     None => ""
   }
   let high = match range.end {
-    Some(v) => v.text()
+    Some(v) => range_literal_text(v)
     None => ""
   }
   let left = if range.start_included { "[" } else { "(" }

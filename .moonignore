@@ -1,0 +1,6 @@
+# Historical validation data is maintained in the source repository, not distributed with the module.
+/docs/evidence/
+/evidence/
+
+# The Playground build is deployed separately from the source package.
+/web/dist/

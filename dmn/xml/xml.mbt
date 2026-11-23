@@ -4,6 +4,8 @@ pub struct Node {
   name : String
   uri : String
   attributes : Map[String, String]
+  priv expanded_attributes : Map[String, String]?
+  priv namespace_prefixes : Map[String, String]
   children : Array[Node]
   mut text : String
   line : Int32
@@ -17,6 +19,15 @@ pub fn Node::attr(n : Node, key : String) -> String {
 }
 
 ///|
+/// Return an attribute by its namespace URI and local name.
+pub fn Node::attr_namespace(n : Node, uri : String, name : String) -> String? {
+  match n.expanded_attributes {
+    Some(attributes) => attributes.get(uri + "#" + name)
+    None => None
+  }
+}
+
+///|
 /// Return direct children matching this node namespace and local name.
 pub fn Node::all(n : Node, name : String) -> Array[Node] {
   n.children.filter(x => x.name == name && x.uri == n.uri)
@@ -25,7 +36,12 @@ pub fn Node::all(n : Node, name : String) -> Array[Node] {
 ///|
 /// Return the first direct child matching namespace and local name.
 pub fn Node::child(n : Node, name : String) -> Node? {
-  n.all(name).get(0)
+  for child in n.children {
+    if child.name == name && child.uri == n.uri {
+      return Some(child)
+    }
+  }
+  None
 }
 
 ///|
@@ -38,19 +54,46 @@ pub fn Node::content(n : Node, name : String) -> String {
 }
 
 ///|
-fn node(e : @upstream.NamespaceElement, line : Int32, column : Int32) -> Node {
+/// Resolve an in-scope prefix; an empty prefix denotes the default.
+pub fn Node::namespace_uri(n : Node, prefix : String) -> String? {
+  if prefix == "xml" {
+    Some("http://www.w3.org/XML/1998/namespace")
+  } else {
+    n.namespace_prefixes.get(prefix)
+  }
+}
+
+///|
+fn node(
+  e : @upstream.NamespaceElement,
+  namespace_prefixes : Map[String, String],
+  line : Int32,
+  column : Int32,
+) -> Node {
   let attributes = Map([])
+  let mut expanded_attributes : Map[String, String]? = None
   for a in e.attributes {
-    if a.name.namespace_uri is None {
-      attributes[a.name.local_name] = a.value
-    } else {
+    if a.name.namespace_uri is Some(uri) {
       attributes[a.name.qualified_name] = a.value
+      let expanded = match expanded_attributes {
+        Some(fields) => fields
+        None => {
+          let fields = Map([])
+          expanded_attributes = Some(fields)
+          fields
+        }
+      }
+      expanded[uri + "#" + a.name.local_name] = a.value
+    } else {
+      attributes[a.name.local_name] = a.value
     }
   }
   {
     name: e.name.local_name,
     uri: e.name.namespace_uri.unwrap_or(""),
     attributes,
+    expanded_attributes,
+    namespace_prefixes,
     children: [],
     text: "",
     line,
@@ -79,7 +122,25 @@ pub fn parse(source : String) -> Node raise @types.EngineError {
     }
     match ev.kind {
       Start(e) | Empty(e) => {
-        let n = node(e, ev.span.start.line, ev.span.start.column)
+        let inherited = match stack.last() {
+          Some(parent) => parent.namespace_prefixes
+          None => Map([])
+        }
+        let prefixes = if e.namespace_declarations.is_empty() {
+          inherited
+        } else {
+          let scope = inherited.copy()
+          for declaration in e.namespace_declarations {
+            let prefix = declaration.prefix.unwrap_or("")
+            if declaration.namespace_uri == "" {
+              ignore(scope.remove(prefix))
+            } else {
+              scope[prefix] = declaration.namespace_uri
+            }
+          }
+          scope
+        }
+        let n = node(e, prefixes, ev.span.start.line, ev.span.start.column)
         if stack.length() == 0 {
           root = Some(n)
         } else {
