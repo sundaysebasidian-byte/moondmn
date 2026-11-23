@@ -34,6 +34,11 @@ fn expression_child(node : @xml.Node) -> @xml.Node raise @types.EngineError {
 }
 
 ///|
+fn is_requirement_reference(req : @xml.Node, ref : @xml.Node) -> Bool {
+  ref.uri == req.uri && ref.name != "description" && ref.name != "extensionElements"
+}
+
+///|
 /// Parse namespace-aware DMN XML and index its named elements.
 pub fn parse_model(
   source : String,
@@ -303,6 +308,9 @@ fn evaluate_named(
   }
   for req in decision.all("informationRequirement") {
     for reference in req.children {
+      if !is_requirement_reference(req, reference) {
+        continue
+      }
       let href = reference.attr("href")
       if imported_requirement(model, reference, inputs, ctx) {
         continue
@@ -331,6 +339,9 @@ fn evaluate_named(
   }
   for req in decision.all("knowledgeRequirement") {
     for reference in req.children {
+      if !is_requirement_reference(req, reference) {
+        continue
+      }
       let href = reference.attr("href")
       if imported_requirement(model, reference, inputs, ctx) {
         continue
@@ -385,6 +396,9 @@ fn bkm_function(
   import_scope(model, outer, captured)
   for req in node.all("knowledgeRequirement") {
     for reference in req.children {
+      if !is_requirement_reference(req, reference) {
+        continue
+      }
       let href = reference.attr("href")
       if imported_requirement(model, reference, outer, captured) {
         continue

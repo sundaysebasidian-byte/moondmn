@@ -7,9 +7,7 @@ pub fn lint(model : Model) -> Json {
     requirements.append(decision.all("knowledgeRequirement"))
     for req in requirements {
       for reference in req.children {
-        if reference.uri != req.uri ||
-          reference.name == "description" ||
-          reference.name == "extensionElements" {
+        if !is_requirement_reference(req, reference) {
           continue
         }
         let href = reference.attr("href")
