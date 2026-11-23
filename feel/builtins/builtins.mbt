@@ -571,6 +571,9 @@ fn dispatch(
         } else {
           @types.zero()
         }
+        if seconds.compare(seconds.round(9)) != 0 {
+          raise err("E_TIME_INVALID", "more than nanosecond precision")
+        }
         let second = seconds.floor().to_int()
         let nanos = @types.decimal_to_scaled(
           seconds.add(@types.decimal_int(second).negate()),
