@@ -163,6 +163,7 @@ fn load_model(
   let bkms = Map([])
   let services = Map([])
   let ids = Map([])
+  let drg_names : Map[String, Bool] = Map([])
   for node in root.children {
     if node.uri != root.uri {
       continue
@@ -175,9 +176,12 @@ fn load_model(
           raise @types.fail("E_DMN_ID", "missing name or id")
         }
         let name = if declared == "" { id } else { declared }
-        if ids.contains(id) || ids.values().any(x => x == name) {
-          raise @types.fail("E_DUPLICATE", "duplicate DMN id or name")
+        if (id != "" && ids.contains(id)) || drg_names.contains(name) {
+          raise @types.Failure(
+            "E_DUPLICATE", node.line, node.column, "duplicate DMN id or name: " + name,
+          )
         }
+        drg_names[name] = true
         if id != "" {
           ids[id] = name
         }
