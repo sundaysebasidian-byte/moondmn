@@ -7,6 +7,7 @@ pub struct Model {
   services : Map[String, @xml.Node]
   ids : Map[String, String]
   imports : Array[(String, Model)]
+  priv integer_table_tests : Map[String, @parser.Test]
 }
 
 ///|
@@ -224,7 +225,9 @@ fn load_model(
       )
     }
   }
-  { root, decisions, bkms, services, ids, imports, }
+  let integer_table_tests = Map([])
+  collect_integer_table_tests(root, integer_table_tests)
+  { root, decisions, bkms, services, ids, imports, integer_table_tests, }
 }
 
 ///|
@@ -295,6 +298,7 @@ fn evaluate_named(
         continue
       }
       let dep = href_id(model, href)
+      check_requirement_target(model, reference, dep)
       if reference.name == "requiredDecision" {
         if inputs.get(dep) is Some(value) {
           let node = match model.decisions.get(dep) {
@@ -322,6 +326,7 @@ fn evaluate_named(
         continue
       }
       let dep = href_id(model, href)
+      check_requirement_target(model, reference, dep)
       if model.bkms.get(dep) is Some(bkm) {
         ctx[dep] = bkm_function(model, bkm, ctx, 0)
       } else if model.services.get(dep) is Some(service) {
@@ -375,6 +380,7 @@ fn bkm_function(
         continue
       }
       let dep = href_id(model, href)
+      check_requirement_target(model, reference, dep)
       if model.bkms.get(dep) is Some(bkm) {
         captured[dep] = bkm_function(model, bkm, outer, depth + 1)
       } else if model.services.get(dep) is Some(service) {
@@ -412,16 +418,12 @@ fn bkm_function(
             name: "result",
             params: [],
             callback: _ => {
-              if logic.attr("kind") == "Java" {
-                java_boxed(model, body, scope, params.map(p => scope[p]))
-              } else {
-                boxed(model, body, scope)
-              }
+              evaluate_function_body(model, logic, body, scope, params)
             },
           }),
         ) {
         Function(f) => (f.callback)([])
-        _ => boxed(model, body, scope)
+        _ => evaluate_function_body(model, logic, body, scope, params)
       }
     },
   })
@@ -474,6 +476,44 @@ fn service_function(
       }
     },
   })
+}
+
+///|
+fn check_requirement_target(
+  model : Model,
+  reference : @xml.Node,
+  name : String,
+) -> Unit raise @types.EngineError {
+  let href = reference.attr("href")
+  let id = href.split("#").to_array().last().unwrap_or("").to_owned()
+  fn same_id(node : @xml.Node) {
+    node.attr("id") == id
+  }
+  let valid = match reference.name {
+    "requiredInput" =>
+      model.root
+      .all("inputData")
+      .iter()
+      .any(node => {
+        let stated = node.attr("name")
+        let actual = if stated == "" { node.attr("id") } else { stated }
+        actual == name && same_id(node)
+      })
+    "requiredDecision" =>
+      model.decisions.get(name) is Some(node) && same_id(node)
+    "requiredKnowledge" =>
+      (model.bkms.get(name) is Some(node) && same_id(node)) ||
+      (model.services.get(name) is Some(node) && same_id(node))
+    _ => true
+  }
+  if !valid {
+    raise @types.Failure(
+      "E_REFERENCE",
+      reference.line,
+      reference.column,
+      "wrong target kind for " + reference.name + ": " + href,
+    )
+  }
 }
 
 ///|
@@ -607,24 +647,72 @@ pub fn evaluate_service(
 }
 
 ///|
+fn evaluate_function_body(
+  model : Model,
+  definition : @xml.Node,
+  body : @xml.Node,
+  scope : Map[String, @types.Value],
+  params : Array[String],
+) -> @types.Value raise @types.EngineError {
+  match definition.attr("kind") {
+    "" | "FEEL" => boxed(model, body, scope)
+    "Java" => java_boxed(model, body, scope, params.map(p => scope[p]))
+    kind =>
+      raise @types.fail(
+        "E_DMN_UNSUPPORTED",
+        "unsupported function kind: " + kind,
+      )
+  }
+}
+
+///|
+fn require_feel_language(
+  model : Model,
+  node : @xml.Node,
+) -> Unit raise @types.EngineError {
+  let explicit = node.attr("expressionLanguage").trim().to_owned()
+  let language = if explicit == "" {
+    model.root.attr("expressionLanguage").trim().to_owned()
+  } else {
+    explicit
+  }
+  if language != "" &&
+    ![
+      "FEEL", "http://www.omg.org/spec/FEEL/20140401", "http://www.omg.org/spec/DMN/20180521/FEEL/",
+      "https://www.omg.org/spec/DMN/20180521/FEEL/", "https://www.omg.org/spec/DMN/20191111/FEEL/",
+      "https://www.omg.org/spec/DMN/20211108/FEEL/", "https://www.omg.org/spec/DMN/20230324/FEEL/",
+    ].contains(language) {
+    raise @types.fail("E_LANGUAGE", "non-FEEL expression language")
+  }
+}
+
+///|
+fn eval_literal(
+  model : Model,
+  node : @xml.Node,
+  ctx : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  require_feel_language(model, node)
+  @eval.feel_eval(node.content("text"), ctx~)
+}
+
+///|
 fn boxed_raw(
   model : Model,
   node : @xml.Node,
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
   match node.name {
-    "decisionTable" => table(node, ctx)
-    "literalExpression" => {
-      let language = node.attr("expressionLanguage")
-      if language != "" && !language.contains("FEEL") {
-        raise @types.fail("E_LANGUAGE", "non-FEEL expression language")
-      }
-      @eval.feel_eval(node.content("text"), ctx~)
-    }
+    "decisionTable" => table(model, node, ctx)
+    "literalExpression" => eval_literal(model, node, ctx)
     "list" =>
       List(
         node.children
-        .filter(n => n.uri == node.uri)
+        .filter(n => {
+          n.uri == node.uri &&
+          n.name != "description" &&
+          n.name != "extensionElements"
+        })
         .map(n => boxed(model, n, ctx)),
       )
     "context" => {
@@ -640,6 +728,12 @@ fn boxed_raw(
         match entry.child("variable") {
           Some(v) => {
             let name = v.attr("name")
+            if out.contains(name) {
+              raise @types.fail(
+                "E_DMN_CONTEXT",
+                "duplicate context entry: " + name,
+              )
+            }
             scope[name] = value
             out[name] = value
           }
@@ -676,7 +770,18 @@ fn boxed_raw(
       }
     }
     "relation" => {
-      let columns = node.all("column").map(c => c.attr("name"))
+      let columns = node.all("column")
+      let names : Map[String, Bool] = Map([])
+      for column in columns {
+        let name = column.attr("name")
+        if names.contains(name) {
+          raise @types.fail(
+            "E_DMN_RELATION",
+            "duplicate relation column: " + name,
+          )
+        }
+        names[name] = true
+      }
       let rows = []
       for row in node.all("row") {
         let values = row.children.filter(n => {
@@ -687,7 +792,16 @@ fn boxed_raw(
         }
         let record = Map([])
         for i, value in values {
-          record[columns[i]] = boxed(model, value, ctx)
+          let column = columns[i]
+          let value = boxed(model, value, ctx)
+          let type_name = column.attr("typeRef")
+          // XML QName type resolution is not implemented for relations.
+          // Preserve the earlier pass-through for qualified external types.
+          record[column.attr("name")] = if type_name.contains(":") {
+            value
+          } else {
+            coerce_type(model, type_name, value, 0)
+          }
         }
         rows.push(@types.Context(record))
       }
@@ -716,11 +830,7 @@ fn boxed_raw(
               0,
             )
           }
-          if node.attr("kind") == "Java" {
-            java_boxed(model, body, scope, params.map(p => scope[p]))
-          } else {
-            boxed(model, body, scope)
-          }
+          evaluate_function_body(model, node, body, scope, params)
         },
       })
     }
@@ -811,17 +921,40 @@ fn filter_items(
   predicate : @xml.Node,
   ctx : Map[String, @types.Value],
 ) -> @types.Value raise @types.EngineError {
+  let mut cached_fields : Map[String, Bool]? = None
+  let row_fields = () => {
+    match cached_fields {
+      Some(fields) => fields
+      None => {
+        let combined : Map[String, Bool] = Map([])
+        for item in items {
+          if item is Context(fields) {
+            for name, _ in fields {
+              combined[name] = true
+            }
+          }
+        }
+        cached_fields = Some(combined)
+        combined
+      }
+    }
+  }
   let first = if items.is_empty() {
     boxed(model, predicate, ctx)
   } else {
-    boxed(model, predicate, scope_with(ctx, "item", items[0]))
+    boxed_filter_predicate(model, predicate, ctx, items[0], row_fields)
   }
   match first {
     Number(n) => {
       if !n.is_integer() {
         raise @types.fail("E_DMN_FILTER", "filter index must be an integer")
       }
-      let at = n.to_int()
+      let position = n.to_int()
+      let at = if position < 0 {
+        items.length() + position + 1
+      } else {
+        position
+      }
       if at < 1 || at > items.length() {
         Null
       } else {
@@ -832,7 +965,7 @@ fn filter_items(
       let out = []
       for item in items {
         let keep = match
-          boxed(model, predicate, scope_with(ctx, "item", item)) {
+          boxed_filter_predicate(model, predicate, ctx, item, row_fields) {
           Boolean(b) => b
           Null => false
           _ => return Null
@@ -844,6 +977,57 @@ fn filter_items(
       List(out)
     }
   }
+}
+
+///|
+fn boxed_filter_predicate(
+  model : Model,
+  predicate : @xml.Node,
+  ctx : Map[String, @types.Value],
+  item : @types.Value,
+  row_fields : () -> Map[String, Bool],
+) -> @types.Value raise @types.EngineError {
+  let scope = boxed_filter_scope(ctx, item)
+  boxed(model, predicate, scope) catch {
+    @types.Failure("E_NAME", line, column, message) =>
+      if predicate.name == "literalExpression" &&
+        item is Context(_) &&
+        message.strip_prefix("unknown name: ") is Some(field) &&
+        !scope.contains(field.to_owned()) &&
+        directly_compares_column(predicate.content("text"), field.to_owned()) &&
+        row_fields().contains(field.to_owned()) {
+        Null
+      } else {
+        raise @types.Failure("E_NAME", line, column, message)
+      }
+    e => raise e
+  }
+}
+
+///|
+// A direct comparison evaluates its left column before a right operand can
+// call another expression and raise its own, unrelated name error.
+fn directly_compares_column(source : String, field : String) -> Bool {
+  guard source.strip_prefix(field) is Some(suffix) else { return false }
+  let rest = suffix.trim().to_owned()
+  rest.has_prefix("=") ||
+  rest.has_prefix("!=") ||
+  rest.has_prefix("<") ||
+  rest.has_prefix(">")
+}
+
+///|
+fn boxed_filter_scope(
+  ctx : Map[String, @types.Value],
+  item : @types.Value,
+) -> Map[String, @types.Value] {
+  let scope = scope_with(ctx, "item", item)
+  if item is Context(fields) {
+    for name, value in fields {
+      scope[name] = value
+    }
+  }
+  scope
 }
 
 ///|
@@ -869,7 +1053,9 @@ fn iterator_values(
   if kind == "for" {
     let out = []
     for item in items {
-      out.push(boxed(model, body, scope_with(ctx, variable, item)))
+      let scope = scope_with(ctx, variable, item)
+      scope["partial"] = List(out.copy())
+      out.push(boxed(model, body, scope))
     }
     return List(out)
   }
@@ -902,7 +1088,12 @@ fn iterator(
 ) -> @types.Value raise @types.EngineError {
   let envs = iterator_envs(model, bindings, 0, ctx, 0)
   if kind == "for" {
-    return List(envs.map(env => boxed(model, body, env)))
+    let out = []
+    for env in envs {
+      env["partial"] = List(out.copy())
+      out.push(boxed(model, body, env))
+    }
+    return List(out)
   }
   let some = kind == "some"
   let mut has_null = false

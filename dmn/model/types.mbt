@@ -1,7 +1,8 @@
 ///|
 fn item_type_name(node : @xml.Node) -> String {
-  if node.attr("typeRef") != "" {
-    node.attr("typeRef")
+  let reference = node.attr("typeRef").trim().to_owned()
+  if reference != "" {
+    reference
   } else {
     node.content("typeRef")
   }
@@ -94,10 +95,11 @@ fn type_registry(model : Model) -> Map[String, @types.Value] {
 /// No implicit coercions are performed in this version.
 fn validate_type(
   model : Model,
-  type_name : String,
+  raw_type_name : String,
   value : @types.Value,
   depth : Int32,
 ) -> Unit raise @types.EngineError {
+  let type_name = raw_type_name.trim().to_owned()
   if depth > 32 {
     raise @types.fail("E_TYPE_CYCLE", "recursive ItemDefinition")
   }
@@ -221,10 +223,11 @@ fn validate_variable(
 /// Apply FEEL singleton adaptation before checking the declared type.
 fn coerce_type(
   model : Model,
-  name : String,
+  raw_type_name : String,
   value : @types.Value,
   depth : Int32,
 ) -> @types.Value raise @types.EngineError {
+  let name = raw_type_name.trim().to_owned()
   if depth > 32 {
     raise @types.fail("E_TYPE_CYCLE", "recursive ItemDefinition")
   }

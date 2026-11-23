@@ -19,11 +19,14 @@ pub struct Node {
   mut text : String
   line : Int32
   column : Int32
+  // private fields
 }
 pub fn Node::all(Self, String) -> Array[Self]
 pub fn Node::attr(Self, String) -> String
+pub fn Node::attr_namespace(Self, String, String) -> String?
 pub fn Node::child(Self, String) -> Self?
 pub fn Node::content(Self, String) -> String
+pub fn Node::namespace_uri(Self, String) -> String?
 
 // Type aliases
 

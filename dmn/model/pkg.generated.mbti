@@ -32,6 +32,7 @@ pub struct Model {
   services : Map[String, @xml.Node]
   ids : Map[String, String]
   imports : Array[(String, Model)]
+  // private fields
 }
 
 // Type aliases

@@ -195,17 +195,20 @@ fn parse_uint(text : String) -> Int32 raise EngineError {
 }
 
 ///|
-fn two_digits(s : String, at : Int32, what : String) -> Int32 raise EngineError {
-  if at + 2 > s.length() {
+fn two_digits(
+  chars : Array[Char],
+  at : Int32,
+  what : String,
+) -> Int32 raise EngineError {
+  if at + 2 > chars.length() {
     raise fail("E_PARSE", "incomplete " + what)
   }
-  let slice = String::from_array(s.to_array()[at:at + 2].to_owned())
-  for ch in slice.to_array() {
-    if ch < '0' || ch > '9' {
-      raise fail("E_PARSE", "invalid " + what)
-    }
+  let first = chars[at]
+  let second = chars[at + 1]
+  if first < '0' || first > '9' || second < '0' || second > '9' {
+    raise fail("E_PARSE", "invalid " + what)
   }
-  parse_uint(slice)
+  (first.to_int() - '0'.to_int()) * 10 + second.to_int() - '0'.to_int()
 }
 
 ///|
@@ -237,7 +240,11 @@ pub fn parse_date(text : String) -> Date raise EngineError {
   }
   let y = parse_uint(year)
   let year = if negative { -y } else { y }
-  date_of(year, two_digits(s, len - 5, "month"), two_digits(s, len - 2, "day"))
+  date_of(
+    year,
+    two_digits(chars, len - 5, "month"),
+    two_digits(chars, len - 2, "day"),
+  )
 }
 
 ///|
@@ -267,10 +274,9 @@ fn parse_fraction(
 
 ///|
 fn parse_offset(
-  text : String,
+  chars : Array[Char],
   start : Int32,
 ) -> (Zone, Int32) raise EngineError {
-  let chars = text.to_array()
   if start >= chars.length() {
     return (Unzoned, start)
   }
@@ -291,12 +297,25 @@ fn parse_offset(
   if start + 6 > chars.length() || chars[start + 3] != ':' {
     raise fail("E_TIME_INVALID", "invalid UTC offset")
   }
-  let hours = two_digits(text, start + 1, "offset hour")
-  let minutes = two_digits(text, start + 4, "offset minute")
-  if hours > 14 || minutes > 59 || (hours == 14 && minutes != 0) {
+  let hours = two_digits(chars, start + 1, "offset hour")
+  let minutes = two_digits(chars, start + 4, "offset minute")
+  let mut end = start + 6
+  let mut seconds = 0
+  if chars.get(end) == Some(':') {
+    if end + 3 > chars.length() {
+      raise fail("E_PARSE", "incomplete offset second")
+    }
+    seconds = two_digits(chars, end + 1, "offset second")
+    end += 3
+  }
+  // The engine's existing numeric offset extension renders whole seconds.
+  if hours > 14 ||
+    minutes > 59 ||
+    seconds > 59 ||
+    (hours == 14 && (minutes != 0 || seconds != 0)) {
     raise fail("E_TIME_INVALID", "UTC offset out of range")
   }
-  (Fixed(sign * (hours * 3600 + minutes * 60)), start + 6)
+  (Fixed(sign * (hours * 3600 + minutes * 60 + seconds)), end)
 }
 
 ///|
@@ -307,9 +326,9 @@ pub fn parse_time(text : String) -> Time raise EngineError {
   if chars.length() < 8 || chars[2] != ':' || chars[5] != ':' {
     raise fail("E_TIME_INVALID", "invalid time: " + s)
   }
-  let hour = two_digits(s, 0, "hour")
-  let minute = two_digits(s, 3, "minute")
-  let second = two_digits(s, 6, "second")
+  let hour = two_digits(chars, 0, "hour")
+  let minute = two_digits(chars, 3, "minute")
+  let second = two_digits(chars, 6, "second")
   let mut at = 8
   let nanos = if at < chars.length() && chars[at] == '.' {
     let (n, next) = parse_fraction(s, at + 1)
@@ -321,7 +340,7 @@ pub fn parse_time(text : String) -> Time raise EngineError {
   } else {
     0
   }
-  let (zone, end) = parse_offset(s, at)
+  let (zone, end) = parse_offset(chars, at)
   if end != chars.length() {
     raise fail("E_TIME_INVALID", "trailing characters in time: " + s)
   }
@@ -357,6 +376,9 @@ pub fn make_time(
     (hour == 24 && (minute != 0 || second != 0 || nanos != 0)) {
     raise fail("E_TIME_INVALID", "time component out of range")
   }
+  if zone is Named(name) && zone_transitions(name) is None {
+    raise fail("E_ZONE_UNSUPPORTED", "unknown time zone: " + name)
+  }
   if zone is Fixed(offset) && (offset < -50400 || offset > 50400) {
     raise fail("E_TIME_INVALID", "offset outside 14 hours")
   }
@@ -369,7 +391,7 @@ pub fn parse_offset_text(
   text : String,
   start : Int32,
 ) -> (Zone, Int32) raise EngineError {
-  parse_offset(text, start)
+  parse_offset(text.to_array(), start)
 }
 
 ///|
@@ -857,8 +879,12 @@ pub fn parse_duration(
   let mut has_ds = false
   let mut has_ym = false
   let mut seen = false
+  let mut previous = -1
   while i < chars.length() {
     if chars[i] == 'T' {
+      if in_time {
+        raise fail("E_DURATION_INVALID", "duplicate T in duration")
+      }
       in_time = true
       i = i + 1
       if i >= chars.length() {
@@ -881,8 +907,29 @@ pub fn parse_duration(
       raise fail("E_DURATION_INVALID", "missing duration component")
     }
     let unit = chars[i]
+    let rank = match unit {
+      'Y' => 0
+      'M' => if in_time { 5 } else { 1 }
+      'W' => 2
+      'D' => 3
+      'H' => 4
+      'S' => 6
+      _ => 7
+    }
+    if rank <= previous {
+      raise fail(
+        "E_DURATION_INVALID", "duplicate or out-of-order duration unit",
+      )
+    }
+    previous = rank
     i = i + 1
-    let value = decimal(digits.to_string())
+    let component = digits.to_string()
+    if (unit == 'Y' || (unit == 'M' && !in_time)) && component.contains(".") {
+      raise fail(
+        "E_DURATION_INVALID", "calendar duration requires whole years and months",
+      )
+    }
+    let value = decimal(component)
     let n = decimal_to_scaled(value, 9)
     let integral = match unit {
       'Y' | 'M' => decimal_to_scaled(value, 0)

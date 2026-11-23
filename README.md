@@ -23,9 +23,9 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 当前源码 | 0.2.2，未发布 | 审计修复工作版本；已发布版本为 0.2.1（tag `v0.2.1`） |
-| mooncakes | `sundaysebasidian-byte/moondmn@0.2.1` | 包内容固定，不随 main 变化 |
-| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次 push 到 main 都会重新构建，可能领先于 0.2.1 |
+| 当前源码 | 0.3.0 | 模块声明的版本，不代表 Mooncakes 已发布 |
+| Mooncakes | [版本列表](https://mooncakes.io/docs/sundaysebasidian-byte/moondmn) | 以注册表显示为准；包内容固定，不随 main 变化 |
+| Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次推送到 main 会重新构建；不代表 Mooncakes 已发布 |
 
 定位发布提交：`git rev-list -n 1 v0.2.1`。下面三条命令分别复现三个面：
 
@@ -228,10 +228,10 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 原因 | 用例数 | 性质 |
 | --- | ---: | --- |
 | Java 外部函数（`0076-feel-external-java`） | 18 | 宿主桥已支持；不调用 JVM、不模拟 JDK，未注册时 E_EXTERNAL_UNBOUND |
-| 小数秒相等（`0068`） | 2 | `time_005` / `datetime_003_a` 各相差 100 微秒；TCK 期望 true，实现按时间值判等返回 false。[复核证据](docs/evidence/0.2.2/fractional-seconds/README.md) |
+| 小数秒相等（`0068`） | 2 | `time_005` / `datetime_003_a` 各相差 100 微秒；TCK 期望 true，实现按时间值判等返回 false。[复核证据](https://github.com/sundaysebasidian-byte/moondmn/blob/v0.2.2/docs/evidence/0.2.2/fractional-seconds/README.md) |
 
 本次审计确认的参数检查、驱动时钟及同名时区相减问题已修复；剩余失败按下表计数。这些数字不代表完整 DMN 兼容。
-结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。
+结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](https://github.com/sundaysebasidian-byte/moondmn/tree/v0.2.2/evidence)。
 
 ## 和同类实现的区别
 
@@ -251,7 +251,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-每个后端 306 个单元测试，另有 38 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 37 项 Playground 冒烟测试。
+历史验证记录：每个后端 306 个单元测试；另有 38 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 37 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。

@@ -16,16 +16,16 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     Some(v) => v
     None => raise @types.fail("E_TCK_VALUE", "missing value")
   }
-  for k, att in v.attributes {
-    if k.has_suffix(":nil") && att == "true" {
+  let schema_instance = "http://www.w3.org/2001/XMLSchema-instance"
+  if v.attr_namespace(schema_instance, "nil") is Some(flag) {
+    let flag = flag.trim().to_owned()
+    if flag == "true" || flag == "1" {
       return Null
     }
   }
-  let mut kind = "xsd:string"
-  for k, v in v.attributes {
-    if k.has_suffix(":type") {
-      kind = v
-    }
+  let kind = match v.attr_namespace(schema_instance, "type") {
+    Some(raw) => schema_type_name(v, raw)
+    None => "xsd:string"
   }
   let text = v.text.trim().to_owned()
   match kind {
@@ -73,6 +73,24 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     "xsd:yearMonthDuration" | "xs:yearMonthDuration" =>
       YearsMonths(@types.parse_duration(text).1)
     other => raise @types.fail("E_TCK_TYPE_UNSUPPORTED", other)
+  }
+}
+
+///|
+fn schema_type_name(
+  node : @xml.Node,
+  raw : String,
+) -> String raise @types.EngineError {
+  let raw = raw.trim().to_owned()
+  let (prefix, name) = match raw.find(":") {
+    Some(at) => (raw[:at].to_owned(), raw[at + 1:].to_owned())
+    None => ("", raw)
+  }
+  match node.namespace_uri(prefix) {
+    Some("http://www.w3.org/2001/XMLSchema") => "xsd:" + name
+    // Compatibility with older fixture snippets using these undeclared prefixes.
+    None if prefix == "xs" || prefix == "xsd" => raw
+    _ => raise @types.fail("E_TCK_TYPE_UNSUPPORTED", raw)
   }
 }
 

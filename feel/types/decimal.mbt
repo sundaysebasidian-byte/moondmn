@@ -191,10 +191,10 @@ pub fn decimal(text : String) -> Decimal raise EngineError {
   if count == 0 || (exponent && exponent_digits == 0) {
     raise fail("E_DECIMAL_SYNTAX", "invalid decimal: " + text)
   }
-  normalize(
-    @bigint.BigInt::from_string(digits.to_string()),
-    scale - exp_sign * exp,
-  )
+  let coefficient = @string.parse_bigint(digits.to_string()[:]) catch {
+    _ => raise fail("E_DECIMAL_SYNTAX", "invalid decimal: " + text)
+  }
+  normalize(coefficient, scale - exp_sign * exp)
 }
 
 ///|
@@ -240,23 +240,29 @@ pub fn Decimal::text(self : Decimal) -> String {
     return "0"
   }
   let negative = self.coefficient < 0N
-  let mut raw = (if negative { -self.coefficient } else { self.coefficient }).to_string()
-  while raw.length() <= self.scale {
-    raw = "0" + raw
-  }
+  let raw = (if negative { -self.coefficient } else { self.coefficient }).to_string()
   let out = StringBuilder()
   if negative {
-    out.write_string("-")
+    out.write_char('-')
   }
-  for i, ch in raw.to_array() {
-    if self.scale > 0 && i == raw.length() - self.scale {
-      out.write_string(".")
-    }
-    out.write_char(ch)
-  }
-  if self.scale < 0 {
+  if self.scale <= 0 {
+    out.write_string(raw)
     for _ in 0..<-self.scale {
-      out.write_string("0")
+      out.write_char('0')
+    }
+  } else {
+    let cut = raw.length() - self.scale
+    if cut <= 0 {
+      out.write_string("0.")
+      for _ in 0..<-cut {
+        out.write_char('0')
+      }
+      out.write_string(raw)
+    } else {
+      // The coefficient text is ASCII, so both slices use digit boundaries.
+      out.write_string(raw[:cut].to_owned())
+      out.write_char('.')
+      out.write_string(raw[cut:].to_owned())
     }
   }
   out.to_string()
@@ -298,10 +304,18 @@ pub fn Decimal::multiply(a : Decimal, b : Decimal) -> Decimal raise EngineError 
 ///|
 /// Return a negative, zero or positive integer according to numeric order.
 pub fn Decimal::compare(a : Decimal, b : Decimal) -> Int32 {
-  let scale = if a.scale > b.scale { a.scale } else { b.scale }
-  (a.coefficient * pow10(scale - a.scale)).compare(
-    b.coefficient * pow10(scale - b.scale),
-  )
+  if a.scale == b.scale ||
+    a.is_zero() ||
+    b.is_zero() ||
+    a.is_negative() != b.is_negative() {
+    // With the same scale, or different signs, alignment cannot change order.
+    return a.coefficient.compare(b.coefficient)
+  }
+  if a.scale > b.scale {
+    a.coefficient.compare(b.coefficient * pow10(a.scale - b.scale))
+  } else {
+    (a.coefficient * pow10(b.scale - a.scale)).compare(b.coefficient)
+  }
 }
 
 ///|
@@ -336,6 +350,63 @@ pub fn Decimal::divide(a : Decimal, b : Decimal) -> Decimal raise EngineError {
     b.coefficient
   }
   normalize(div_half_even(numerator, denominator), scale)
+}
+
+///|
+/// Compute the arithmetic mean with a single rounding step, after division.
+pub fn Decimal::mean(values : Array[Decimal]) -> Decimal raise EngineError {
+  if values.is_empty() {
+    raise fail("E_NUMBER", "mean requires a nonempty list")
+  }
+  // The accumulated coefficient may exceed 34 digits; division rounds
+  // the quotient directly, without normalizing this total.
+  exact_sum(values).divide(decimal_int(values.length()))
+}
+
+///|
+/// Sum in a shared decimal quantum, rounding only after cancellation.
+pub fn Decimal::sum(values : Array[Decimal]) -> Decimal raise EngineError {
+  if values.is_empty() {
+    return zero()
+  }
+  let total = exact_sum(values)
+  normalize(total.coefficient, total.scale)
+}
+
+///|
+fn exact_sum(values : Array[Decimal]) -> Decimal {
+  let mut scale = values[0].scale
+  let mut one_scale = true
+  for value in values {
+    if value.scale != values[0].scale {
+      one_scale = false
+    }
+    if value.scale > scale {
+      scale = value.scale
+    }
+  }
+  let mut coefficient = 0N
+  if one_scale {
+    for value in values {
+      coefficient += value.coefficient
+    }
+    return { coefficient, scale, }
+  }
+  let grouped : Map[Int32, @bigint.BigInt] = Map([])
+  for value in values {
+    grouped[value.scale] = grouped.get(value.scale).unwrap_or(0N) +
+      value.coefficient
+  }
+  for value_scale, group in grouped {
+    if !group.is_zero() {
+      coefficient += if value_scale == scale {
+        group
+      } else {
+        group * pow10(scale - value_scale)
+      }
+    }
+  }
+  { coefficient, scale, }
 }
 
 ///|
@@ -406,17 +477,54 @@ pub fn Decimal::to_int(self : Decimal) -> Int32 raise EngineError {
 }
 
 ///|
-/// Round to decimal places using half-even ties; negative places are clamped to zero.
+/// Round half to even at the requested decimal128 scale.
 pub fn Decimal::round(
   self : Decimal,
   places : Int32,
 ) -> Decimal raise EngineError {
-  let places = if places < 0 { 0 } else { places }
+  if places < -6111 || places > 6176 {
+    raise fail("E_NUMBER", "rounding scale out of range")
+  }
   if self.scale <= places {
     return self
   }
   let drop = self.scale - places
   normalize(div_half_even(self.coefficient, pow10(drop)), places)
+}
+
+///|
+/// Quantize at a decimal place without constructing an intermediate power
+/// as a Decimal, which could exceed its representable exponent range.
+pub fn Decimal::directed_round(
+  self : Decimal,
+  places : Int32,
+  mode : String,
+) -> Decimal raise EngineError {
+  if places < -6111 || places > 6176 {
+    raise fail("E_NUMBER", "rounding scale out of range")
+  }
+  if self.scale <= places {
+    return self
+  }
+  let divisor = pow10(self.scale - places)
+  let magnitude = if self.coefficient < 0N {
+    -self.coefficient
+  } else {
+    self.coefficient
+  }
+  let units = magnitude / divisor
+  let rest = magnitude % divisor
+  let increment = match mode {
+    "floor" => self.coefficient < 0N && rest != 0N
+    "ceiling" => self.coefficient > 0N && rest != 0N
+    "round up" => rest != 0N
+    "round down" => false
+    "round half up" => rest * 2N >= divisor
+    "round half down" => rest * 2N > divisor
+    _ => raise fail("E_NUMBER", "unknown rounding mode")
+  }
+  let rounded = units + (if increment { 1N } else { 0N })
+  normalize(if self.coefficient < 0N { -rounded } else { rounded }, places)
 }
 
 ///|
@@ -490,34 +598,110 @@ pub fn Decimal::pow(a : Decimal, b : Decimal) -> Decimal raise EngineError {
     ) <=
     0 {
     let n = b.to_int()
-    let mut result = decimal_int(1)
-    let mut factor = a
-    let mut k = if n < 0 { -n } else { n }
-    while k > 0 {
-      if k % 2 == 1 {
-        result = result.multiply(factor)
-      }
-      k = k / 2
-      if k > 0 {
-        factor = factor.multiply(factor)
-      }
+    if n == 0 {
+      return decimal_int(1)
     }
-    if n < 0 {
-      return decimal_int(1).divide(result)
+    let k = if n < 0 { -n } else { n }
+    let coefficient = a.coefficient.pow(@bigint.BigInt::from_int(k))
+    let scale = a.scale * k
+    if n > 0 {
+      return normalize(coefficient, scale)
     }
-    return result
+    if coefficient != 0N && digit_count(coefficient) - 1 - scale > 6176 {
+      // The reciprocal lies below half the smallest subnormal.
+      return zero()
+    }
+    let exact : Decimal = { coefficient, scale, }
+    return decimal_int(1).divide(exact)
   }
   let value = @math.pow(a.to_double(), b.to_double())
   from_double(value, 11)
 }
 
 ///|
-/// Compute a square root through the bounded floating-point bridge.
+/// Compute the correctly rounded 34-digit square root with integer Newton steps.
 pub fn Decimal::sqrt(self : Decimal) -> Decimal raise EngineError {
   if self.coefficient < 0N {
     raise fail("E_NUMBER", "square root of a negative number")
   }
-  from_double(self.to_double().sqrt(), 12)
+  if self.is_zero() {
+    return zero()
+  }
+  // Scale the radicand to 67 or 68 digits, leaving exactly 34 root digits.
+  let shift = 2 * max_digits - digit_count(self.coefficient)
+  let shift = if (self.scale + shift) % 2 == 0 { shift } else { shift - 1 }
+  let radicand = self.coefficient * pow10(shift)
+  let mut root = pow10(max_digits)
+  while true {
+    let next = (root + radicand / root) / 2N
+    if next >= root {
+      break
+    }
+    root = next
+  }
+  // (root + 1/2)^2 = root^2 + root + 1/4: no integral radicand ties.
+  let rounded = if radicand - root * root > root { root + 1N } else { root }
+  normalize(rounded, (self.scale + shift) / 2)
+}
+
+///|
+/// Exact sample variance in a shared decimal quantum, then round its root once.
+pub fn Decimal::sample_deviation(
+  values : Array[Decimal],
+) -> Decimal raise EngineError {
+  if values.length() < 2 {
+    raise fail("E_NUMBER", "sample deviation requires at least two values")
+  }
+  let mut scale = values[0].scale
+  for value in values {
+    if value.scale > scale {
+      scale = value.scale
+    }
+  }
+  let mut total = 0N
+  let mut squares = 0N
+  for value in values {
+    let v = value.coefficient * pow10(scale - value.scale)
+    total = total + v
+    squares = squares + v * v
+  }
+  let count = @bigint.BigInt::from_int(values.length())
+  let a = count * squares - total * total
+  if a == 0N {
+    return zero()
+  }
+  let b = count * (count - 1N)
+  // Determine floor(log10(a/b)) by comparing integers, including small quotients.
+  let e = digit_count(a) - digit_count(b)
+  let below = if e >= 0 { a < b * pow10(e) } else { a * pow10(-e) < b }
+  let e = e - (if below { 1 } else { 0 })
+  let half = (if e < 0 { e - 1 } else { e }) / 2
+  let target = 33 - half + scale
+  let target = if target > 6176 { 6176 } else { target }
+  let shift = 2 * (target - scale)
+  let num = if shift > 0 { a * pow10(shift) } else { a }
+  let den = if shift < 0 { b * pow10(-shift) } else { b }
+  let whole = num / den
+  let mut root = pow10(34)
+  if whole == 0N {
+    root = 0N
+  } else {
+    while true {
+      let next = (root + whole / root) / 2N
+      if next >= root {
+        break
+      }
+      root = next
+    }
+  }
+  let midpoint = 2N * root + 1N
+  let cmp = (4N * num).compare(den * midpoint * midpoint)
+  let rounded = if cmp > 0 || (cmp == 0 && root % 2N != 0N) {
+    root + 1N
+  } else {
+    root
+  }
+  normalize(rounded, target)
 }
 
 ///|
@@ -532,7 +716,17 @@ pub fn Decimal::ln(self : Decimal) -> Decimal raise EngineError {
   if self.coefficient <= 0N {
     raise fail("E_NUMBER", "logarithm of a non-positive number")
   }
-  from_double(@math.ln(self.to_double()), 8)
+  let ordinary = self.to_double()
+  if ordinary != 0.0 && !ordinary.is_inf() {
+    return from_double(@math.ln(ordinary), 8)
+  }
+  // For values lost to the binary64 exponent range, split the decimal
+  // magnitude; the coefficient has at most 34 digits.
+  let coefficient : Decimal = { coefficient: self.coefficient, scale: 0, }
+  from_double(
+    @math.ln(coefficient.to_double()) - self.scale.to_double() * @math.ln(10.0),
+    8,
+  )
 }
 
 ///|
