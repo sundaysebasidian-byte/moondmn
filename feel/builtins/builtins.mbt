@@ -738,7 +738,7 @@ fn dispatch(
     }
     "upper case" => {
       arity(name, xs, 1, 1)
-      Text(text(xs[0], name).to_upper())
+      Text(full_upper(text(xs[0], name)))
     }
     "lower case" => {
       arity(name, xs, 1, 1)
