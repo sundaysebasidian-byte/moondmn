@@ -1000,9 +1000,13 @@ fn filter_items(
     }
     _ => {
       let out = []
-      for item in items {
-        let keep = match
-          boxed_filter_predicate(model, predicate, ctx, item, row_fields) {
+      for i, item in items {
+        let result = if i == 0 {
+          first
+        } else {
+          boxed_filter_predicate(model, predicate, ctx, item, row_fields)
+        }
+        let keep = match result {
           Boolean(b) => b
           Null => false
           _ => return Null

@@ -899,9 +899,13 @@ fn filter_value(
     }
     _ => {
       let out = []
-      for item in items {
-        let keep = evaluate_inner(filter, filter_scope(ctx, item)) catch {
-          _ => Boolean(false)
+      for i, item in items {
+        let keep = if i == 0 {
+          probe
+        } else {
+          evaluate_inner(filter, filter_scope(ctx, item)) catch {
+            _ => Boolean(false)
+          }
         }
         match keep {
           Boolean(true) => out.push(item)
