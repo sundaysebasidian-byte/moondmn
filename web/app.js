@@ -267,7 +267,8 @@ function control(shape, holder) {
   }
   const input = el("input");
   input.spellcheck = false;
-  const types = { number: "number", date: "date", time: "time", dateTime: "datetime-local" };
+  // HTML time/datetime-local controls cannot display FEEL offsets or named zones.
+  const types = { number: "number", date: "date" };
   input.type = types[base] ?? "text";
   if (base === "number") {
     input.step = "any";
@@ -276,7 +277,8 @@ function control(shape, holder) {
       input.max = allowed.max;
     }
   }
-  if (base === "time" || base === "dateTime") input.step = "1";
+  if (base === "time") input.placeholder = "14:30:00+08:00";
+  if (base === "dateTime") input.placeholder = "2026-01-01T14:30:00+08:00";
   input.value = String(holder.get() ?? "");
   input.addEventListener("input", () => {
     holder.set(input.value);

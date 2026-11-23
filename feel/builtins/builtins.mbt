@@ -25,6 +25,7 @@ fn number(
 ) -> @types.Decimal raise @types.EngineError {
   match v {
     Number(n) => n
+    List([Number(n)]) => n
     _ => raise err("E_TYPE", name + " requires a number")
   }
 }
@@ -33,7 +34,7 @@ fn number(
 fn text(v : @types.Value, name : String) -> String raise @types.EngineError {
   match v {
     Text(s) => s
-    List([one]) => text(one, name)
+    List([Text(s)]) => s
     _ => raise err("E_TYPE", name + " requires a string")
   }
 }
@@ -99,14 +100,17 @@ fn contains_value(items : Array[@types.Value], target : @types.Value) -> Bool {
 }
 
 ///|
-fn index_of_value(
-  v : @types.Value,
+fn scale_of(
+  value : @types.Value,
   name : String,
 ) -> Int32 raise @types.EngineError {
-  let d = number(v, name).round(0)
-  d.to_int() catch {
-    _ => raise err("E_TYPE", name + " position out of range")
+  let scale = number(value, name)
+  if scale.compare(@types.decimal_int(-6111)) < 0 ||
+    scale.compare(@types.decimal_int(6176)) > 0 {
+    raise err("E_NUMBER", "rounding scale out of range")
   }
+  // Preserve the existing conversion of in-range fractional scales (TCK 1100/002).
+  scale.round(0).to_int()
 }
 
 ///|
@@ -175,8 +179,8 @@ pub fn params(name : String) -> Array[String] {
     "not" | "abs" => ["n"]
     "sqrt" | "exp" | "log" | "odd" | "even" => ["number"]
     "floor" | "ceiling" => ["n", "scale"]
-    "string" | "string length" | "upper case" | "lower case" | "trim" =>
-      ["string"]
+    "string" => ["from"]
+    "string length" | "upper case" | "lower case" | "trim" => ["string"]
     "day of week"
     | "day of year"
     | "week of year"
@@ -367,6 +371,15 @@ fn bind_args(
     args.iter().any(arg => arg.0 is Some("key") && !(arg.1 is Text(_))) {
     return Null
   }
+  if name == "list replace" &&
+    args
+    .iter()
+    .any(arg => {
+      (arg.0 is Some("match") && !(arg.1 is Function(_))) ||
+      (arg.0 is Some("position") && !(arg.1 is Number(_)))
+    }) {
+    return Null
+  }
   let named = args.iter().any(arg => arg.0 is Some(_))
   if named && args.iter().any(arg => arg.0 is None) {
     raise err("E_ARITY", "cannot mix named and positional arguments")
@@ -433,7 +446,10 @@ fn bind_args(
         }
         if at < 0 {
           let target = match key {
-            "keys" => "key"
+            "keys" if name == "context put" => "key"
+            "match" if name == "index of" => "element"
+            "negand" if name == "not" => "n"
+            "string" if name == "string" => "from"
             "range1" if names == ["point1", "point2"] && arg.1 is Range(_) =>
               "point1"
             "range2" if names == ["point1", "point2"] && arg.1 is Range(_) =>
@@ -555,6 +571,9 @@ fn dispatch(
         } else {
           @types.zero()
         }
+        if seconds.compare(seconds.round(9)) != 0 {
+          raise err("E_TIME_INVALID", "more than nanosecond precision")
+        }
         let second = seconds.floor().to_int()
         let nanos = @types.decimal_to_scaled(
           seconds.add(@types.decimal_int(second).negate()),
@@ -673,41 +692,33 @@ fn dispatch(
     }
     "number" => {
       arity(name, xs, 1, 3)
-      match xs[0] {
-        Text(s) => {
-          if xs.length() == 3 &&
-            !(xs[1] is Null) &&
-            !(xs[2] is Null) &&
-            xs[1].equals(xs[2]) {
-            return Null
-          }
-          let mut body = s
-          if xs.length() > 1 {
-            let grouping = if xs[1] is Null { "" } else { text(xs[1], name) }
-            if !(xs[1] is Null) && ![".", ",", " "].contains(grouping) {
-              return Null
-            }
-            if grouping != "" {
-              body = body.replace_all(old=grouping, new="")
-            }
-          }
-          if xs.length() > 2 {
-            let decimal_sep = if xs[2] is Null {
-              "."
-            } else {
-              text(xs[2], name)
-            }
-            if ![".", ","].contains(decimal_sep) {
-              return Null
-            }
-            if decimal_sep != "" && decimal_sep != "." {
-              body = body.replace_all(old=decimal_sep, new=".")
-            }
-          }
-          Number(@types.decimal(body))
-        }
-        _ => raise err("E_TYPE", "number requires a string")
+      let mut body = text(xs[0], name)
+      let grouping = if xs.length() > 1 && !(xs[1] is Null) {
+        text(xs[1], name)
+      } else {
+        ""
       }
+      let separator = if xs.length() > 2 && !(xs[2] is Null) {
+        text(xs[2], name)
+      } else {
+        ""
+      }
+      if (
+          xs.length() > 1 &&
+          !(xs[1] is Null) &&
+          ![".", ",", " "].contains(grouping)
+        ) ||
+        (xs.length() > 2 && !(xs[2] is Null) && ![".", ","].contains(separator)) ||
+        (grouping != "" && grouping == separator) {
+        return Null
+      }
+      if grouping != "" {
+        body = body.replace_all(old=grouping, new="")
+      }
+      if separator == "," {
+        body = body.replace_all(old=",", new=".")
+      }
+      Number(@types.decimal(body))
     }
     "not" => {
       arity(name, xs, 1, 1)
@@ -730,11 +741,11 @@ fn dispatch(
     }
     "upper case" => {
       arity(name, xs, 1, 1)
-      Text(text(xs[0], name).to_upper())
+      Text(full_upper(text(xs[0], name)))
     }
     "lower case" => {
       arity(name, xs, 1, 1)
-      Text(text(xs[0], name).to_lower())
+      Text(standard_lower(text(xs[0], name)))
     }
     "trim" => {
       arity(name, xs, 1, 1)
@@ -743,9 +754,9 @@ fn dispatch(
     "substring" => {
       arity(name, xs, 2, 3)
       let body = text(xs[0], name)
-      let start = index_of_value(xs[1], name)
+      let start = number(xs[1], name).to_int()
       let length = if xs.length() == 3 && !(xs[2] is Null) {
-        Some(number(xs[2], name).floor().to_int())
+        Some(number(xs[2], name))
       } else {
         None
       }
@@ -838,7 +849,10 @@ fn dispatch(
       let parts = []
       for item in items {
         if !(item is Null) {
-          parts.push(text(item, name))
+          match item {
+            Text(s) => parts.push(s)
+            _ => raise err("E_TYPE", "string join requires a list of strings")
+          }
         }
       }
       Text(prefix + parts.join(delimiter) + suffix)
@@ -847,7 +861,7 @@ fn dispatch(
       arity(name, xs, 1, 2)
       let n = number(xs[0], name)
       if xs.length() == 2 {
-        Number(n.round(index_of_value(xs[1], name)))
+        Number(n.round(scale_of(xs[1], name)))
       } else {
         Number(n)
       }
@@ -857,13 +871,13 @@ fn dispatch(
       if xs.length() == 2 && xs[1] is Null {
         return Null
       }
-      let scale = if xs.length() == 2 { index_of_value(xs[1], name) } else { 0 }
+      let scale = if xs.length() == 2 { scale_of(xs[1], name) } else { 0 }
       Number(number(xs[0], name).directed_round(scale, name))
     }
     "round up" | "round down" | "round half up" | "round half down" => {
       arity(name, xs, 2, 2)
       let n = number(xs[0], name)
-      let scale = index_of_value(xs[1], name)
+      let scale = scale_of(xs[1], name)
       Number(n.directed_round(scale, name))
     }
     "abs" => {
@@ -949,7 +963,7 @@ fn dispatch(
     "insert before" => {
       arity(name, xs, 3, 3)
       let items = list(xs[0], name).copy()
-      let position = index_of_value(xs[1], name)
+      let position = number(xs[1], name).to_int()
       let at = if position < 0 {
         items.length() + position
       } else {
@@ -964,7 +978,7 @@ fn dispatch(
     "remove" => {
       arity(name, xs, 2, 2)
       let items = list(xs[0], name).copy()
-      let position = index_of_value(xs[1], name)
+      let position = number(xs[1], name).to_int()
       let at = if position < 0 {
         items.length() + position
       } else {
@@ -1086,7 +1100,7 @@ fn dispatch(
         }
         _ => raise err("E_TYPE", "sort requires a function")
       }
-      insertion_sort(items, compares)
+      sort_with(items, compares)
       List(items)
     }
     "get value" => {
@@ -1187,7 +1201,16 @@ fn dispatch(
     | "started by"
     | "coincides" => {
       arity(name, xs, 2, 2)
-      if xs.iter().any(v => v is Range(r) && r.comparison == Some("!=")) {
+      let a_range = xs[0] is Range(_)
+      let b_range = xs[1] is Range(_)
+      let valid = match name {
+        "before" | "after" => true
+        "coincides" => a_range == b_range
+        "starts" | "finishes" | "during" => b_range
+        "started by" | "finished by" | "includes" => a_range
+        _ => a_range && b_range
+      }
+      if !valid || !xs.iter().all(range_relation_operand) {
         Null
       } else {
         Boolean(range_relation(name, xs[0], xs[1]))
@@ -1220,10 +1243,10 @@ fn temporal_literal(text : String) -> @types.Value raise @types.EngineError {
     } else {
       DaysSeconds(days)
     }
+  } else if text.length() >= 3 && text.at(2) == 58 {
+    Time(@types.parse_time(text))
   } else if text.contains("T") {
     DateTime(@types.parse_datetime(text))
-  } else if text.contains(":") {
-    Time(@types.parse_time(text))
   } else {
     Date(@types.parse_date(text))
   }
@@ -1410,29 +1433,27 @@ fn ym_between(
 }
 
 ///|
-fn substring_of(body : String, start : Int32, length : Int32?) -> @types.Value {
+fn substring_of(
+  body : String,
+  start : Int32,
+  length : @types.Decimal?,
+) -> @types.Value raise @types.EngineError {
   let chars = body.to_array()
   let n = chars.length()
-  let begin = if start > 0 {
-    start - 1
-  } else if start == 0 {
-    0
-  } else {
-    n + start
+  if start == 0 || start < -n || start > n {
+    return Null
   }
-  let begin = if begin < 0 { 0 } else if begin > n { n } else { begin }
+  let begin = if start > 0 { start - 1 } else { n + start }
   let finish = match length {
-    Some(l) =>
-      if l <= 0 {
-        begin
-      } else {
-        let end = begin + l
-        if end > n {
-          n
-        } else {
-          end
-        }
+    Some(l) => {
+      if l.compare(@types.decimal_int(1)) < 0 ||
+        l.compare(@types.decimal_int(n - begin)) > 0 {
+        return Null
       }
+      // Preserve the existing flooring of fractional lengths, but only
+      // after validating the input against the exact domain.
+      begin + l.floor().to_int()
+    }
     None => n
   }
   Text(String::from_array(chars[begin:finish].to_owned()))
@@ -1480,6 +1501,17 @@ fn flatten_into(
 }
 
 ///|
+fn member_number(
+  item : @types.Value,
+  name : String,
+) -> @types.Decimal raise @types.EngineError {
+  match item {
+    Number(n) => n
+    _ => raise err("E_TYPE", name + " requires a list of numbers")
+  }
+}
+
+///|
 fn numeric_aggregate(
   name : String,
   xs : Array[@types.Value],
@@ -1495,14 +1527,14 @@ fn numeric_aggregate(
   if name == "product" {
     let mut acc = @types.decimal_int(1)
     for item in items {
-      acc = acc.multiply(number(item, name))
+      acc = acc.multiply(member_number(item, name))
     }
     return Number(acc)
   }
   if name == "median" {
     let values = []
     for item in items {
-      values.push(number(item, name))
+      values.push(member_number(item, name))
     }
     values.sort_by((a, b) => a.compare(b))
     let n = values.length()
@@ -1515,7 +1547,7 @@ fn numeric_aggregate(
   if name == "mean" {
     let values = []
     for item in items {
-      values.push(number(item, name))
+      values.push(member_number(item, name))
     }
     return Number(@types.Decimal::mean(values))
   }
@@ -1525,13 +1557,13 @@ fn numeric_aggregate(
     }
     let values = []
     for item in items {
-      values.push(number(item, name))
+      values.push(member_number(item, name))
     }
     return Number(@types.Decimal::sample_deviation(values))
   }
   let values = []
   for item in items {
-    values.push(number(item, name))
+    values.push(member_number(item, name))
   }
   Number(@types.Decimal::sum(values))
 }
@@ -1594,7 +1626,7 @@ fn numeric_mode(
 ) -> @types.Value raise @types.EngineError {
   let ordered : Array[(@types.Decimal, Int32)] = []
   for i, item in items {
-    ordered.push((number(item, "mode"), i))
+    ordered.push((member_number(item, "mode"), i))
   }
   ordered.sort_by((a, b) => {
     let order = a.0.compare(b.0)
@@ -1706,35 +1738,53 @@ fn quantify_builtin(
 }
 
 ///|
-fn insertion_sort(
+fn sort_with(
   items : Array[@types.Value],
   precedes : @types.FunctionValue,
 ) -> Unit raise @types.EngineError {
-  for i = 1; i < items.length(); i = i + 1 {
-    let value = items[i]
-    let mut j = i
-    while j > 0 {
-      let order = call_function(precedes, [value, items[j - 1]])
-      if order is Boolean(true) {
-        items[j] = items[j - 1]
-        j = j - 1
-      } else if order is Boolean(false) {
-        break
-      } else {
-        raise err("E_TYPE", "sort comparator must return a boolean")
-      }
-    }
-    items[j] = value
+  let n = items.length()
+  if n < 2 {
+    return
   }
-}
-
-///|
-fn translate_pattern(pattern : String) -> String {
-  pattern
-  .replace_all(old="\\d", new="[[:digit:]]")
-  .replace_all(old="\\w", new="[[:alnum:]_]")
-  .replace_all(old="\\s", new="[[:space:]]")
-  .replace_all(old="\\D", new="[^[:digit:]]")
+  let mut from = items
+  let mut to = items.copy()
+  let mut width = 1
+  while width < n {
+    let mut start = 0
+    while start < n {
+      let middle = start + (n - start).min(width)
+      let end = middle + (n - middle).min(width)
+      let mut left = start
+      let mut right = middle
+      for k = start; k < end; k = k + 1 {
+        let use_right = if left == middle {
+          true
+        } else if right == end {
+          false
+        } else {
+          match call_function(precedes, [from[right], from[left]]) {
+            Boolean(b) => b
+            _ => raise err("E_TYPE", "sort comparator must return a boolean")
+          }
+        }
+        if use_right {
+          to[k] = from[right]
+          right += 1
+        } else {
+          to[k] = from[left]
+          left += 1
+        }
+      }
+      start = end
+    }
+    let tmp = from
+    from = to
+    to = tmp
+    width = width + (n - width).min(width)
+  }
+  for i, item in from {
+    items[i] = item
+  }
 }
 
 ///|
@@ -1766,7 +1816,7 @@ fn compile_regex(
   let out = StringBuilder()
   let mut escaped = false
   let mut in_class = false
-  for ch in translate_pattern(normalized).to_array() {
+  for ch in normalized.to_array() {
     if escaped {
       out.write_char(ch)
       escaped = false
@@ -1801,6 +1851,22 @@ fn compile_regex(
   }
   @string.Regex::Regex(body) catch {
     _ => raise err("E_REGEX", "invalid regular expression: " + pattern)
+  }
+}
+
+///|
+fn range_relation_operand(value : @types.Value) -> Bool {
+  match value {
+    Number(_)
+    | Text(_)
+    | Boolean(_)
+    | Date(_)
+    | DateTime(_)
+    | Time(_)
+    | DaysSeconds(_)
+    | YearsMonths(_) => true
+    Range(r) => r.comparison != Some("!=")
+    _ => false
   }
 }
 

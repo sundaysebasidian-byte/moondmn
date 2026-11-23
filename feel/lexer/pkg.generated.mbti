@@ -8,6 +8,8 @@ import {
 // Values
 pub fn lex(String, Array[String], properties? : Array[String]) -> Array[Token] raise @types.EngineError
 
+pub fn normalize_name_spaces(String) -> String
+
 // Errors
 
 // Types and methods

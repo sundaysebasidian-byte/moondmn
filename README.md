@@ -12,7 +12,7 @@ MoonDMN 是用 MoonBit 从零写的 OMG DMN 1.5 决策引擎和 FEEL 表达式�
 
 English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. It runs without a JVM,
 compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
-(Level 2: 116/116, Level 3: 3271/3291).
+(Level 2: 116/116; Level 3: 3271/3291 with an injected clock, 3269/3291 without).
 
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
@@ -23,20 +23,20 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 当前源码 | 0.3.0 | 模块声明的版本，不代表 Mooncakes 已发布 |
+| 当前源码 | 0.4.0 | 模块声明的版本，不代表 Mooncakes 已发布 |
 | Mooncakes | [版本列表](https://mooncakes.io/docs/sundaysebasidian-byte/moondmn) | 以注册表显示为准；包内容固定，不随 main 变化 |
 | Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次推送到 main 会重新构建；不代表 Mooncakes 已发布 |
 
-定位发布提交：`git rev-list -n 1 v0.2.1`。下面三条命令分别复现三个面：
+源码、注册表和 Pages 可以处于不同版本。只有对应的标签或包已公开时，再使用下面的版本命令：
 
 ```bash
-# 源码测试
-git checkout v0.2.1
+# 已公开的源码标签
+git checkout v0.4.0
 moon test --target all
 
 # 安装包调用：在仓库外新建模块，把“安装与接入”中的 import 和示例原样放入 cmd/main
 moon new consumer && cd consumer
-moon add sundaysebasidian-byte/moondmn@0.2.1
+moon add sundaysebasidian-byte/moondmn@0.4.0
 moon run cmd/main
 
 # 线上引擎：打开 Pages；对应的构建见 Actions 中 Pages 工作流的运行记录
@@ -48,7 +48,7 @@ gh run list --workflow pages.yml --limit 1
 - 业务规则：审批、定价、风控、资格判定这类需要审计、需要版本管理的决策逻辑。
 - 跨平台嵌入：同一份 DMN 模型可以跑在服务端（native）、浏览器和插件（wasm-gc）、Node 和前端（js）。
 - 规范学习：精确十进制、三值逻辑、时区和区间语义都有可执行的示例和测试。
-- 回归验证：官方 TCK 是端到端回归，语义一改，通过数就会变。
+- 回归验证：官方 TCK 是端到端回归，按用例比较；总通过数相同也不能掩盖原先通过的用例变成失败。
 
 ## Playground
 
@@ -75,7 +75,7 @@ python3 -m http.server -d web/dist 8000
 
 ## 环境要求
 
-- MoonBit 工具链 0.1.20261104 或更新版本（`moon version --all` 查看）。
+- 本版本用 MoonBit 编译器 `0.10.22+124d61d05` 验证（`moon version --all` 查看）。
 - 首次构建会从 mooncakes 拉取 `Milky2018/xml` 和 `moonbitlang/x`。
 - 运行 Playground 的冒烟测试需要 Node.js（CI 使用 22）。
 
@@ -195,6 +195,12 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 \
 moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 ```
 
+### 字符、时间与表格的边界
+
+- `lower case` 使用仓库中的 Unicode 17 无条件映射，例如 `lower case("İ") = "i̇"`。不根据用户语言定制，也不处理上下文特有的希腊词尾 sigma。XPath 的 `\d`、`\w` 取 Unicode 类别；`\i`、`\c` 按 XML 1.0 第五版匹配名称首字符和后续字符。
+- 字符串形式的时间接受 `Z` 和 `z`，输出统一用 `Z`。带日期的 `24:00:00` 读作次日午夜。时间精度最多九位小数；额外的非零精度不静默舍入。
+- 决策表的匹配输出和默认输出都遵守 `output typeRef`。模型可以同时带有文本注释、分组与业务元数据；它们不会成为可执行决策。关系表列中的 FEEL 类型前缀按 XML 命名空间识别。
+
 ## 覆盖矩阵
 
 状态为已支持或明确不支持；TCK 例外见“已知失败”表。
@@ -214,29 +220,31 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 ## 一致性结果
 
-固定提交 `1e349176e5ae689d924a2a2c7a8df25c220d8b07` 的官方 TCK，本地实测：
+使用固定提交 `1e349176e5ae689d924a2a2c7a8df25c220d8b07` 的官方 TCK，在 Native 上逐例复核：
 
-| 级别 | 用例数 | 通过 | 通过率 |
-| --- | --- | --- | --- |
-| Level 2 | 116 | 116 | 100.0% |
-| Level 3 | 3291 | 3271 | 99.39% |
+| 级别 | 注入时钟 | 不提供时钟 |
+| --- | ---: | ---: |
+| Level 2 | 116 / 116 | 116 / 116 |
+| Level 3 | 3271 / 3291 | 3269 / 3291 |
+
+两种模式均无跳过。时间固定为 `2026-01-01T00:00:00Z`；不注入时钟时，另有两个用例因 `now()`、`today()` 无时钟而失败。
 
 目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。
 
-### 已知失败（Level 3 剩余 20 个）
+### 已知失败（注入时钟的 Level 3 剩余 20 个）
 
 | 原因 | 用例数 | 性质 |
 | --- | ---: | --- |
 | Java 外部函数（`0076-feel-external-java`） | 18 | 宿主桥已支持；不调用 JVM、不模拟 JDK，未注册时 E_EXTERNAL_UNBOUND |
 | 小数秒相等（`0068`） | 2 | `time_005` / `datetime_003_a` 各相差 100 微秒；TCK 期望 true，实现按时间值判等返回 false。[复核证据](https://github.com/sundaysebasidian-byte/moondmn/blob/v0.2.2/docs/evidence/0.2.2/fractional-seconds/README.md) |
 
-本次审计确认的参数检查、驱动时钟及同名时区相减问题已修复；剩余失败按下表计数。这些数字不代表完整 DMN 兼容。
+这一版本对比 0.3.0 基线，两种时钟模式的逐例结果均无变化。TCK 通过数不等于完整 DMN 兼容。
 结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](https://github.com/sundaysebasidian-byte/moondmn/tree/v0.2.2/evidence)。
 
 ## 和同类实现的区别
 
 - 和 JVM 引擎（Camunda、Drools、KIE）比：MoonDMN 不依赖 JVM，可以编译到 wasm-gc 和 js；错误以结构化 JSON 返回，方便嵌入多语言服务。
-- 和脚本语言实现比：四则运算和比较用精确十进制而不是浮点，金额计算不会有舍入偏差（`sqrt`、`log`、`exp` 仍经过浮点）；三值逻辑、null 相等和区间语义按 DMN 规范实现。
+- 四则运算和比较使用十进制而不是二进制浮点；仍受 34 位有效数字及舍入规则约束。部分超越函数使用浮点近似。
 - 和只覆盖语法的项目比：仓库带 TCK 驱动和逐例报告，结论可以复现、可以审计。
 
 ## 开发与测试
@@ -251,7 +259,7 @@ moon test --target js
 moon info                 # 重新生成 .mbti，提交后不应有差异
 ```
 
-历史验证记录：每个后端 306 个单元测试；另有 38 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 37 项 Playground 冒烟测试。
+0.4.0 本地验证：Native、JavaScript、Wasm、Wasm GC 各通过 433 项单元测试；另有 38 项 CLI 进程级检查（`python3 scripts/test-cli.py`）和 37 项 Playground 冒烟测试。
 
 CI 在 Ubuntu、macOS、Windows 上执行上述检查，另有单独的 TCK 任务和 Playground 任务，
 见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
@@ -263,7 +271,7 @@ CLI 的文件 import 需要 native/js 文件加载器。wasm-gc 无文件系统�
 ## 限制与路线图
 
 - Java 外部函数仅调用显式注册的宿主回调；不提供 JVM。
-- TCK Level 3 还有 20 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
+- 注入时钟后，TCK Level 3 仍有 20 个失败，逐例列在 [docs/conformance.md](docs/conformance.md)。
 - 时区只有 39 个名称，只覆盖 1970–2100 年。
 - `now()`、`today()` 没有隐含的系统时钟，必须由调用方注入。
 - 决策表里的 FEEL 每次求值时重新编译，整表预编译还没做；性能数字见 [docs/performance.md](docs/performance.md)。

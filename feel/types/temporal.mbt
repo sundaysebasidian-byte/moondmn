@@ -280,7 +280,7 @@ fn parse_offset(
   if start >= chars.length() {
     return (Unzoned, start)
   }
-  if chars[start] == 'Z' {
+  if chars[start] == 'Z' || chars[start] == 'z' {
     return (Fixed(0), start + 1)
   }
   if chars[start] == '@' {
@@ -1033,7 +1033,12 @@ pub fn datetime_from_instant(
       }
       offset
     }
-    Fixed(offset) => offset
+    Fixed(offset) => {
+      if offset < -50400 || offset > 50400 {
+        raise fail("E_TIME_INVALID", "offset outside 14 hours")
+      }
+      offset
+    }
     Unzoned => 0
   }
   let shifted = seconds + offset.to_int64()
@@ -1064,6 +1069,12 @@ pub fn datetime_from_instant(
 pub fn datetime_of(date : Date, time : Time) -> DateTime raise EngineError {
   ignore(date_of(date.year, date.month, date.day))
   ignore(make_time(time.hour, time.minute, time.second, time.nanos, time.zone))
+  // The 24:00:00 lexical form denotes midnight of the following date.
+  let (date, time) = if time.hour == 24 {
+    (date_add_days(date, 1L), { ..time, hour: 0, })
+  } else {
+    (date, time)
+  }
   let value : DateTime = { date, time, }
   if time.zone is Named(name) {
     if zone_transitions(name) is None {

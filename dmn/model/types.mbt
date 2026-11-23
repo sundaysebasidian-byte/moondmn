@@ -1,11 +1,26 @@
 ///|
+fn builtin_type_name(node : @xml.Node, raw : String) -> String {
+  let name = raw.trim().to_owned()
+  if name.find(":") is Some(at) {
+    let prefix = name[:at].to_owned()
+    if node.namespace_uri(prefix) is Some(uri) && is_feel_namespace(uri) {
+      return name[at + 1:].to_owned()
+    }
+  }
+  name
+}
+
+///|
 fn item_type_name(node : @xml.Node) -> String {
   let reference = node.attr("typeRef").trim().to_owned()
-  if reference != "" {
-    reference
-  } else {
-    node.content("typeRef")
-  }
+  builtin_type_name(
+    node,
+    if reference != "" {
+      reference
+    } else {
+      node.content("typeRef")
+    },
+  )
 }
 
 ///|
@@ -37,14 +52,14 @@ fn definition_descriptor(
       fields.push(
         component.attr("name") +
         ": " +
-        type_descriptor(model, item_type_name(component), depth + 1),
+        definition_descriptor(model, component, depth + 1),
       )
     }
     "context<" + join_specs(fields) + ">"
   } else {
     type_descriptor(model, item_type_name(node), depth + 1)
   }
-  if node.attr("isCollection") == "true" {
+  if node.attr_is_true("isCollection") {
     "list<" + base + ">"
   } else {
     base
@@ -161,7 +176,7 @@ fn validate_definition(
   if depth > 32 {
     raise @types.fail("E_TYPE_CYCLE", "recursive ItemDefinition")
   }
-  if collection && node.attr("isCollection") == "true" {
+  if collection && node.attr_is_true("isCollection") {
     match value {
       List(xs) =>
         for x in xs {
@@ -205,17 +220,6 @@ fn validate_definition(
         "E_ALLOWED_VALUES", "ItemDefinition allowedValues violation",
       )
     }
-  }
-}
-
-///|
-fn validate_variable(
-  model : Model,
-  node : @xml.Node,
-  value : @types.Value,
-) -> Unit raise @types.EngineError {
-  if node.child("variable") is Some(variable) {
-    validate_type(model, variable.attr("typeRef"), value, 0)
   }
 }
 
@@ -277,7 +281,7 @@ fn coerce_definition(
   if value is Null {
     return value
   }
-  if collection && node.attr("isCollection") == "true" {
+  if collection && node.attr_is_true("isCollection") {
     let xs = match value {
       List(xs) => xs
       _ => [value]
@@ -405,7 +409,7 @@ fn decode_declared(
   if value is Null {
     return value
   }
-  if collection && node.attr("isCollection") == "true" {
+  if collection && node.attr_is_true("isCollection") {
     let items = match value {
       List(xs) => xs
       _ => [value]

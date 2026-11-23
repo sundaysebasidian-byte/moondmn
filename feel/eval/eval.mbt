@@ -162,6 +162,12 @@ fn evaluate_inner(
       if (lower is Some(l) && l is Null) || (upper is Some(u) && u is Null) {
         Null
       } else {
+        if lower is Some(a) && upper is Some(b) {
+          let order = @types.compare_values(a, b) catch { _ => return Null }
+          if a.type_name() != b.type_name() || order > 0 {
+            return Null
+          }
+        }
         @types.Range({
           comparison: None,
           start: lower,
@@ -488,6 +494,11 @@ fn environments(
         Some(xs) => xs
         None => return None
       }
+    RangeLit(_, _, _, _) => {
+      // Bracketed intervals are values, never sequence domains (even if invalid).
+      ignore(evaluate_inner(pair.1, scope))
+      return None
+    }
     _ => {
       let value = evaluate_inner(pair.1, scope)
       match value {
@@ -888,9 +899,13 @@ fn filter_value(
     }
     _ => {
       let out = []
-      for item in items {
-        let keep = evaluate_inner(filter, filter_scope(ctx, item)) catch {
-          _ => Boolean(false)
+      for i, item in items {
+        let keep = if i == 0 {
+          probe
+        } else {
+          evaluate_inner(filter, filter_scope(ctx, item)) catch {
+            _ => Boolean(false)
+          }
         }
         match keep {
           Boolean(true) => out.push(item)

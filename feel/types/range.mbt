@@ -92,7 +92,7 @@ fn range_literal_text(value : Value) -> String {
 /// Format range endpoints and inclusion brackets.
 pub fn Range::text(range : Range) -> String {
   if range.comparison is Some(op) && range.start is Some(bound) {
-    return "(" + op + bound.text() + ")"
+    return "(" + op + range_literal_text(bound) + ")"
   }
   let low = match range.start {
     Some(v) => range_literal_text(v)

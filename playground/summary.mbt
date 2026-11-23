@@ -147,7 +147,7 @@ fn type_json(model : @model.Model, name : String, depth : Int32) -> Json {
       if allowed is Object(_) {
         fields["allowed"] = allowed
       }
-      if definition.attr("isCollection") == "true" {
+      if definition.attr_is_true("isCollection") {
         fields["collection"] = Json::boolean(true)
       }
     }
@@ -167,7 +167,7 @@ fn component_json(
     _ => Map([])
   }
   merged["label"] = Json::string(component.attr("name"))
-  if component.attr("isCollection") == "true" {
+  if component.attr_is_true("isCollection") {
     merged["collection"] = Json::boolean(true)
   }
   if component.child("allowedValues") is Some(node) {

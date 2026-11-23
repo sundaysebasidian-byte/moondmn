@@ -4,3 +4,10 @@
 
 # The Playground build is deployed separately from the source package.
 /web/dist/
+
+# Local fixtures, scratch sources and environment files are never a dependency.
+/.tck/
+/.baseline/
+/.reference/
+/.env
+/.env.*

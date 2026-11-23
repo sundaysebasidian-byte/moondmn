@@ -119,7 +119,9 @@ jobs:
         run: scripts/build-web.sh
 
       - name: Smoke test
-        run: node web/smoke.mjs
+        run: |
+          node --test web/*-contract.test.mjs
+          node web/smoke.mjs
 
   tck:
     name: DMN TCK
@@ -151,29 +153,25 @@ jobs:
       - name: Level 2 conformance
         run: |
           moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-2 \
-            --now 2026-01-01T00:00:00Z --json evidence/tck-level-2.json
+            --now 2026-01-01T00:00:00Z --json "${{ runner.temp }}/tck-level-2.json"
 
       - name: Level 3 conformance
         run: |
           moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 \
-            --now 2026-01-01T00:00:00Z --json evidence/tck-level-3.json
+            --now 2026-01-01T00:00:00Z --json "${{ runner.temp }}/tck-level-3.json"
 
       - name: Summarise
         run: |
-          python3 - <<'EOF'
-          import json
-          for level in (2, 3):
-              with open(f"evidence/tck-level-{level}.json") as handle:
-                  report = json.load(handle)
-              print(f"Level {level}: {report['passed']}/{report['total']} passed")
-              assert report['skipped'] == 0 and report['total'] > 0
-              expected_total, minimum = (116, 116) if level == 2 else (3291, 3271)
-              assert report['total'] == expected_total
-              assert report['passed'] >= minimum
-          EOF
+          python3 scripts/test-conformance-report.py
+          python3 scripts/audit/test-tck-gate.py
+          for level in 2 3; do
+            if [ "$level" = 2 ]; then total=116; minimum=116; else total=3291; minimum=3271; fi
+            python3 scripts/audit/moondmn-r4-tck.py --total "$total" --minimum "$minimum" \
+              "${{ runner.temp }}/tck-level-$level.json" "evidence/tck-level-$level.json"
+          done
 
       - name: Upload reports
         uses: actions/upload-artifact@v4
         with:
           name: tck-reports
-          path: evidence/*.json
+          path: ${{ runner.temp }}/tck-level-*.json

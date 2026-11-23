@@ -140,11 +140,14 @@ if not bugs:
     summary = summary.replace(empty_table, "")
 text = re.sub(r'<!-- summary:start -->.*<!-- summary:end -->', lambda _: '<!-- summary:start -->\n' + summary + '<!-- summary:end -->', text, flags=re.S)
 marker = '\n## 逐例明细'
-text = text.split(marker)[0].rstrip() + '\n'
+prefix, detail = text.split(marker, 1)
+following_section = re.search(r"^## ", detail, flags=re.M)
+suffix = detail[following_section.start():] if following_section else ""
+text = prefix.rstrip() + '\n'
 text += marker + '\n\n每一行是一个失败用例，共 ' + str(failed) + ' 行；分类不改变通过或失败的结果。“已知缺陷”包含已确认但尚未修复的不一致，原因逐项注明。\n\n'
 text += '| 套件 / 测试文件 | case ID | 分类 | 原因 |\n| --- | --- | --- | --- |\n'
 for row in sorted(rows,key=lambda r:(r['file'],r['id'])):
     label = row['suite'] + '/' + Path(row['file']).name
     text += f"| {cell(label)} | `{cell(row['id'])}` | {names[row['category']]} | {cell(row['reason'])} |\n"
-path.write_text(text)
+path.write_text(text + ('\n' + suffix if suffix else ''))
 print(f"Level 3 {reports[3]['passed']}/{reports[3]['total']}; {len(rows)} failures classified",dict(counts))

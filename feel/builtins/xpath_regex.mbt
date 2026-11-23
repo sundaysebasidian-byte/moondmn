@@ -2,6 +2,7 @@
 priv enum XPathSet {
   Span(Int32, Int32)
   Property(@string.Regex)
+  CategoryRanges(Array[(Int32, Int32)])
   Union(Array[XPathSet])
   Negate(XPathSet)
   Subtract(XPathSet, XPathSet)
@@ -63,6 +64,39 @@ fn xpath_literal(c : Char) -> XPathSet {
 }
 
 ///|
+// Unicode ranges in NameStartChar and NameChar, XML 1.0 Fifth Edition §2.3.
+let xml_name_start : XPathSet = CategoryRanges([
+  (0x3A, 0x3A),
+  (0x41, 0x5A),
+  (0x5F, 0x5F),
+  (0x61, 0x7A),
+  (0xC0, 0xD6),
+  (0xD8, 0xF6),
+  (0xF8, 0x2FF),
+  (0x370, 0x37D),
+  (0x37F, 0x1FFF),
+  (0x200C, 0x200D),
+  (0x2070, 0x218F),
+  (0x2C00, 0x2FEF),
+  (0x3001, 0xD7FF),
+  (0xF900, 0xFDCF),
+  (0xFDF0, 0xFFFD),
+  (0x10000, 0xEFFFF),
+])
+
+///|
+let xml_name_char : XPathSet = Union([
+  xml_name_start,
+  CategoryRanges([
+    (0x2D, 0x2E),
+    (0x30, 0x39),
+    (0xB7, 0xB7),
+    (0x300, 0x36F),
+    (0x203F, 0x2040),
+  ]),
+])
+
+///|
 fn XPathParser::escape(p : XPathParser) -> XPathSet raise @types.EngineError {
   let c = p.take()
   match c {
@@ -71,7 +105,15 @@ fn XPathParser::escape(p : XPathParser) -> XPathSet raise @types.EngineError {
     't' => xpath_literal('\t')
     's' => Union([' ', '\t', '\n', '\r'].map(xpath_literal))
     'S' => Negate(Union([' ', '\t', '\n', '\r'].map(xpath_literal)))
-    'd' | 'D' | 'w' | 'W' | 'p' | 'P' => {
+    'i' => xml_name_start
+    'I' => Negate(xml_name_start)
+    'c' => xml_name_char
+    'C' => Negate(xml_name_char)
+    'd' => CategoryRanges(xpath_digits)
+    'D' => Negate(CategoryRanges(xpath_digits))
+    'w' => CategoryRanges(xpath_word_chars)
+    'W' => Negate(CategoryRanges(xpath_word_chars))
+    'p' | 'P' => {
       let b = StringBuilder()
       b.write_char('\\')
       b.write_char(c)
@@ -318,6 +360,21 @@ fn xpath_set_matches(s : XPathSet, c : Char, insensitive : Bool) -> Bool {
       .any(v => v >= a && v <= b)
     }
     Property(re) => re.execute(c.to_string()) is Some(_)
+    CategoryRanges(ranges) => {
+      // Category membership is unaffected by the case-insensitive flag.
+      let value = c.to_int()
+      let mut low = 0
+      let mut high = ranges.length()
+      while low < high {
+        let mid = (low + high) / 2
+        if ranges[mid].1 < value {
+          low = mid + 1
+        } else {
+          high = mid
+        }
+      }
+      low < ranges.length() && ranges[low].0 <= value
+    }
     Union(xs) => xs.iter().any(x => xpath_set_matches(x, c, insensitive))
     Negate(x) => !xpath_set_matches(x, c, insensitive)
     Subtract(a, b) =>

@@ -10,7 +10,15 @@ export class Raw {
   }
 }
 
-const NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+// Keep the exponent and fraction as text; Number(...) would lose FEEL precision.
+function jsonNumber(text) {
+  const match = /^([+-]?)(\d*)(?:\.(\d*))?([eE][+-]?\d+)?$/.exec(text);
+  if (!match || !(match[2] || match[3])) return text;
+  const [, sign, digits, fraction, exponent] = match;
+  const whole = digits.replace(/^0+/, "") || "0";
+  return new Raw((sign === "-" ? "-" : "") + whole +
+    (fraction ? "." + fraction : "") + (exponent ?? ""));
+}
 
 export function stringifyJson(value) {
   if (value instanceof Raw) return value.text;
@@ -26,13 +34,11 @@ export function element(shape) {
   return { ...shape, collection: false };
 }
 
-function stripZone(text) {
-  return text.replace(/(Z|[+-]00:?00)$/, "");
-}
-
 /** Editable tree from example JSON. */
 export function toTree(shape, json) {
-  if (json === undefined || json === null) return shape.collection ? [] : emptyFor(shape);
+  if (json === undefined) return emptyFor(shape);
+  if (shape.base === "any" && !shape.collection) return JSON.stringify(json);
+  if (json === null) return emptyFor(shape);
   if (shape.collection) {
     const items = Array.isArray(json) ? json : [json];
     return items.map((item) => toTree(element(shape), item));
@@ -45,10 +51,6 @@ export function toTree(shape, json) {
     }
     case "boolean":
       return json === true || json === "true";
-    case "dateTime":
-      return stripZone(String(json));
-    case "any":
-      return typeof json === "string" ? json : JSON.stringify(json);
     default:
       return String(json);
   }
@@ -87,14 +89,7 @@ export function fromTree(shape, tree) {
     case "number": {
       const text = String(tree).trim();
       if (text === "") return undefined;
-      return NUMBER.test(text) ? new Raw(text.replace(/^\+/, "")) : text;
-    }
-    case "dateTime": {
-      const text = String(tree).trim();
-      if (text === "") return undefined;
-      if (/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(text)) return `${text}:00Z`;
-      if (/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?$/.test(text)) return `${text}Z`;
-      return text;
+      return jsonNumber(text);
     }
     case "any": {
       const text = String(tree).trim();

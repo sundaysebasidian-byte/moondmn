@@ -1,27 +1,62 @@
 ///|
+fn fixture_nil(node : @xml.Node) -> Bool raise @types.EngineError {
+  let schema_instance = "http://www.w3.org/2001/XMLSchema-instance"
+  match node.attr_namespace(schema_instance, "nil") {
+    None => false
+    Some(flag) =>
+      match flag.trim().to_owned() {
+        "false" | "0" => false
+        "true" | "1" => {
+          // Retain scalar placeholders already accepted by the TCK adapter;
+          // nil structured elements cannot contain another value.
+          if !node.children.is_empty() ||
+            (node.name != "value" && !node.text.is_empty()) {
+            raise @types.fail("E_TCK_VALUE", "nil element must be empty")
+          }
+          true
+        }
+        _ => raise @types.fail("E_TCK_VALUE", "invalid xsi:nil")
+      }
+  }
+}
+
+///|
 /// TCK values are parsed without a binary floating-point conversion.
 pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
-  if node.child("list") is Some(list) {
-    return List(list.all("item").map(value))
-  }
+  let lists = node.all("list")
   let components = node.all("component")
+  let scalars = node.all("value")
+  let shapes = lists.length() +
+    scalars.length() +
+    (if components.is_empty() { 0 } else { 1 })
+  if shapes != 1 {
+    raise @types.fail(
+      "E_TCK_VALUE", "expected exactly one list, context or scalar value",
+    )
+  }
+  if lists.length() == 1 {
+    let list = lists[0]
+    return if fixture_nil(list) {
+      Null
+    } else {
+      List(list.all("item").map(value))
+    }
+  }
   if !components.is_empty() {
-    let out = Map([])
+    let out : Map[String, @types.Value] = Map([])
     for c in components {
-      out[c.attr("name")] = value(c)
+      let name = c.attr("name")
+      if out.contains(name) {
+        raise @types.fail("E_TCK_VALUE", "duplicate context field: " + name)
+      }
+      out[name] = if fixture_nil(c) { Null } else { value(c) }
     }
     return Context(out)
   }
-  let v = match node.child("value") {
-    Some(v) => v
-    None => raise @types.fail("E_TCK_VALUE", "missing value")
-  }
+  let v = scalars[0]
   let schema_instance = "http://www.w3.org/2001/XMLSchema-instance"
-  if v.attr_namespace(schema_instance, "nil") is Some(flag) {
-    let flag = flag.trim().to_owned()
-    if flag == "true" || flag == "1" {
-      return Null
-    }
+  if fixture_nil(v) {
+    return Null
   }
   let kind = match v.attr_namespace(schema_instance, "type") {
     Some(raw) => schema_type_name(v, raw)
@@ -38,13 +73,21 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
       } else {
         raise @types.fail("E_TCK_VALUE", "invalid boolean")
       }
-    "xsd:decimal"
-    | "xs:decimal"
-    | "xsd:double"
-    | "xs:double"
-    | "xsd:float"
-    | "xs:float"
-    | "xsd:integer"
+    "xsd:decimal" | "xs:decimal" => {
+      if text.contains("e") || text.contains("E") {
+        raise @types.fail(
+          "E_TCK_VALUE", "decimal lexical form cannot have an exponent",
+        )
+      }
+      Number(@types.decimal(text)) catch {
+        @types.Failure("E_DECIMAL_SYNTAX", _, _, _) =>
+          raise @types.fail("E_TCK_VALUE", "invalid decimal lexical form")
+        e => raise e
+      }
+    }
+    "xsd:double" | "xs:double" | "xsd:float" | "xs:float" =>
+      Number(@types.decimal(text))
+    "xsd:integer"
     | "xs:integer"
     | "xsd:int"
     | "xs:int"
@@ -55,7 +98,38 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     | "xsd:byte"
     | "xs:byte"
     | "xsd:nonNegativeInteger"
-    | "xs:nonNegativeInteger" => Number(@types.decimal(text))
+    | "xs:nonNegativeInteger" => {
+      let digits = if text.has_prefix("-") || text.has_prefix("+") {
+        text[1:]
+      } else {
+        text[:]
+      }
+      if digits.is_empty() || !digits.iter().all(ch => ch >= '0' && ch <= '9') {
+        raise @types.fail("E_TCK_VALUE", "invalid integer lexical form")
+      }
+      let value = @types.decimal(text)
+      let bounds = match kind {
+        "xsd:byte" | "xs:byte" => Some(("-128", "127"))
+        "xsd:short" | "xs:short" => Some(("-32768", "32767"))
+        "xsd:int" | "xs:int" => Some(("-2147483648", "2147483647"))
+        "xsd:long" | "xs:long" =>
+          Some(("-9223372036854775808", "9223372036854775807"))
+        _ => None
+      }
+      if (kind.has_suffix("nonNegativeInteger") && value.is_negative()) ||
+        (
+          bounds is Some((lo, hi)) &&
+          (
+            value.compare(@types.decimal(lo)) < 0 ||
+            value.compare(@types.decimal(hi)) > 0
+          )
+        ) {
+        raise @types.fail(
+          "E_TCK_VALUE", "integer is outside the declared XML Schema subtype",
+        )
+      }
+      Number(value)
+    }
     "xsd:date" | "xs:date" => Date(@types.parse_date(text))
     "xsd:time" | "xs:time" => Time(@types.parse_time(text))
     "xsd:dateTime" | "xs:dateTime" | "xsd:date-time" | "xs:date-time" =>
@@ -68,10 +142,24 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
         DaysSeconds(days)
       }
     }
-    "xsd:dayTimeDuration" | "xs:dayTimeDuration" =>
-      DaysSeconds(@types.parse_duration(text).0)
-    "xsd:yearMonthDuration" | "xs:yearMonthDuration" =>
-      YearsMonths(@types.parse_duration(text).1)
+    "xsd:dayTimeDuration"
+    | "xs:dayTimeDuration"
+    | "xsd:yearMonthDuration"
+    | "xs:yearMonthDuration" => {
+      let (days, months) = @types.parse_duration(text)
+      let calendar = text.contains("Y") ||
+        (text.contains("M") && !text.contains("T"))
+      if calendar != kind.has_suffix("yearMonthDuration") {
+        raise @types.fail(
+          "E_TCK_VALUE", "duration is outside the declared XML Schema subtype",
+        )
+      }
+      if calendar {
+        YearsMonths(months)
+      } else {
+        DaysSeconds(days)
+      }
+    }
     other => raise @types.fail("E_TCK_TYPE_UNSUPPORTED", other)
   }
 }
@@ -95,14 +183,29 @@ fn schema_type_name(
 }
 
 ///|
+fn decimal_within_tck_tolerance(x : @types.Decimal, y : @types.Decimal) -> Bool {
+  if x.compare(y) == 0 {
+    return true
+  }
+  let scale = x.scale.max(y.scale).max(8)
+  // Align exact coefficients without normalizing the delta as decimal128:
+  // subtraction of distant representable endpoints may itself overflow.
+  fn units(d : @types.Decimal) {
+    d.coefficient * 10N.pow(@bigint.BigInt::from_int(scale - d.scale))
+  }
+  let difference = units(x) - units(y)
+  let tolerance = 10N.pow(@bigint.BigInt::from_int(scale - 8))
+  difference >= -tolerance && difference <= tolerance
+}
+
+///|
 /// Recursive comparison with the TCK numeric tolerance of 1e-8.
 pub fn equal(
   a : @types.Value,
   b : @types.Value,
 ) -> Bool raise @types.EngineError {
   match (a, b) {
-    (Number(x), Number(y)) =>
-      x.add(y.negate()).abs().compare(@types.decimal("0.00000001")) <= 0
+    (Number(x), Number(y)) => decimal_within_tck_tolerance(x, y)
     (List(xs), List(ys)) => {
       if xs.length() != ys.length() {
         return false
@@ -216,7 +319,7 @@ fn check_case(
     let actual = Ok(case_value(model, kind, invocable, result, inputs, clock)) catch {
       e => Err(e)
     }
-    if result.attr("errorResult") == "true" {
+    if result.attr_is_true("errorResult") {
       // Unsupported implementation paths must never satisfy an expected semantic error.
       // A null result is also accepted when the expected node is null: FEEL defines
       // many invalid operations (division by zero, bad argument types) as null.

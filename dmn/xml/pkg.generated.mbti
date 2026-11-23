@@ -23,6 +23,7 @@ pub struct Node {
 }
 pub fn Node::all(Self, String) -> Array[Self]
 pub fn Node::attr(Self, String) -> String
+pub fn Node::attr_is_true(Self, String) -> Bool
 pub fn Node::attr_namespace(Self, String, String) -> String?
 pub fn Node::child(Self, String) -> Self?
 pub fn Node::content(Self, String) -> String

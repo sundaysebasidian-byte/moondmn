@@ -34,6 +34,19 @@ fn expression_child(node : @xml.Node) -> @xml.Node raise @types.EngineError {
 }
 
 ///|
+fn is_requirement_reference(req : @xml.Node, reference : @xml.Node) -> Bool {
+  reference.uri == req.uri &&
+  reference.name != "description" &&
+  reference.name != "extensionElements"
+}
+
+///|
+let dmn_model_namespaces : Array[String] = [
+  "https://www.omg.org/spec/DMN/20191111/MODEL/", "https://www.omg.org/spec/DMN/20211108/MODEL/",
+  "https://www.omg.org/spec/DMN/20230324/MODEL/",
+]
+
+///|
 /// Parse namespace-aware DMN XML and index its named elements.
 pub fn parse_model(
   source : String,
@@ -52,11 +65,7 @@ fn load_model(
   source_location : String,
 ) -> Model raise @types.EngineError {
   let root = @xml.parse(source)
-  if root.name != "definitions" ||
-    ![
-      "https://www.omg.org/spec/DMN/20191111/MODEL/", "https://www.omg.org/spec/DMN/20211108/MODEL/",
-      "https://www.omg.org/spec/DMN/20230324/MODEL/",
-    ].contains(root.uri) {
+  if root.name != "definitions" || !dmn_model_namespaces.contains(root.uri) {
     raise @types.Failure(
       "E_DMN_NAMESPACE",
       root.line,
@@ -102,7 +111,8 @@ fn load_model(
         "duplicate import qualifier: " + qualifier,
       )
     }
-    if node.attr("importType") != root.uri {
+    let import_type = node.attr("importType").trim().to_owned()
+    if !dmn_model_namespaces.contains(import_type) {
       raise @types.Failure(
         "E_IMPORT_TYPE",
         node.line,
@@ -157,12 +167,21 @@ fn load_model(
       @types.Failure(code, _, _, message) =>
         raise @types.Failure(code, node.line, node.column, message)
     }
+    if imported.root.uri != import_type {
+      raise @types.Failure(
+        "E_IMPORT_TYPE",
+        node.line,
+        node.column,
+        "importType does not match the imported DMN model version",
+      )
+    }
     imports.push((qualifier, imported))
   }
   let decisions = Map([])
   let bkms = Map([])
   let services = Map([])
   let ids = Map([])
+  let drg_names : Map[String, Bool] = Map([])
   for node in root.children {
     if node.uri != root.uri {
       continue
@@ -175,9 +194,15 @@ fn load_model(
           raise @types.fail("E_DMN_ID", "missing name or id")
         }
         let name = if declared == "" { id } else { declared }
-        if ids.contains(id) || ids.values().any(x => x == name) {
-          raise @types.fail("E_DUPLICATE", "duplicate DMN id or name")
+        if (id != "" && ids.contains(id)) || drg_names.contains(name) {
+          raise @types.Failure(
+            "E_DUPLICATE",
+            node.line,
+            node.column,
+            "duplicate DMN id or name: " + name,
+          )
         }
+        drg_names[name] = true
         if id != "" {
           ids[id] = name
         }
@@ -192,6 +217,12 @@ fn load_model(
       "itemDefinition"
       | "import"
       | "knowledgeSource"
+      | "textAnnotation"
+      | "association"
+      | "group"
+      | "elementCollection"
+      | "organizationUnit"
+      | "performanceIndicator"
       | "DMNDI"
       | "description"
       | "extensionElements" => ()
@@ -293,6 +324,9 @@ fn evaluate_named(
   }
   for req in decision.all("informationRequirement") {
     for reference in req.children {
+      if !is_requirement_reference(req, reference) {
+        continue
+      }
       let href = reference.attr("href")
       if imported_requirement(model, reference, inputs, ctx) {
         continue
@@ -305,8 +339,7 @@ fn evaluate_named(
             Some(n) => n
             None => raise @types.fail("E_REFERENCE", "unknown decision: " + dep)
           }
-          validate_variable(model, node, value)
-          ctx[dep] = value
+          ctx[dep] = coerce_variable(model, node, value)
         } else {
           ctx[dep] = evaluate_named(model, dep, inputs, cache, visiting)
         }
@@ -321,6 +354,9 @@ fn evaluate_named(
   }
   for req in decision.all("knowledgeRequirement") {
     for reference in req.children {
+      if !is_requirement_reference(req, reference) {
+        continue
+      }
       let href = reference.attr("href")
       if imported_requirement(model, reference, inputs, ctx) {
         continue
@@ -355,6 +391,28 @@ fn expression(node : @xml.Node) -> @xml.Node raise @types.EngineError {
 }
 
 ///|
+fn function_formals(
+  logic : @xml.Node,
+) -> Array[@xml.Node] raise @types.EngineError {
+  let formals = logic.all("formalParameter")
+  let names : Map[String, Bool] = Map([])
+  for formal in formals {
+    let name = formal.attr("name")
+    let identity = @lexer.normalize_name_spaces(name)
+    if identity.is_empty() || names.contains(identity) {
+      raise @types.Failure(
+        "E_DMN_FUNCTION",
+        formal.line,
+        formal.column,
+        "missing or duplicate formal parameter: " + name,
+      )
+    }
+    names[identity] = true
+  }
+  formals
+}
+
+///|
 fn bkm_function(
   model : Model,
   node : @xml.Node,
@@ -368,13 +426,17 @@ fn bkm_function(
     Some(n) => n
     None => raise @types.fail("E_DMN_BKM", "missing encapsulatedLogic")
   }
-  let params = logic.all("formalParameter").map(p => p.attr("name"))
+  let formals = function_formals(logic)
+  let params = formals.map(p => p.attr("name"))
   let body = expression_child(logic)
   let captured = outer.copy()
   captured["$types"] = Context(type_registry(model))
   import_scope(model, outer, captured)
   for req in node.all("knowledgeRequirement") {
     for reference in req.children {
+      if !is_requirement_reference(req, reference) {
+        continue
+      }
       let href = reference.attr("href")
       if imported_requirement(model, reference, outer, captured) {
         continue
@@ -405,7 +467,7 @@ fn bkm_function(
       for i, param in params {
         scope[param] = coerce_type(
           model,
-          logic.all("formalParameter")[i].attr("typeRef"),
+          item_type_name(formals[i]),
           args[i],
           0,
         )
@@ -666,6 +728,15 @@ fn evaluate_function_body(
 }
 
 ///|
+fn is_feel_namespace(uri : String) -> Bool {
+  [
+    "http://www.omg.org/spec/FEEL/20140401", "http://www.omg.org/spec/DMN/20180521/FEEL/",
+    "https://www.omg.org/spec/DMN/20180521/FEEL/", "https://www.omg.org/spec/DMN/20191111/FEEL/",
+    "https://www.omg.org/spec/DMN/20211108/FEEL/", "https://www.omg.org/spec/DMN/20230324/FEEL/",
+  ].contains(uri)
+}
+
+///|
 fn require_feel_language(
   model : Model,
   node : @xml.Node,
@@ -676,12 +747,7 @@ fn require_feel_language(
   } else {
     explicit
   }
-  if language != "" &&
-    ![
-      "FEEL", "http://www.omg.org/spec/FEEL/20140401", "http://www.omg.org/spec/DMN/20180521/FEEL/",
-      "https://www.omg.org/spec/DMN/20180521/FEEL/", "https://www.omg.org/spec/DMN/20191111/FEEL/",
-      "https://www.omg.org/spec/DMN/20211108/FEEL/", "https://www.omg.org/spec/DMN/20230324/FEEL/",
-    ].contains(language) {
+  if language != "" && language != "FEEL" && !is_feel_namespace(language) {
     raise @types.fail("E_LANGUAGE", "non-FEEL expression language")
   }
 }
@@ -794,9 +860,8 @@ fn boxed_raw(
         for i, value in values {
           let column = columns[i]
           let value = boxed(model, value, ctx)
-          let type_name = column.attr("typeRef")
-          // XML QName type resolution is not implemented for relations.
-          // Preserve the earlier pass-through for qualified external types.
+          let type_name = builtin_type_name(column, column.attr("typeRef"))
+          // Preserve earlier pass-through for types declared in foreign namespaces.
           record[column.attr("name")] = if type_name.contains(":") {
             value
           } else {
@@ -808,7 +873,8 @@ fn boxed_raw(
       List(rows)
     }
     "functionDefinition" => {
-      let params = node.all("formalParameter").map(p => p.attr("name"))
+      let formals = function_formals(node)
+      let params = formals.map(p => p.attr("name"))
       let body = expression_child(node)
       let captured = ctx.copy()
       Function({
@@ -825,7 +891,7 @@ fn boxed_raw(
           for i, param in params {
             scope[param] = coerce_type(
               model,
-              node.all("formalParameter")[i].attr("typeRef"),
+              item_type_name(formals[i]),
               args[i],
               0,
             )
@@ -963,9 +1029,13 @@ fn filter_items(
     }
     _ => {
       let out = []
-      for item in items {
-        let keep = match
-          boxed_filter_predicate(model, predicate, ctx, item, row_fields) {
+      for i, item in items {
+        let result = if i == 0 {
+          first
+        } else {
+          boxed_filter_predicate(model, predicate, ctx, item, row_fields)
+        }
+        let keep = match result {
           Boolean(b) => b
           Null => false
           _ => return Null
