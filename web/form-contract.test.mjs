@@ -33,3 +33,14 @@ test("loading an Any field keeps the original JSON type on the wire", () => {
   assert.deepEqual(JSON.parse(wire(type, "plain")), {x:"plain"});
   assert.deepEqual(JSON.parse(wire(type, "[true]")), {x:[true]});
 });
+
+test("temporal fields preserve the presence, absence and spelling of timezones", () => {
+  for (const [base, seeds] of [
+    ["dateTime", ["2024-03-31T01:30:00", "2024-03-31T01:30:00Z", "2024-03-31T01:30:00-05:00", "2024-03-31T01:30:00.000001@Europe/Paris"]],
+    ["time", ["12:30:00", "12:30:00Z", "12:30:00+05:45"]],
+  ]) {
+    for (const seed of seeds) assert.equal(JSON.parse(wire({base}, toTree({base}, seed))).x, seed);
+    assert.equal(wire({base}, ""), "{}");
+    assert.equal(JSON.parse(wire({base}, "invalid")).x, "invalid");
+  }
+});

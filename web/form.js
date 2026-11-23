@@ -34,10 +34,6 @@ export function element(shape) {
   return { ...shape, collection: false };
 }
 
-function stripZone(text) {
-  return text.replace(/(Z|[+-]00:?00)$/, "");
-}
-
 /** Editable tree from example JSON. */
 export function toTree(shape, json) {
   if (json === undefined) return emptyFor(shape);
@@ -55,8 +51,6 @@ export function toTree(shape, json) {
     }
     case "boolean":
       return json === true || json === "true";
-    case "dateTime":
-      return stripZone(String(json));
     default:
       return String(json);
   }
@@ -96,13 +90,6 @@ export function fromTree(shape, tree) {
       const text = String(tree).trim();
       if (text === "") return undefined;
       return jsonNumber(text);
-    }
-    case "dateTime": {
-      const text = String(tree).trim();
-      if (text === "") return undefined;
-      if (/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(text)) return `${text}:00Z`;
-      if (/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?$/.test(text)) return `${text}Z`;
-      return text;
     }
     case "any": {
       const text = String(tree).trim();
