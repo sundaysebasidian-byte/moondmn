@@ -10,7 +10,15 @@ export class Raw {
   }
 }
 
-const NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+// Keep the exponent and fraction as text; Number(...) would lose FEEL precision.
+function jsonNumber(text) {
+  const match = /^([+-]?)(\d*)(?:\.(\d*))?([eE][+-]?\d+)?$/.exec(text);
+  if (!match || !(match[2] || match[3])) return text;
+  const [, sign, digits, fraction, exponent] = match;
+  const whole = digits.replace(/^0+/, "") || "0";
+  return new Raw((sign === "-" ? "-" : "") + whole +
+    (fraction ? "." + fraction : "") + (exponent ?? ""));
+}
 
 export function stringifyJson(value) {
   if (value instanceof Raw) return value.text;
@@ -87,7 +95,7 @@ export function fromTree(shape, tree) {
     case "number": {
       const text = String(tree).trim();
       if (text === "") return undefined;
-      return NUMBER.test(text) ? new Raw(text.replace(/^\+/, "")) : text;
+      return jsonNumber(text);
     }
     case "dateTime": {
       const text = String(tree).trim();

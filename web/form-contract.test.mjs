@@ -1,0 +1,25 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { inputText, toTree } from "./form.js";
+
+function wire(type, tree) {
+  return inputText({ inputs: [{ name: "x", type }] }, { x: tree });
+}
+
+test("numeric form input emits legal JSON without rounding decimal digits", () => {
+  const type = {base: "number"};
+  for (const [source, expected] of [
+    [".5", "0.5"], ["+.5", "0.5"], ["-000.12500", "-0.12500"],
+    ["1.e+12", "1e+12"], ["+000", "0"], ["-.00", "-0.00"],
+    ["00010000000000000000000000001.0000000000000000001", "10000000000000000000000001.0000000000000000001"],
+    ["-0.01E-2", "-0.01E-2"],
+  ]) {
+    const result = wire(type, source);
+    assert.equal(result, '{"x":' + expected + '}');
+    assert.doesNotThrow(() => JSON.parse(result));
+  }
+  for (const invalid of ["1e", "NaN", "1.2.3"]) {
+    assert.equal(JSON.parse(wire(type, invalid)).x, invalid);
+  }
+  assert.equal(wire(type, " "), "{}");
+});
