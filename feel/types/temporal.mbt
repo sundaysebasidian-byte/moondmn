@@ -1033,7 +1033,12 @@ pub fn datetime_from_instant(
       }
       offset
     }
-    Fixed(offset) => offset
+    Fixed(offset) => {
+      if offset < -50400 || offset > 50400 {
+        raise fail("E_TIME_INVALID", "offset outside 14 hours")
+      }
+      offset
+    }
     Unzoned => 0
   }
   let shifted = seconds + offset.to_int64()
