@@ -72,6 +72,17 @@ fn row_value(
 }
 
 ///|
+fn table_output_value(
+  model : Model,
+  output : @xml.Node,
+  entry : @xml.Node,
+  ctx : Map[String, @types.Value],
+) -> @types.Value raise @types.EngineError {
+  let value = eval_literal(model, entry, ctx)
+  coerce_type(model, item_type_name(output), value, 0)
+}
+
+///|
 fn default_row(
   model : Model,
   outputs : Array[@xml.Node],
@@ -81,7 +92,7 @@ fn default_row(
   for output in outputs {
     let value = match output.child("defaultOutputEntry") {
       Some(entry) => {
-        let value = eval_literal(model, entry, ctx)
+        let value = table_output_value(model, output, entry, ctx)
         if output.child("outputValues") is Some(allowed) {
           require_feel_language(model, allowed)
           if !@eval.unary_test(allowed.content("text"), value, ctx) {
@@ -264,7 +275,7 @@ fn table(
     }
     let row = Map([])
     for i, entry in entries {
-      let v = eval_literal(model, entry, ctx)
+      let v = table_output_value(model, outputs[i], entry, ctx)
       if outputs[i].child("outputValues") is Some(allowed) {
         require_feel_language(model, allowed)
         if !@eval.unary_test(allowed.content("text"), v, ctx) {
