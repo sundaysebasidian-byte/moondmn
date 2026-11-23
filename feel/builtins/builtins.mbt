@@ -741,7 +741,7 @@ fn dispatch(
     }
     "lower case" => {
       arity(name, xs, 1, 1)
-      Text(text(xs[0], name).to_lower())
+      Text(standard_lower(text(xs[0], name)))
     }
     "trim" => {
       arity(name, xs, 1, 1)

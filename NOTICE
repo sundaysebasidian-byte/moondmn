@@ -66,3 +66,6 @@ All trademarks and copyrights remain the property of their respective owners.
              locale-independent uppercase tables in
              feel/builtins/unicode_upper_data.mbt from UnicodeData.txt and
              the unconditional mappings in SpecialCasing.txt.
+             scripts/generate-unicode-lowercase.py derives unconditional
+             lowercase tables in feel/builtins/unicode_lower_data.mbt
+             from the same two files.
