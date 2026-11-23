@@ -1069,6 +1069,12 @@ pub fn datetime_from_instant(
 pub fn datetime_of(date : Date, time : Time) -> DateTime raise EngineError {
   ignore(date_of(date.year, date.month, date.day))
   ignore(make_time(time.hour, time.minute, time.second, time.nanos, time.zone))
+  // The 24:00:00 lexical form denotes midnight of the following date.
+  let (date, time) = if time.hour == 24 {
+    (date_add_days(date, 1L), { ..time, hour: 0 })
+  } else {
+    (date, time)
+  }
   let value : DateTime = { date, time, }
   if time.zone is Named(name) {
     if zone_transitions(name) is None {
