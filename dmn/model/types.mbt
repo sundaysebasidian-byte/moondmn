@@ -1,11 +1,22 @@
 ///|
+fn builtin_type_name(node : @xml.Node, raw : String) -> String {
+  let name = raw.trim().to_owned()
+  if name.find(":") is Some(at) {
+    let prefix = name[:at].to_owned()
+    if node.namespace_uri(prefix) is Some(uri) && is_feel_namespace(uri) {
+      return name[at + 1:].to_owned()
+    }
+  }
+  name
+}
+
+///|
 fn item_type_name(node : @xml.Node) -> String {
   let reference = node.attr("typeRef").trim().to_owned()
-  if reference != "" {
-    reference
-  } else {
-    node.content("typeRef")
-  }
+  builtin_type_name(
+    node,
+    if reference != "" { reference } else { node.content("typeRef") },
+  )
 }
 
 ///|

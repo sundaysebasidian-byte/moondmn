@@ -690,6 +690,15 @@ fn evaluate_function_body(
 }
 
 ///|
+fn is_feel_namespace(uri : String) -> Bool {
+  [
+    "http://www.omg.org/spec/FEEL/20140401", "http://www.omg.org/spec/DMN/20180521/FEEL/",
+    "https://www.omg.org/spec/DMN/20180521/FEEL/", "https://www.omg.org/spec/DMN/20191111/FEEL/",
+    "https://www.omg.org/spec/DMN/20211108/FEEL/", "https://www.omg.org/spec/DMN/20230324/FEEL/",
+  ].contains(uri)
+}
+
+///|
 fn require_feel_language(
   model : Model,
   node : @xml.Node,
@@ -700,12 +709,7 @@ fn require_feel_language(
   } else {
     explicit
   }
-  if language != "" &&
-    ![
-      "FEEL", "http://www.omg.org/spec/FEEL/20140401", "http://www.omg.org/spec/DMN/20180521/FEEL/",
-      "https://www.omg.org/spec/DMN/20180521/FEEL/", "https://www.omg.org/spec/DMN/20191111/FEEL/",
-      "https://www.omg.org/spec/DMN/20211108/FEEL/", "https://www.omg.org/spec/DMN/20230324/FEEL/",
-    ].contains(language) {
+  if language != "" && language != "FEEL" && !is_feel_namespace(language) {
     raise @types.fail("E_LANGUAGE", "non-FEEL expression language")
   }
 }
@@ -818,9 +822,8 @@ fn boxed_raw(
         for i, value in values {
           let column = columns[i]
           let value = boxed(model, value, ctx)
-          let type_name = column.attr("typeRef")
-          // XML QName type resolution is not implemented for relations.
-          // Preserve the earlier pass-through for qualified external types.
+          let type_name = builtin_type_name(column, column.attr("typeRef"))
+          // Preserve earlier pass-through for types declared in foreign namespaces.
           record[column.attr("name")] = if type_name.contains(":") {
             value
           } else {
