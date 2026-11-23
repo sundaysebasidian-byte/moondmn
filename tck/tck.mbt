@@ -183,14 +183,29 @@ fn schema_type_name(
 }
 
 ///|
+fn decimal_within_tck_tolerance(x : @types.Decimal, y : @types.Decimal) -> Bool {
+  if x.compare(y) == 0 {
+    return true
+  }
+  let scale = x.scale.max(y.scale).max(8)
+  // Align exact coefficients without normalizing the delta as decimal128:
+  // subtraction of distant representable endpoints may itself overflow.
+  fn units(d : @types.Decimal) {
+    d.coefficient * 10N.pow(@bigint.BigInt::from_int(scale - d.scale))
+  }
+  let difference = units(x) - units(y)
+  let tolerance = 10N.pow(@bigint.BigInt::from_int(scale - 8))
+  difference >= -tolerance && difference <= tolerance
+}
+
+///|
 /// Recursive comparison with the TCK numeric tolerance of 1e-8.
 pub fn equal(
   a : @types.Value,
   b : @types.Value,
 ) -> Bool raise @types.EngineError {
   match (a, b) {
-    (Number(x), Number(y)) =>
-      x.add(y.negate()).abs().compare(@types.decimal("0.00000001")) <= 0
+    (Number(x), Number(y)) => decimal_within_tck_tolerance(x, y)
     (List(xs), List(ys)) => {
       if xs.length() != ys.length() {
         return false
