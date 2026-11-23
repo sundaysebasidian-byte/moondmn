@@ -120,22 +120,15 @@ fn aggregate(
     }
     return Number(@types.Decimal::sum(values))
   }
-  let mut n = match matches[0] {
-    Number(n) => n
-    _ => raise @types.fail("E_TABLE_AGGREGATION", "numeric output required")
+  let builtin = match name {
+    "MIN" | "C<" => "min"
+    "MAX" | "C>" => "max"
+    _ => raise @types.fail("E_TABLE_AGGREGATION", name)
   }
-  for i = 1; i < matches.length(); i = i + 1 {
-    let m = match matches[i] {
-      Number(m) => m
-      _ => raise @types.fail("E_TABLE_AGGREGATION", "numeric output required")
-    }
-    match name {
-      "MIN" | "C<" => if m.compare(n) < 0 { n = m }
-      "MAX" | "C>" => if m.compare(n) > 0 { n = m }
-      _ => raise @types.fail("E_TABLE_AGGREGATION", name)
-    }
+  match @builtins.call(builtin, [List(matches)]) {
+    Null => raise @types.fail("E_TABLE_AGGREGATION", "comparable outputs required")
+    best => best
   }
-  Number(n)
 }
 
 ///|
