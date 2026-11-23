@@ -100,17 +100,6 @@ fn contains_value(items : Array[@types.Value], target : @types.Value) -> Bool {
 }
 
 ///|
-fn index_of_value(
-  v : @types.Value,
-  name : String,
-) -> Int32 raise @types.EngineError {
-  let d = number(v, name).round(0)
-  d.to_int() catch {
-    _ => raise err("E_TYPE", name + " position out of range")
-  }
-}
-
-///|
 fn scale_of(
   value : @types.Value,
   name : String,
@@ -758,7 +747,7 @@ fn dispatch(
     "substring" => {
       arity(name, xs, 2, 3)
       let body = text(xs[0], name)
-      let start = index_of_value(xs[1], name)
+      let start = number(xs[1], name).to_int()
       let length = if xs.length() == 3 && !(xs[2] is Null) {
         Some(number(xs[2], name).floor().to_int())
       } else {
@@ -1431,26 +1420,17 @@ fn ym_between(
 fn substring_of(body : String, start : Int32, length : Int32?) -> @types.Value {
   let chars = body.to_array()
   let n = chars.length()
-  let begin = if start > 0 {
-    start - 1
-  } else if start == 0 {
-    0
-  } else {
-    n + start
+  if start == 0 || start < -n || start > n {
+    return Null
   }
-  let begin = if begin < 0 { 0 } else if begin > n { n } else { begin }
+  let begin = if start > 0 { start - 1 } else { n + start }
   let finish = match length {
-    Some(l) =>
-      if l <= 0 {
-        begin
-      } else {
-        let end = begin + l
-        if end > n {
-          n
-        } else {
-          end
-        }
+    Some(l) => {
+      if l < 1 || l > n - begin {
+        return Null
       }
+      begin + l
+    }
     None => n
   }
   Text(String::from_array(chars[begin:finish].to_owned()))
