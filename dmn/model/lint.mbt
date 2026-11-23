@@ -15,17 +15,13 @@ pub fn lint(model : Model) -> Json {
           if href.has_prefix("#") ||
             href.has_prefix(model.root.attr("namespace") + "#") {
             let target = href_id(model, href)
-            if reference.name == "requiredKnowledge" {
-              check_requirement_target(model, reference, target)
-            }
+            check_requirement_target(model, reference, target)
             true
           } else {
             model.imports.any(pair => {
               if href.has_prefix(pair.1.root.attr("namespace") + "#") {
                 let target = href_id(pair.1, href)
-                if reference.name == "requiredKnowledge" {
-                  check_requirement_target(pair.1, reference, target)
-                }
+                check_requirement_target(pair.1, reference, target)
                 true
               } else {
                 false
