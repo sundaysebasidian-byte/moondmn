@@ -38,9 +38,17 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
       } else {
         raise @types.fail("E_TCK_VALUE", "invalid boolean")
       }
-    "xsd:decimal"
-    | "xs:decimal"
-    | "xsd:double"
+    "xsd:decimal" | "xs:decimal" => {
+      if text.contains("e") || text.contains("E") {
+        raise @types.fail("E_TCK_VALUE", "decimal lexical form cannot have an exponent")
+      }
+      Number(@types.decimal(text)) catch {
+        @types.Failure("E_DECIMAL_SYNTAX", _, _, _) =>
+          raise @types.fail("E_TCK_VALUE", "invalid decimal lexical form")
+        e => raise e
+      }
+    }
+    "xsd:double"
     | "xs:double"
     | "xsd:float"
     | "xs:float" => Number(@types.decimal(text))
