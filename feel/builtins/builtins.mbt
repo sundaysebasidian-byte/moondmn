@@ -847,7 +847,7 @@ fn dispatch(
       arity(name, xs, 1, 2)
       let n = number(xs[0], name)
       if xs.length() == 2 {
-        Number(n.round(index_of_value(xs[1], name)))
+        Number(n.round(number(xs[1], name).to_int()))
       } else {
         Number(n)
       }
@@ -857,13 +857,13 @@ fn dispatch(
       if xs.length() == 2 && xs[1] is Null {
         return Null
       }
-      let scale = if xs.length() == 2 { index_of_value(xs[1], name) } else { 0 }
+      let scale = if xs.length() == 2 { number(xs[1], name).to_int() } else { 0 }
       Number(number(xs[0], name).directed_round(scale, name))
     }
     "round up" | "round down" | "round half up" | "round half down" => {
       arity(name, xs, 2, 2)
       let n = number(xs[0], name)
-      let scale = index_of_value(xs[1], name)
+      let scale = number(xs[1], name).to_int()
       Number(n.directed_round(scale, name))
     }
     "abs" => {
