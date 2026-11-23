@@ -195,6 +195,12 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3 \
 moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-feel-equality
 ```
 
+### 字符、时间与表格的边界
+
+- `lower case` 使用仓库中的 Unicode 17 无条件映射，例如 `lower case("İ") = "i̇"`。不根据用户语言定制，也不处理上下文特有的希腊词尾 sigma。XPath 的 `\d`、`\w` 取 Unicode 类别；`\i`、`\c` 按 XML 1.0 第五版匹配名称首字符和后续字符。
+- 字符串形式的时间接受 `Z` 和 `z`，输出统一用 `Z`。带日期的 `24:00:00` 读作次日午夜。时间精度最多九位小数；额外的非零精度不静默舍入。
+- 决策表的匹配输出和默认输出都遵守 `output typeRef`。模型可以同时带有文本注释、分组与业务元数据；它们不会成为可执行决策。关系表列中的 FEEL 类型前缀按 XML 命名空间识别。
+
 ## 覆盖矩阵
 
 状态为已支持或明确不支持；TCK 例外见“已知失败”表。

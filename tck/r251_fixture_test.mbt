@@ -58,3 +58,23 @@ test "r251 xsi nil is valid for list and component rather than just scalar value
     "E_TCK_VALUE",
   )
 }
+
+///|
+test "r251 comparing distant decimals never overflows a TCK result" {
+  let x = @types.Number(@types.decimal("9e6144"))
+  let y = @types.Number(@types.decimal("-9e6144"))
+  assert_true(!@tck.equal(x, y))
+  assert_true(@tck.equal(x, x))
+  assert_true(
+    @tck.equal(
+      @types.Number(@types.decimal("1")),
+      @types.Number(@types.decimal("1.00000001")),
+    ),
+  )
+  assert_true(
+    !@tck.equal(
+      @types.Number(@types.decimal("1")),
+      @types.Number(@types.decimal("1.0000000101")),
+    ),
+  )
+}

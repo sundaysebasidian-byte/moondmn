@@ -391,14 +391,18 @@ fn expression(node : @xml.Node) -> @xml.Node raise @types.EngineError {
 }
 
 ///|
-fn function_formals(logic : @xml.Node) -> Array[@xml.Node] raise @types.EngineError {
+fn function_formals(
+  logic : @xml.Node,
+) -> Array[@xml.Node] raise @types.EngineError {
   let formals = logic.all("formalParameter")
   let names : Map[String, Bool] = Map([])
   for formal in formals {
     let name = formal.attr("name")
     if name.trim().is_empty() || names.contains(name) {
       raise @types.Failure(
-        "E_DMN_FUNCTION", formal.line, formal.column,
+        "E_DMN_FUNCTION",
+        formal.line,
+        formal.column,
         "missing or duplicate formal parameter: " + name,
       )
     }

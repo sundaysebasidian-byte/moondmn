@@ -142,3 +142,57 @@ test "r251 imported model namespace URI follows declared DMN version" {
   }
   assert_eq(bad, "E_IMPORT_TYPE")
 }
+
+///|
+test "r251 decision table output clauses enforce their declared type for rules and defaults" {
+  let p = "<decision name='D'><decisionTable><input><inputExpression><text>1</text></inputExpression></input><output typeRef='number'><defaultOutputEntry><text>"
+  let m = "</text></defaultOutputEntry></output><rule><inputEntry><text>"
+  let e = "</text></inputEntry><outputEntry><text>"
+  let s = "</text></outputEntry></rule></decisionTable></decision>"
+  assert_eq(r251_eval(p + "9" + m + "1" + e + "\"word\"" + s), "null")
+  assert_eq(r251_eval(p + "\"default\"" + m + "2" + e + "8" + s), "null")
+  assert_eq(r251_eval(p + "[9]" + m + "2" + e + "8" + s), "9")
+  assert_eq(r251_eval(p + "9" + m + "1" + e + "[8]" + s), "8")
+}
+
+///|
+test "r251 injected dependency values use the same declared output coercion as evaluated values" {
+  let doc = r251_model(
+    "<decision id='a' name='A'><variable name='A' typeRef='number'/><literalExpression><text>[2]</text></literalExpression></decision><decision name='D'><informationRequirement><requiredDecision href='#a'/></informationRequirement><literalExpression><text>A + 1</text></literalExpression></decision>",
+  )
+  let model = @model.parse_model(doc)
+  assert_eq(@model.evaluate_decision(model, "D", Map([])).text(), "3")
+  let supplied = @types.List([@types.Number(@types.decimal_int(4))])
+  assert_eq(
+    @model.evaluate_decision(model, "D", Map([("A", supplied)])).text(),
+    "5",
+  )
+  let invalid = @types.List([@types.Text("wrong")])
+  let code = try {
+    ignore(@model.evaluate_decision(model, "D", Map([("A", invalid)])))
+    "ok"
+  } catch {
+    e => @types.error_code(e)
+  }
+  assert_eq(code, "E_TYPE")
+}
+
+///|
+test "r251 duplicate boxed formals fail rather than shadowing a parameter" {
+  let boxed = "<decision name='D'><invocation><functionDefinition><formalParameter name='x'/><formalParameter name='x'/><literalExpression><text>x</text></literalExpression></functionDefinition><binding><parameter name='x'/><literalExpression><text>1</text></literalExpression></binding></invocation></decision>"
+  let bkm = "<businessKnowledgeModel id='b' name='B'><encapsulatedLogic><formalParameter name='x'/><formalParameter name='x'/><literalExpression><text>x</text></literalExpression></encapsulatedLogic></businessKnowledgeModel><decision name='D'><knowledgeRequirement><requiredKnowledge href='#b'/></knowledgeRequirement><literalExpression><text>B(1,2)</text></literalExpression></decision>"
+  for bad in [boxed, bkm] {
+    let code = try {
+      ignore(r251_eval(bad))
+      "ok"
+    } catch {
+      e => @types.error_code(e)
+    }
+    assert_eq(code, "E_DMN_FUNCTION")
+  }
+  let valid = bkm.replace_all(
+    old="<formalParameter name='x'/><formalParameter name='x'/>",
+    new="<formalParameter name='x'/><formalParameter name='y'/>",
+  )
+  assert_eq(r251_eval(valid), "1")
+}

@@ -20,7 +20,7 @@ moon run cmd/main --target native -- lint examples/imports/main.dmn
 
 宿主需要按 namespace 绑定输入时，使用 `dmn/model.bind_input(inputs, name, value, model_namespace="...")`；TCK 驱动使用该接口读取 inputNode 的 namespace 属性。runner 的比较、容差、错误白名单保持不变。
 
-导入最多 32 层，以当前加载栈的 namespace 检测循环。错误携带 import 元素行列；循环错误保留闭合边的文件位置（入口模型在宿主 resolver API 中记为 `<root>`）：`E_IMPORT_NOT_FOUND`、`E_IMPORT_NAMESPACE`、`E_IMPORT_ALIAS`、`E_IMPORT_TYPE`、`E_IMPORT_CYCLE`、`E_IMPORT_DEPTH`、`E_IMPORT_PATH`；引用错误为 `E_REFERENCE`。
+DMN 1.3、1.4、1.5 模型可以混合导入；`importType` 要与被导入文件的 DMN 模型版本 URI 一致，不需要与入口文件相同。导入最多 32 层，以当前加载栈的 namespace 检测循环。错误携带 import 元素行列；循环错误保留闭合边的文件位置（入口模型在宿主 resolver API 中记为 `<root>`）：`E_IMPORT_NOT_FOUND`、`E_IMPORT_NAMESPACE`、`E_IMPORT_ALIAS`、`E_IMPORT_TYPE`、`E_IMPORT_CYCLE`、`E_IMPORT_DEPTH`、`E_IMPORT_PATH`；引用错误为 `E_REFERENCE`。
 
 ## 宿主函数桥
 
