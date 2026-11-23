@@ -1071,7 +1071,7 @@ pub fn datetime_of(date : Date, time : Time) -> DateTime raise EngineError {
   ignore(make_time(time.hour, time.minute, time.second, time.nanos, time.zone))
   // The 24:00:00 lexical form denotes midnight of the following date.
   let (date, time) = if time.hour == 24 {
-    (date_add_days(date, 1L), { ..time, hour: 0 })
+    (date_add_days(date, 1L), { ..time, hour: 0, })
   } else {
     (date, time)
   }

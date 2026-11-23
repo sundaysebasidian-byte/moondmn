@@ -682,6 +682,4 @@ let lower_ranges : Array[(Int32, Int32, Int32)] = [
 ]
 
 ///|
-let lower_expansions : Map[Int32, String] = {
-  304: "i̇",
-}
+let lower_expansions : Map[Int32, String] = { 304: "i̇" }

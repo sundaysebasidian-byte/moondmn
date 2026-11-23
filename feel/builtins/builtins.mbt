@@ -703,7 +703,11 @@ fn dispatch(
       } else {
         ""
       }
-      if (xs.length() > 1 && !(xs[1] is Null) && ![".", ",", " "].contains(grouping)) ||
+      if (
+          xs.length() > 1 &&
+          !(xs[1] is Null) &&
+          ![".", ",", " "].contains(grouping)
+        ) ||
         (xs.length() > 2 && !(xs[2] is Null) && ![".", ","].contains(separator)) ||
         (grouping != "" && grouping == separator) {
         return Null
@@ -1206,7 +1210,8 @@ fn dispatch(
         "started by" | "finished by" | "includes" => a_range
         _ => a_range && b_range
       }
-      if !valid || xs.iter().any(v => v is Range(r) && r.comparison == Some("!=")) {
+      if !valid ||
+        xs.iter().any(v => v is Range(r) && r.comparison == Some("!=")) {
         Null
       } else {
         Boolean(range_relation(name, xs[0], xs[1]))
