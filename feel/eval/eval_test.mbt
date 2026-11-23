@@ -58,3 +58,33 @@ test "typed function invocation implicit conversions" {
     assert_eq(@eval.feel_eval(source).json().stringify(), expected)
   }
 }
+
+///|
+test "Gregorian calendar boundaries in FEEL" {
+  for
+    (date, day, week) in [
+      ("1900-01-01", "1", "1"),
+      ("1900-03-01", "60", "9"),
+      ("1999-12-31", "365", "52"),
+      ("2000-01-01", "1", "52"),
+      ("2000-02-29", "60", "9"),
+      ("2004-12-31", "366", "53"),
+      ("2005-01-03", "3", "1"),
+      ("2016-01-01", "1", "53"),
+      ("2019-12-30", "364", "1"),
+      ("2020-12-31", "366", "53"),
+      ("2021-01-01", "1", "53"),
+      ("2021-01-04", "4", "1"),
+      ("2100-03-01", "60", "9"),
+    ] {
+    let literal = "date(\"" + date + "\")"
+    assert_eq(
+      @eval.feel_eval("day of year(" + literal + ")").json().stringify(),
+      day,
+    )
+    assert_eq(
+      @eval.feel_eval("week of year(" + literal + ")").json().stringify(),
+      week,
+    )
+  }
+}

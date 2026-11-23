@@ -148,6 +148,17 @@ pub fn compare_values(a : Value, b : Value) -> Int32 raise EngineError {
   match (a, b) {
     (Number(x), Number(y)) => x.compare(y)
     (Text(x), Text(y)) => {
+      if (x.length() >= 32 || y.length() >= 32) &&
+        !x.is_empty() &&
+        !y.is_empty() {
+        let a = x.at(0)
+        let b = y.at(0)
+        // This low BMP range excludes all surrogate halves. If the first
+        // units agree or either could be a surrogate, retain scalar order.
+        if a != b && a < 0xD800 && b < 0xD800 {
+          return if a < b { -1 } else { 1 }
+        }
+      }
       let xs = x.to_array()
       let ys = y.to_array()
       for i = 0; i < xs.length() && i < ys.length(); i = i + 1 {
@@ -207,26 +218,24 @@ pub fn Value::equals(a : Value, b : Value) -> Bool {
       if xs.length() != ys.length() {
         return false
       }
-      let mut same = true
       for i, x in xs {
         if !x.equals(ys[i]) {
-          same = false
+          return false
         }
       }
-      same
+      true
     }
     (Context(xs), Context(ys)) => {
       if xs.length() != ys.length() {
         return false
       }
-      let mut same = true
       for k, v in xs {
         match ys.get(k) {
-          Some(w) => if !v.equals(w) { same = false }
-          None => same = false
+          Some(w) => if !v.equals(w) { return false }
+          None => return false
         }
       }
-      same
+      true
     }
     (Range(x), Range(y)) =>
       x.comparison == y.comparison &&

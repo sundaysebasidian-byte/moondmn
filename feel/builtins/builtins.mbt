@@ -276,8 +276,13 @@ fn temporal_call(
   let mut from : @types.Value? = None
   let mut date_part : @types.Value? = None
   let mut time_part : @types.Value? = None
+  let seen : Map[String, Bool] = Map([])
   for entry in named {
     let key = entry.0
+    if seen.contains(key) {
+      raise err("E_ARITY", "duplicate argument: " + key)
+    }
+    seen[key] = true
     let value = entry.1
     if key == "from" {
       from = Some(value)
@@ -300,6 +305,17 @@ fn temporal_call(
       }
       slots[at] = Some(value)
     }
+  }
+  if (from is Some(_) && named.length() != 1) ||
+    (
+      (date_part is Some(_) || time_part is Some(_)) &&
+      (
+        !(date_part is Some(_)) ||
+        !(time_part is Some(_)) ||
+        named.length() != 2
+      )
+    ) {
+    raise err("E_ARITY", "incompatible overload arguments for " + name)
   }
   match from {
     Some(v) => positional.push(v)
@@ -380,6 +396,15 @@ fn bind_args(
   for _ in names {
     slots.push(None)
   }
+  let point_range_pair = named &&
+    args.length() == 2 &&
+    ["includes", "during", "starts", "started by", "finishes", "finished by"].contains(
+      name,
+    ) &&
+    args
+    .iter()
+    .any(arg => arg.0 is Some("point") && !(arg.1 is Range(_) || arg.1 is Null)) &&
+    args.iter().any(arg => arg.0 is Some("range") && arg.1 is Range(_))
   let extras : Array[@types.Value] = []
   let mut next = 0
   for arg in args {
@@ -409,6 +434,36 @@ fn bind_args(
         if at < 0 {
           let target = match key {
             "keys" => "key"
+            "range1" if names == ["point1", "point2"] && arg.1 is Range(_) =>
+              "point1"
+            "range2" if names == ["point1", "point2"] && arg.1 is Range(_) =>
+              "point2"
+            "range" if point_range_pair =>
+              match name {
+                "includes" | "started by" | "finished by" => "point1"
+                "during" | "starts" | "finishes" => "point2"
+                _ => ""
+              }
+            "point" if point_range_pair =>
+              match name {
+                "includes" | "started by" | "finished by" => "point2"
+                "during" | "starts" | "finishes" => "point1"
+                _ => ""
+              }
+            "list" =>
+              // Preserve the existing function-named arguments as aliases
+              // while accepting the standard single-list parameter spelling.
+              match name {
+                "count"
+                | "min"
+                | "max"
+                | "sum"
+                | "mean"
+                | "reverse"
+                | "distinct values"
+                | "flatten" => name
+                _ => ""
+              }
             "match" => if name == "list replace" { "position" } else { "" }
             _ => ""
           }
@@ -477,9 +532,9 @@ fn dispatch(
     "date" => {
       arity(name, xs, 1, 3)
       if xs.length() > 1 {
-        let year = index_of_value(xs[0], name)
-        let month = index_of_value(xs[1], name)
-        let day = if xs.length() > 2 { index_of_value(xs[2], name) } else { 1 }
+        let year = number(xs[0], name).to_int()
+        let month = number(xs[1], name).to_int()
+        let day = if xs.length() > 2 { number(xs[2], name).to_int() } else { 1 }
         Date(@types.date_of(year, month, day))
       } else {
         match xs[0] {
@@ -493,8 +548,8 @@ fn dispatch(
     "time" => {
       arity(name, xs, 1, 4)
       if xs.length() > 1 {
-        let hour = index_of_value(xs[0], name)
-        let minute = index_of_value(xs[1], name)
+        let hour = number(xs[0], name).to_int()
+        let minute = number(xs[1], name).to_int()
         let seconds = if xs.length() > 2 {
           number(xs[2], name)
         } else {
@@ -520,7 +575,12 @@ fn dispatch(
               @types.Fixed(seconds.to_int())
             }
             Text(s) => {
-              let (z, _) = @types.parse_offset_text(s, 0)
+              let (z, end) = @types.parse_offset_text(s, 0)
+              if end != s.char_length() {
+                raise err(
+                  "E_TIME_INVALID", "trailing characters in time offset",
+                )
+              }
               z
             }
             _ => raise err("E_TYPE", "time offset must be a duration")
@@ -546,29 +606,32 @@ fn dispatch(
         let time = time_value(xs[1], name)
         @types.DateTime(@types.datetime_of(date, time))
       } else if xs.length() > 2 {
-        let year = index_of_value(xs[0], name)
-        let month = index_of_value(xs[1], name)
-        let day = index_of_value(xs[2], name)
-        let hour = if xs.length() > 3 { index_of_value(xs[3], name) } else { 0 }
-        let minute = if xs.length() > 4 {
-          index_of_value(xs[4], name)
-        } else {
-          0
+        let year = number(xs[0], name).to_int()
+        let month = number(xs[1], name).to_int()
+        let day = number(xs[2], name).to_int()
+        // The numeric overload shares time's seconds precision and zone rules.
+        let parts = [
+          if xs.length() > 3 {
+            xs[3]
+          } else {
+            num(0)
+          },
+          if xs.length() > 4 {
+            xs[4]
+          } else {
+            num(0)
+          },
+          if xs.length() > 5 {
+            xs[5]
+          } else {
+            num(0)
+          },
+        ]
+        if xs.length() > 6 {
+          parts.push(xs[6])
         }
-        let seconds = if xs.length() > 5 {
-          number(xs[5], name)
-        } else {
-          @types.zero()
-        }
-        let second = seconds.floor().to_int()
-        let nanos = @types.decimal_to_scaled(
-          seconds.add(@types.decimal_int(second).negate()),
-          9,
-        ).to_int()
-        @types.DateTime({
-          date: @types.date_of(year, month, day),
-          time: @types.make_time(hour, minute, second, nanos, @types.Unzoned),
-        })
+        let time = time_value(dispatch("time", parts), name)
+        DateTime(@types.datetime_of(@types.date_of(year, month, day), time))
       } else {
         match xs[0] {
           DateTime(_) => xs[0]
@@ -621,7 +684,7 @@ fn dispatch(
           let mut body = s
           if xs.length() > 1 {
             let grouping = if xs[1] is Null { "" } else { text(xs[1], name) }
-            if !["", ".", ",", " "].contains(grouping) {
+            if !(xs[1] is Null) && ![".", ",", " "].contains(grouping) {
               return Null
             }
             if grouping != "" {
@@ -693,7 +756,7 @@ fn dispatch(
       let body = text(xs[0], name)
       let needle = text(xs[1], name)
       match body.find(needle) {
-        Some(at) => Text(String::from_array(body.to_array()[0:at]))
+        Some(at) => Text(body[:at].to_owned())
         None => Text("")
       }
     }
@@ -702,16 +765,7 @@ fn dispatch(
       let body = text(xs[0], name)
       let needle = text(xs[1], name)
       match body.find(needle) {
-        Some(at) => {
-          let chars = body.to_array()
-          let out = StringBuilder()
-          let mut i = at + needle.char_length()
-          while i < chars.length() {
-            out.write_char(chars[i])
-            i = i + 1
-          }
-          Text(out.to_string())
-        }
+        Some(at) => Text(body[at + needle.length():].to_owned())
         None => Text("")
       }
     }
@@ -798,63 +852,19 @@ fn dispatch(
         Number(n)
       }
     }
-    "floor" => {
+    "floor" | "ceiling" => {
       arity(name, xs, 1, 2)
-      if xs.length() > 1 && xs[1] is Null {
+      if xs.length() == 2 && xs[1] is Null {
         return Null
       }
-      let scale = if xs.length() > 1 && !(xs[1] is Null) {
-        index_of_value(xs[1], name)
-      } else {
-        0
-      }
-      let factor = @types.Decimal::power_of_ten(
-        if scale < 0 {
-          -scale
-        } else {
-          scale
-        },
-      )
-      let n = number(xs[0], name)
-      Number(
-        if scale < 0 {
-          n.divide(factor).floor().multiply(factor)
-        } else {
-          n.multiply(factor).floor().divide(factor)
-        },
-      )
-    }
-    "ceiling" => {
-      arity(name, xs, 1, 2)
-      if xs.length() > 1 && xs[1] is Null {
-        return Null
-      }
-      let scale = if xs.length() > 1 && !(xs[1] is Null) {
-        index_of_value(xs[1], name)
-      } else {
-        0
-      }
-      let factor = @types.Decimal::power_of_ten(
-        if scale < 0 {
-          -scale
-        } else {
-          scale
-        },
-      )
-      let n = number(xs[0], name)
-      Number(
-        if scale < 0 {
-          n.divide(factor).ceiling().multiply(factor)
-        } else {
-          n.multiply(factor).ceiling().divide(factor)
-        },
-      )
+      let scale = if xs.length() == 2 { index_of_value(xs[1], name) } else { 0 }
+      Number(number(xs[0], name).directed_round(scale, name))
     }
     "round up" | "round down" | "round half up" | "round half down" => {
       arity(name, xs, 2, 2)
       let n = number(xs[0], name)
       let scale = index_of_value(xs[1], name)
-      Number(round_to(n, scale, name))
+      Number(n.directed_round(scale, name))
     }
     "abs" => {
       arity(name, xs, 1, 1)
@@ -912,13 +922,13 @@ fn dispatch(
     "sublist" => {
       arity(name, xs, 2, 3)
       let items = list(xs[0], name)
-      let start = index_of_value(xs[1], name)
+      let start = number(xs[1], name).to_int() catch { _ => return Null }
       let length = if xs.length() == 3 && !(xs[2] is Null) {
-        Some(index_of_value(xs[2], name))
+        Some(number(xs[2], name).to_int() catch { _ => return Null })
       } else {
         None
       }
-      List(sublist_of(items, start, length))
+      sublist_of(items, start, length)
     }
     "append" => {
       arity(name, xs, 1, -1)
@@ -940,10 +950,15 @@ fn dispatch(
       arity(name, xs, 3, 3)
       let items = list(xs[0], name).copy()
       let position = index_of_value(xs[1], name)
-      if position < 1 || position > items.length() + 1 {
+      let at = if position < 0 {
+        items.length() + position
+      } else {
+        position - 1
+      }
+      if at < 0 || at > items.length() {
         raise err("E_RANGE", "insert position out of range")
       }
-      items.insert(position - 1, xs[2])
+      items.insert(at, xs[2])
       List(items)
     }
     "remove" => {
@@ -1032,10 +1047,21 @@ fn dispatch(
     }
     "distinct values" => {
       arity(name, xs, 1, 1)
+      let items = list(xs[0], name)
       let out = []
-      for item in list(xs[0], name) {
-        if !contains_value(out, item) {
-          out.push(item)
+      if items.iter().all(item => item is Text(_)) {
+        let seen : Map[String, Bool] = Map([])
+        for item in items {
+          if item is Text(text) && !seen.contains(text) {
+            seen[text] = true
+            out.push(item)
+          }
+        }
+      } else {
+        for item in items {
+          if !contains_value(out, item) {
+            out.push(item)
+          }
         }
       }
       List(out)
@@ -1050,7 +1076,14 @@ fn dispatch(
       arity(name, xs, 2, 2)
       let items = list(xs[0], name).copy()
       let compares = match xs[1] {
-        Function(f) => f
+        Function(f) => {
+          // FEEL function definitions have exact arity. A builtin's parameter
+          // names can also describe optional or variadic arguments.
+          if f.name == "function" && f.params.length() != 2 {
+            raise err("E_ARITY", "sort comparator must accept two arguments")
+          }
+          f
+        }
         _ => raise err("E_TYPE", "sort requires a function")
       }
       insertion_sort(items, compares)
@@ -1214,14 +1247,17 @@ fn range_endpoint(
     return Some(temporal_literal(literal))
   }
   if chars.length() >= 2 && chars[0] == '"' && chars[chars.length() - 1] == '"' {
-    return Some(
-      Text(String::from_array(chars[1:chars.length() - 1].to_owned())),
-    )
+    return match @parser.compile(s) {
+      Lit(Text(value)) => Some(Text(value))
+      _ => raise err("E_RANGE", "range endpoint must be a text literal")
+    }
   }
   for temporal_name in ["date", "date and time", "time", "duration"] {
-    if s.has_prefix(temporal_name + "(") {
+    if s.strip_prefix(temporal_name) is Some(suffix) &&
+      suffix.trim().has_prefix("(") {
       match @parser.compile(s, names=[temporal_name]) {
-        Call(Name(n), [arg]) =>
+        Call(Name(n), [arg]) if n == temporal_name &&
+          (arg.name is None || arg.name is Some("from")) =>
           match arg.value {
             Lit(Text(value)) => return Some(dispatch(n, [Text(value)]))
             _ =>
@@ -1248,6 +1284,25 @@ fn range_endpoint(
 }
 
 ///|
+// The FEEL delimiter is outside quoted text (including temporal strings).
+fn range_separator(chars : Array[Char]) -> Int32? {
+  let mut quoted = false
+  let mut escaped = false
+  for i, ch in chars {
+    if escaped {
+      escaped = false
+    } else if quoted && ch == '\\' {
+      escaped = true
+    } else if ch == '"' {
+      quoted = !quoted
+    } else if !quoted && ch == '.' && chars.get(i + 1) == Some('.') {
+      return Some(i)
+    }
+  }
+  None
+}
+
+///|
 fn parse_range_text(source : String) -> @types.Value raise @types.EngineError {
   let s = source.trim().to_owned()
   let chars = s.to_array()
@@ -1261,12 +1316,12 @@ fn parse_range_text(source : String) -> @types.Value raise @types.EngineError {
     raise err("E_RANGE", "range must be enclosed in brackets: " + source)
   }
   let body = String::from_array(chars[1:chars.length() - 1].to_owned())
-  let at = match body.find("..") {
+  let at = match range_separator(body.to_array()) {
     Some(i) => i
     None => raise err("E_RANGE", "range requires ..: " + source)
   }
   let body_chars = body.to_array()
-  let start_text = String::from_array(body_chars[0:at].to_owned())
+  let start_text = String::from_array(body_chars[:at].to_owned())
   let end_text = String::from_array(body_chars[at + 2:].to_owned())
   let start = range_endpoint(start_text, source)
   let end = range_endpoint(end_text, source)
@@ -1388,31 +1443,22 @@ fn sublist_of(
   items : Array[@types.Value],
   start : Int32,
   length : Int32?,
-) -> Array[@types.Value] {
+) -> @types.Value {
   let n = items.length()
-  let begin = if start > 0 {
-    start - 1
-  } else if start == 0 {
-    0
-  } else {
-    n + start
+  if start == 0 || start < -n || start > n {
+    return Null
   }
-  let begin = if begin < 0 { 0 } else if begin > n { n } else { begin }
+  let begin = if start > 0 { start - 1 } else { n + start }
   let finish = match length {
-    Some(l) =>
-      if l <= 0 {
-        begin
-      } else {
-        let end = begin + l
-        if end > n {
-          n
-        } else {
-          end
-        }
+    Some(l) => {
+      if l < 1 || l > n - begin {
+        return Null
       }
+      begin + l
+    }
     None => n
   }
-  items[begin:finish].to_owned()
+  List(items[begin:finish].to_owned())
 }
 
 ///|
@@ -1453,44 +1499,41 @@ fn numeric_aggregate(
     }
     return Number(acc)
   }
-  let mut total = @types.zero()
+  if name == "median" {
+    let values = []
+    for item in items {
+      values.push(number(item, name))
+    }
+    values.sort_by((a, b) => a.compare(b))
+    let n = values.length()
+    return if n % 2 == 1 {
+      Number(values[n / 2])
+    } else {
+      Number(@types.Decimal::mean([values[n / 2 - 1], values[n / 2]]))
+    }
+  }
+  if name == "mean" {
+    let values = []
+    for item in items {
+      values.push(number(item, name))
+    }
+    return Number(@types.Decimal::mean(values))
+  }
+  if name == "stddev" {
+    if items.length() < 2 {
+      return Null
+    }
+    let values = []
+    for item in items {
+      values.push(number(item, name))
+    }
+    return Number(@types.Decimal::sample_deviation(values))
+  }
+  let values = []
   for item in items {
-    total = total.add(number(item, name))
+    values.push(number(item, name))
   }
-  let count = @types.decimal_int(items.length())
-  match name {
-    "sum" => Number(total)
-    "mean" => Number(total.divide(count))
-    "median" => {
-      let values = []
-      for item in items {
-        values.push(number(item, name))
-      }
-      values.sort_by((a, b) => a.compare(b))
-      let n = values.length()
-      if n % 2 == 1 {
-        Number(values[n / 2])
-      } else {
-        Number(
-          values[n / 2 - 1].add(values[n / 2]).divide(@types.decimal_int(2)),
-        )
-      }
-    }
-    "stddev" => {
-      if items.length() < 2 {
-        return Null
-      }
-      let mean = total.divide(count)
-      let mut squares = @types.zero()
-      for item in items {
-        let diff = number(item, name).add(mean.negate())
-        squares = squares.add(diff.multiply(diff))
-      }
-      let variance = squares.divide(@types.decimal_int(items.length() - 1))
-      Number(variance.sqrt())
-    }
-    _ => raise err("E_BUILTIN_UNSUPPORTED", name)
-  }
+  Number(@types.Decimal::sum(values))
 }
 
 ///|
@@ -1504,6 +1547,10 @@ fn extremum(
     return Null
   }
   let mut best = items[0]
+  if items.length() == 1 {
+    // The comparison loop otherwise never validates a singleton.
+    ignore(@types.compare_values(best, best))
+  }
   for i = 1; i < items.length(); i = i + 1 {
     let c = @types.compare_values(items[i], best)
     if (name == "min" && c < 0) || (name == "max" && c > 0) {
@@ -1542,6 +1589,44 @@ fn sort_values(items : Array[@types.Value]) -> Unit raise @types.EngineError {
 }
 
 ///|
+fn numeric_mode(
+  items : Array[@types.Value],
+) -> @types.Value raise @types.EngineError {
+  let ordered : Array[(@types.Decimal, Int32)] = []
+  for i, item in items {
+    ordered.push((number(item, "mode"), i))
+  }
+  ordered.sort_by((a, b) => {
+    let order = a.0.compare(b.0)
+    if order == 0 {
+      a.1.compare(b.1)
+    } else {
+      order
+    }
+  })
+  let mut best = 0
+  let mut out = []
+  let mut begin = 0
+  while begin < ordered.length() {
+    let mut end = begin + 1
+    while end < ordered.length() &&
+          ordered[begin].0.compare(ordered[end].0) == 0 {
+      end = end + 1
+    }
+    let count = end - begin
+    if count > best {
+      best = count
+      out = []
+    }
+    if count == best {
+      out.push(items[ordered[begin].1])
+    }
+    begin = end
+  }
+  List(out)
+}
+
+///|
 fn mode(xs : Array[@types.Value]) -> @types.Value raise @types.EngineError {
   arity("mode", xs, 0, -1)
   if xs.is_empty() {
@@ -1557,6 +1642,9 @@ fn mode(xs : Array[@types.Value]) -> @types.Value raise @types.EngineError {
   let first = items[0]
   if items.iter().any(item => !same_kind(first, item)) {
     return Null
+  }
+  if first is Number(_) {
+    return numeric_mode(items)
   }
   let counts : Array[(Int32, @types.Value)] = []
   for item in items {
@@ -1637,68 +1725,6 @@ fn insertion_sort(
       }
     }
     items[j] = value
-  }
-}
-
-///|
-/// Round half-to-even after scaling to an integer.
-fn round_to(
-  n : @types.Decimal,
-  scale : Int32,
-  mode : String,
-) -> @types.Decimal raise @types.EngineError {
-  if scale < -6111 || scale > 6176 {
-    raise err("E_NUMBER", "rounding scale out of range")
-  }
-  if scale >= 0 && scale >= n.scale {
-    return n
-  }
-  let magnitude = if scale < 0 { -scale } else { scale }
-  let factor = @types.decimal_int(1).multiply(
-    @types.Decimal::power_of_ten(magnitude),
-  ) catch {
-    _ => raise err("E_NUMBER", "rounding scale out of range")
-  }
-  let scaled = if scale < 0 { n.divide(factor) } else { n.multiply(factor) }
-  let rounded = {
-    let negative = scaled.is_negative()
-    let abs = scaled.abs()
-    let down = abs.floor()
-    let frac = abs.add(down.negate())
-    let half = @types.decimal("0.5")
-    let c = frac.compare(half)
-    let magnitude = match mode {
-      "round down" => down
-      "round up" =>
-        if frac.is_zero() {
-          down
-        } else {
-          down.add(@types.decimal_int(1))
-        }
-      "round half up" =>
-        if c >= 0 {
-          down.add(@types.decimal_int(1))
-        } else {
-          down
-        }
-      "round half down" =>
-        if c > 0 {
-          down.add(@types.decimal_int(1))
-        } else {
-          down
-        }
-      _ => raise err("E_INTERNAL", "unknown rounding mode")
-    }
-    if negative {
-      magnitude.negate()
-    } else {
-      magnitude
-    }
-  }
-  if scale < 0 {
-    rounded.multiply(factor)
-  } else {
-    rounded.divide(factor)
   }
 }
 
@@ -1814,12 +1840,14 @@ fn as_range(v : @types.Value) -> @types.Range {
 fn bound_compare(
   a : @types.Value?,
   b : @types.Value?,
+  a_infinity : Int32,
+  b_infinity : Int32,
 ) -> Int32 raise @types.EngineError {
   match (a, b) {
     (Some(x), Some(y)) => @types.compare_values(x, y)
-    (None, None) => 0
-    (None, Some(_)) => -1
-    (Some(_), None) => 1
+    (None, None) => a_infinity.compare(b_infinity)
+    (None, Some(_)) => a_infinity
+    (Some(_), None) => -b_infinity
   }
 }
 
@@ -1835,35 +1863,35 @@ fn range_relation(
   let (b_end, b_end_included) = end_bound(b)
   match name {
     "before" => {
-      let c = bound_compare(a_end, b_start)
+      let c = bound_compare(a_end, b_start, 1, -1)
       c < 0 || (c == 0 && (!a_end_included || !b_start_included))
     }
     "after" => range_relation("before", b, a)
     "meets" => {
-      let c = bound_compare(a_end, b_start)
+      let c = bound_compare(a_end, b_start, 1, -1)
       c == 0 && a_end_included && b_start_included
     }
     "met by" => range_relation("meets", b, a)
     "overlaps" => @types.Range::overlaps(as_range(a), as_range(b))
     "overlaps before" => {
-      let starts = bound_compare(a_start, b_start)
-      let ends = bound_compare(a_end, b_end)
+      let starts = bound_compare(a_start, b_start, -1, -1)
+      let ends = bound_compare(a_end, b_end, 1, 1)
       (starts < 0 || (starts == 0 && a_start_included && !b_start_included)) &&
       (ends < 0 || (ends == 0 && (!a_end_included || b_end_included))) &&
       @types.Range::overlaps(as_range(a), as_range(b))
     }
     "overlaps after" => range_relation("overlaps before", b, a)
     "finishes" => {
-      let ends = bound_compare(a_end, b_end)
-      let starts = bound_compare(a_start, b_start)
+      let ends = bound_compare(a_end, b_end, 1, 1)
+      let starts = bound_compare(a_start, b_start, -1, -1)
       ends == 0 &&
       a_end_included == b_end_included &&
       (starts > 0 || (starts == 0 && (!a_start_included || b_start_included)))
     }
     "finished by" => range_relation("finishes", b, a)
     "includes" => {
-      let starts = bound_compare(b_start, a_start)
-      let ends = bound_compare(a_end, b_end)
+      let starts = bound_compare(b_start, a_start, -1, -1)
+      let ends = bound_compare(a_end, b_end, 1, 1)
       let start_ok = starts > 0 ||
         (starts == 0 && (a_start_included || !b_start_included))
       let end_ok = ends > 0 ||
@@ -1872,16 +1900,16 @@ fn range_relation(
     }
     "during" => range_relation("includes", b, a)
     "starts" => {
-      let starts = bound_compare(a_start, b_start)
-      let ends = bound_compare(a_end, b_end)
+      let starts = bound_compare(a_start, b_start, -1, -1)
+      let ends = bound_compare(a_end, b_end, 1, 1)
       starts == 0 &&
       a_start_included == b_start_included &&
       (ends < 0 || (ends == 0 && (!a_end_included || b_end_included)))
     }
     "started by" => range_relation("starts", b, a)
     "coincides" =>
-      bound_compare(a_start, b_start) == 0 &&
-      bound_compare(a_end, b_end) == 0 &&
+      bound_compare(a_start, b_start, -1, -1) == 0 &&
+      bound_compare(a_end, b_end, 1, 1) == 0 &&
       a_start_included == b_start_included &&
       a_end_included == b_end_included
     _ => raise err("E_BUILTIN_UNSUPPORTED", name)

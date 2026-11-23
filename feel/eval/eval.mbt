@@ -209,9 +209,12 @@ fn evaluate_inner(
       match environments(bindings, 0, ctx, 0) {
         Some(envs) => {
           let out = []
+          let needs_prefix = !prefix_free(body)
           for env in envs {
             let scope = env.copy()
-            scope["partial"] = List(out.copy())
+            if needs_prefix {
+              scope["partial"] = List(out.copy())
+            }
             out.push(evaluate_inner(body, scope, depth=depth + 1))
           }
           List(out)
@@ -400,6 +403,21 @@ fn invoke(
 }
 
 ///|
+// Prove absence only in simple expressions. Calls, scopes and unary tests
+// conservatively keep the existing snapshots, including captured closures.
+fn prefix_free(body : @parser.Expr) -> Bool {
+  match body {
+    Lit(_) => true
+    Name(name) => name != "partial"
+    Unary(_, inner) => prefix_free(inner)
+    Binary(_, left, right) => prefix_free(left) && prefix_free(right)
+    IfThenElse(c, yes, no) =>
+      prefix_free(c) && prefix_free(yes) && prefix_free(no)
+    _ => false
+  }
+}
+
+///|
 /// Expand a numeric or date sequence `a..b`. Other endpoint kinds are not
 /// iterable and yield `None` (the whole iterator produces null).
 fn sequence_items(
@@ -411,20 +429,17 @@ fn sequence_items(
     (Number(a), Number(b)) => {
       let low = a.to_int()
       let high = b.to_int()
-      if low <= high {
-        for i = low; i <= high; i = i + 1 {
-          out.push(Number(@types.decimal_int(i)))
-          if out.length() > 100000 {
-            raise err("E_LIMIT", "iteration produces too many values")
-          }
+      let step = if low <= high { 1 } else { -1 }
+      let mut at = low
+      while true {
+        out.push(Number(@types.decimal_int(at)))
+        if out.length() > 100000 {
+          raise err("E_LIMIT", "iteration produces too many values")
         }
-      } else {
-        for i = low; i >= high; i = i - 1 {
-          out.push(Number(@types.decimal_int(i)))
-          if out.length() > 100000 {
-            raise err("E_LIMIT", "iteration produces too many values")
-          }
+        if at == high {
+          break
         }
+        at += step
       }
       Some(out)
     }
@@ -520,16 +535,51 @@ fn quantify(
 
 ///|
 fn generic_inner(name : String, prefix : String) -> String {
-  name.strip_prefix(prefix).unwrap().strip_suffix(">").unwrap().to_owned()
+  // The caller has already checked the ASCII prefix case-insensitively.
+  name[prefix.length():name.length() - 1].to_owned()
 }
 
 ///|
-fn slice_text(s : String, start : Int32, end : Int32) -> String {
-  let chars = s.to_array()
-  let n = chars.length()
-  let lo = if start < 0 { 0 } else if start > n { n } else { start }
-  let hi = if end < lo { lo } else if end > n { n } else { end }
-  String::from_array(chars[lo:hi].to_owned())
+fn context_type_fields(body : String) -> Array[String] {
+  let chars = body.to_array()
+  let fields = []
+  let mut start = 0
+  let mut nesting = 0
+  for i, ch in chars {
+    if ch == '<' {
+      nesting += 1
+    } else if ch == '>' && (i == 0 || chars[i - 1] != '-') {
+      nesting -= 1
+    } else if ch == ',' && nesting == 0 {
+      fields.push(String::from_array(chars[start:i].to_owned()))
+      start = i + 1
+    }
+  }
+  fields.push(String::from_array(chars[start:].to_owned()))
+  fields
+}
+
+///|
+/// Count declared parameter slots, not the inner fields of a parameter type.
+fn function_parameter_count(name : String) -> Int32 {
+  let chars = name.to_array()
+  let start = "function<".length()
+  let mut depth = 0
+  let mut count = 1
+  for i in start..<chars.length() {
+    let ch = chars[i]
+    if ch == '<' {
+      depth += 1
+    } else if ch == '>' && chars[i - 1] != '-' {
+      if depth == 0 {
+        return if i == start { 0 } else { count }
+      }
+      depth -= 1
+    } else if ch == ',' && depth == 0 {
+      count += 1
+    }
+  }
+  0
 }
 
 ///|
@@ -580,14 +630,11 @@ fn instance_of_at(
     return match value {
       Context(entries) => {
         let mut ok = true
-        for field in body.split(",") {
-          let spec = field.to_owned()
+        for spec in context_type_fields(body) {
           match spec.find(":") {
             Some(at) => {
-              let key = slice_text(spec, 0, at).trim().to_owned()
-              let ty = slice_text(spec, at + 1, spec.char_length())
-                .trim()
-                .to_owned()
+              let key = spec[:at].trim().to_owned()
+              let ty = spec[at + 1:].trim().to_owned()
               match entries.get(key) {
                 Some(v) =>
                   if !(v is Null) && !instance_of_at(v, ty, ctx, depth + 1) {
@@ -605,7 +652,16 @@ fn instance_of_at(
     }
   }
   if lower.contains("->") && lower.has_prefix("function") {
-    return value is Function(_)
+    let arity = if lower.has_prefix("function<") {
+      function_parameter_count(name)
+    } else {
+      0
+    }
+    return match value {
+      // Preserve legacy zero- and single-parameter descriptor behavior.
+      Function(f) => arity <= 1 || f.params.length() == arity
+      _ => false
+    }
   }
   match lower {
     "number" => value is Number(_)
@@ -726,27 +782,11 @@ fn time_property(
       }
     "timezone" =>
       match time.zone {
-        Unzoned => Null
-        Fixed(0) => Text("Z")
-        Fixed(offset) => Text(offset_text(offset))
         Named(z) => Text(z)
+        _ => Null
       }
     _ => Null
   }
-}
-
-///|
-fn offset_text(seconds : Int32) -> String {
-  let sign = if seconds < 0 { "-" } else { "+" }
-  let total = if seconds < 0 { -seconds } else { seconds }
-  let hours = total / 3600
-  let minutes = total % 3600 / 60
-  sign +
-  (if hours < 10 { "0" } else { "" }) +
-  hours.to_string() +
-  ":" +
-  (if minutes < 10 { "0" } else { "" }) +
-  minutes.to_string()
 }
 
 ///|
