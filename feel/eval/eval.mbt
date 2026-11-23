@@ -162,6 +162,12 @@ fn evaluate_inner(
       if (lower is Some(l) && l is Null) || (upper is Some(u) && u is Null) {
         Null
       } else {
+        if lower is Some(a) && upper is Some(b) {
+          let order = @types.compare_values(a, b) catch { _ => return Null }
+          if a.type_name() != b.type_name() || order > 0 {
+            return Null
+          }
+        }
         @types.Range({
           comparison: None,
           start: lower,
