@@ -111,6 +111,20 @@ fn index_of_value(
 }
 
 ///|
+fn scale_of(
+  value : @types.Value,
+  name : String,
+) -> Int32 raise @types.EngineError {
+  let scale = number(value, name)
+  if scale.compare(@types.decimal_int(-6111)) < 0 ||
+    scale.compare(@types.decimal_int(6176)) > 0 {
+    raise err("E_NUMBER", "rounding scale out of range")
+  }
+  // Preserve the existing conversion of in-range fractional scales (TCK 1100/002).
+  scale.round(0).to_int()
+}
+
+///|
 fn call_function(
   f : @types.FunctionValue,
   args : Array[@types.Value],
@@ -862,7 +876,7 @@ fn dispatch(
       arity(name, xs, 1, 2)
       let n = number(xs[0], name)
       if xs.length() == 2 {
-        Number(n.round(number(xs[1], name).to_int()))
+        Number(n.round(scale_of(xs[1], name)))
       } else {
         Number(n)
       }
@@ -872,17 +886,13 @@ fn dispatch(
       if xs.length() == 2 && xs[1] is Null {
         return Null
       }
-      let scale = if xs.length() == 2 {
-        number(xs[1], name).to_int()
-      } else {
-        0
-      }
+      let scale = if xs.length() == 2 { scale_of(xs[1], name) } else { 0 }
       Number(number(xs[0], name).directed_round(scale, name))
     }
     "round up" | "round down" | "round half up" | "round half down" => {
       arity(name, xs, 2, 2)
       let n = number(xs[0], name)
-      let scale = number(xs[1], name).to_int()
+      let scale = scale_of(xs[1], name)
       Number(n.directed_round(scale, name))
     }
     "abs" => {
