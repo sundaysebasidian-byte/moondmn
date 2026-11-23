@@ -32,17 +32,31 @@ export function layoutGraph(summary) {
 
   const layerOf = new Map();
   const visiting = new Set();
-  const depth = (id) => {
-    if (layerOf.has(id)) return layerOf.get(id);
-    if (visiting.has(id)) return 0;
-    visiting.add(id);
-    let layer = 0;
-    for (const source of incoming.get(id)) layer = Math.max(layer, depth(source) + 1);
-    visiting.delete(id);
-    layerOf.set(id, layer);
-    return layer;
-  };
-  for (const id of nodes.keys()) nodes.get(id).layer = depth(id);
+  // Post-order DFS, with explicit frames for reverse-declared dependency chains.
+  for (const start of nodes.keys()) {
+    if (layerOf.has(start)) continue;
+    const stack = [{ id: start, next: 0, layer: 0 }];
+    visiting.add(start);
+    while (stack.length) {
+      const frame = stack[stack.length - 1];
+      const parents = incoming.get(frame.id);
+      if (frame.next < parents.length) {
+        const parent = parents[frame.next];
+        if (!layerOf.has(parent) && !visiting.has(parent)) {
+          visiting.add(parent);
+          stack.push({ id: parent, next: 0, layer: 0 });
+          continue;
+        }
+        frame.layer = Math.max(frame.layer, (layerOf.get(parent) ?? 0) + 1);
+        frame.next++;
+      } else {
+        visiting.delete(frame.id);
+        layerOf.set(frame.id, frame.layer);
+        nodes.get(frame.id).layer = frame.layer;
+        stack.pop();
+      }
+    }
+  }
 
   const layers = [];
   for (const node of nodes.values()) (layers[node.layer] ??= []).push(node);
@@ -65,7 +79,7 @@ export function layoutGraph(summary) {
   }
 
   const widthOf = (layer) => layer.reduce((sum, node) => sum + node.w, 0) + Math.max(0, layer.length - 1) * NODE_GAP;
-  const width = Math.max(0, ...layers.map(widthOf));
+  const width = layers.reduce((max, layer) => Math.max(max, widthOf(layer)), 0);
   let y = 0;
   for (const layer of layers) {
     let x = (width - widthOf(layer)) / 2;
