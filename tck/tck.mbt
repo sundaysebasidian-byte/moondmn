@@ -216,7 +216,7 @@ fn check_case(
     let actual = Ok(case_value(model, kind, invocable, result, inputs, clock)) catch {
       e => Err(e)
     }
-    if result.attr("errorResult") == "true" {
+    if result.attr_is_true("errorResult") {
       // Unsupported implementation paths must never satisfy an expected semantic error.
       // A null result is also accepted when the expected node is null: FEEL defines
       // many invalid operations (division by zero, bad argument types) as null.

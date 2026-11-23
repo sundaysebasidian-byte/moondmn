@@ -19,6 +19,13 @@ pub fn Node::attr(n : Node, key : String) -> String {
 }
 
 ///|
+/// True lexical forms of an XML Schema boolean attribute (absent is false).
+pub fn Node::attr_is_true(n : Node, key : String) -> Bool {
+  let flag = n.attr(key).trim()
+  flag == "true" || flag == "1"
+}
+
+///|
 /// Return an attribute by its namespace URI and local name.
 pub fn Node::attr_namespace(n : Node, uri : String, name : String) -> String? {
   match n.expanded_attributes {

@@ -44,7 +44,7 @@ fn definition_descriptor(
   } else {
     type_descriptor(model, item_type_name(node), depth + 1)
   }
-  if node.attr("isCollection") == "true" {
+  if node.attr_is_true("isCollection") {
     "list<" + base + ">"
   } else {
     base
@@ -161,7 +161,7 @@ fn validate_definition(
   if depth > 32 {
     raise @types.fail("E_TYPE_CYCLE", "recursive ItemDefinition")
   }
-  if collection && node.attr("isCollection") == "true" {
+  if collection && node.attr_is_true("isCollection") {
     match value {
       List(xs) =>
         for x in xs {
@@ -277,7 +277,7 @@ fn coerce_definition(
   if value is Null {
     return value
   }
-  if collection && node.attr("isCollection") == "true" {
+  if collection && node.attr_is_true("isCollection") {
     let xs = match value {
       List(xs) => xs
       _ => [value]
@@ -405,7 +405,7 @@ fn decode_declared(
   if value is Null {
     return value
   }
-  if collection && node.attr("isCollection") == "true" {
+  if collection && node.attr_is_true("isCollection") {
     let items = match value {
       List(xs) => xs
       _ => [value]
