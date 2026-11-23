@@ -49,15 +49,15 @@ export function layoutGraph(summary) {
   for (let i = 0; i < layers.length; i++) layers[i] ??= [];
 
   const position = new Map();
-  const index = () => layers.forEach((layer) => layer.forEach((node, row) => position.set(node.id, row)));
-  index();
+  const index = (layer) => layer.forEach((node, row) => position.set(node.id, row));
+  layers.forEach(index);
   const sweep = (layer, neighbours) => {
     const key = (node) => {
       const near = neighbours.get(node.id).map((id) => position.get(id));
       return near.length ? near.reduce((a, b) => a + b, 0) / near.length : position.get(node.id);
     };
     layer.sort((a, b) => key(a) - key(b) || a.order - b.order);
-    index();
+    index(layer);
   };
   for (let round = 0; round < 4; round++) {
     for (let i = 1; i < layers.length; i++) sweep(layers[i], incoming);
