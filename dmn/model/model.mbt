@@ -398,7 +398,8 @@ fn function_formals(
   let names : Map[String, Bool] = Map([])
   for formal in formals {
     let name = formal.attr("name")
-    if name.trim().is_empty() || names.contains(name) {
+    let identity = @lexer.normalize_name_spaces(name)
+    if identity.is_empty() || names.contains(identity) {
       raise @types.Failure(
         "E_DMN_FUNCTION",
         formal.line,
@@ -406,7 +407,7 @@ fn function_formals(
         "missing or duplicate formal parameter: " + name,
       )
     }
-    names[name] = true
+    names[identity] = true
   }
   formals
 }

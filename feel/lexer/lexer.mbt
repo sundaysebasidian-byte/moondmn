@@ -262,7 +262,7 @@ fn known_length(
 ///|
 /// Replace runs of whitespace with a single space so that multi-word names
 /// split across lines match their canonical spelling.
-fn collapse_spaces(text : String) -> String {
+pub fn normalize_name_spaces(text : String) -> String {
   let chars = text.to_array()
   let out = StringBuilder()
   let mut pending = false
@@ -501,7 +501,7 @@ pub fn lex(
       let raw = slice(chars, start, i)
       out.push({
         text: if kind == "name" {
-          collapse_spaces(raw)
+          normalize_name_spaces(raw)
         } else {
           raw
         },

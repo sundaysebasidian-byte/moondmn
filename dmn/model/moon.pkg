@@ -3,5 +3,6 @@ import {
   "sundaysebasidian-byte/moondmn/feel/types",
   "sundaysebasidian-byte/moondmn/feel/eval",
   "sundaysebasidian-byte/moondmn/feel/parser",
+  "sundaysebasidian-byte/moondmn/feel/lexer",
   "sundaysebasidian-byte/moondmn/feel/builtins",
 }

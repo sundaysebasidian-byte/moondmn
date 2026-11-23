@@ -187,7 +187,14 @@ test "r251 injected dependency values use the same declared output coercion as e
 test "r251 duplicate boxed formals fail rather than shadowing a parameter" {
   let boxed = "<decision name='D'><invocation><functionDefinition><formalParameter name='x'/><formalParameter name='x'/><literalExpression><text>x</text></literalExpression></functionDefinition><binding><parameter name='x'/><literalExpression><text>1</text></literalExpression></binding></invocation></decision>"
   let bkm = "<businessKnowledgeModel id='b' name='B'><encapsulatedLogic><formalParameter name='x'/><formalParameter name='x'/><literalExpression><text>x</text></literalExpression></encapsulatedLogic></businessKnowledgeModel><decision name='D'><knowledgeRequirement><requiredKnowledge href='#b'/></knowledgeRequirement><literalExpression><text>B(1,2)</text></literalExpression></decision>"
-  for bad in [boxed, bkm] {
+  let spaces = bkm
+    .replace_all(
+      old="<formalParameter name='x'/><formalParameter name='x'/>",
+      new="<formalParameter name='first name'/><formalParameter name='first  name'/>",
+    )
+    .replace_all(old="<text>x</text>", new="<text>first name</text>")
+  let unicode_spaces = spaces.replace_all(old="first  name", new="first name")
+  for bad in [boxed, bkm, spaces, unicode_spaces] {
     let code = try {
       ignore(r251_eval(bad))
       "ok"
