@@ -494,6 +494,11 @@ fn environments(
         Some(xs) => xs
         None => return None
       }
+    RangeLit(_, _, _, _) => {
+      // Bracketed intervals are values, never sequence domains (even if invalid).
+      ignore(evaluate_inner(pair.1, scope))
+      return None
+    }
     _ => {
       let value = evaluate_inner(pair.1, scope)
       match value {
