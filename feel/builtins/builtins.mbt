@@ -368,6 +368,11 @@ fn bind_args(
     args.iter().any(arg => arg.0 is Some("key") && !(arg.1 is Text(_))) {
     return Null
   }
+  if name == "list replace" && args.iter().any(arg =>
+    (arg.0 is Some("match") && !(arg.1 is Function(_))) ||
+    (arg.0 is Some("position") && !(arg.1 is Number(_)))) {
+    return Null
+  }
   let named = args.iter().any(arg => arg.0 is Some(_))
   if named && args.iter().any(arg => arg.0 is None) {
     raise err("E_ARITY", "cannot mix named and positional arguments")
