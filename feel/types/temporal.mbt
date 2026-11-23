@@ -280,7 +280,7 @@ fn parse_offset(
   if start >= chars.length() {
     return (Unzoned, start)
   }
-  if chars[start] == 'Z' {
+  if chars[start] == 'Z' || chars[start] == 'z' {
     return (Fixed(0), start + 1)
   }
   if chars[start] == '@' {
