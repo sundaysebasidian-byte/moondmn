@@ -190,8 +190,8 @@ pub fn params(name : String) -> Array[String] {
     "not" | "abs" => ["n"]
     "sqrt" | "exp" | "log" | "odd" | "even" => ["number"]
     "floor" | "ceiling" => ["n", "scale"]
-    "string" | "string length" | "upper case" | "lower case" | "trim" =>
-      ["string"]
+    "string" => ["from"]
+    "string length" | "upper case" | "lower case" | "trim" => ["string"]
     "day of week"
     | "day of year"
     | "week of year"
@@ -460,6 +460,7 @@ fn bind_args(
             "keys" if name == "context put" => "key"
             "match" if name == "index of" => "element"
             "negand" if name == "not" => "n"
+            "string" if name == "string" => "from"
             "range1" if names == ["point1", "point2"] && arg.1 is Range(_) =>
               "point1"
             "range2" if names == ["point1", "point2"] && arg.1 is Range(_) =>
