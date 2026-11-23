@@ -56,7 +56,11 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
     | "xs:byte"
     | "xsd:nonNegativeInteger"
     | "xs:nonNegativeInteger" => {
-      let digits = if text.has_prefix("-") || text.has_prefix("+") { text[1:] } else { text[:] }
+      let digits = if text.has_prefix("-") || text.has_prefix("+") {
+        text[1:]
+      } else {
+        text[:]
+      }
       if digits.is_empty() || !digits.iter().all(ch => ch >= '0' && ch <= '9') {
         raise @types.fail("E_TCK_VALUE", "invalid integer lexical form")
       }
@@ -65,13 +69,21 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
         "xsd:byte" | "xs:byte" => Some(("-128", "127"))
         "xsd:short" | "xs:short" => Some(("-32768", "32767"))
         "xsd:int" | "xs:int" => Some(("-2147483648", "2147483647"))
-        "xsd:long" | "xs:long" => Some(("-9223372036854775808", "9223372036854775807"))
+        "xsd:long" | "xs:long" =>
+          Some(("-9223372036854775808", "9223372036854775807"))
         _ => None
       }
       if (kind.has_suffix("nonNegativeInteger") && value.is_negative()) ||
-        (bounds is Some((lo, hi)) &&
-         (value.compare(@types.decimal(lo)) < 0 || value.compare(@types.decimal(hi)) > 0)) {
-        raise @types.fail("E_TCK_VALUE", "integer is outside the declared XML Schema subtype")
+        (
+          bounds is Some((lo, hi)) &&
+          (
+            value.compare(@types.decimal(lo)) < 0 ||
+            value.compare(@types.decimal(hi)) > 0
+          )
+        ) {
+        raise @types.fail(
+          "E_TCK_VALUE", "integer is outside the declared XML Schema subtype",
+        )
       }
       Number(value)
     }
@@ -87,14 +99,23 @@ pub fn value(node : @xml.Node) -> @types.Value raise @types.EngineError {
         DaysSeconds(days)
       }
     }
-    "xsd:dayTimeDuration" | "xs:dayTimeDuration"
-    | "xsd:yearMonthDuration" | "xs:yearMonthDuration" => {
+    "xsd:dayTimeDuration"
+    | "xs:dayTimeDuration"
+    | "xsd:yearMonthDuration"
+    | "xs:yearMonthDuration" => {
       let (days, months) = @types.parse_duration(text)
-      let calendar = text.contains("Y") || (text.contains("M") && !text.contains("T"))
+      let calendar = text.contains("Y") ||
+        (text.contains("M") && !text.contains("T"))
       if calendar != kind.has_suffix("yearMonthDuration") {
-        raise @types.fail("E_TCK_VALUE", "duration is outside the declared XML Schema subtype")
+        raise @types.fail(
+          "E_TCK_VALUE", "duration is outside the declared XML Schema subtype",
+        )
       }
-      if calendar { YearsMonths(months) } else { DaysSeconds(days) }
+      if calendar {
+        YearsMonths(months)
+      } else {
+        DaysSeconds(days)
+      }
     }
     other => raise @types.fail("E_TCK_TYPE_UNSUPPORTED", other)
   }

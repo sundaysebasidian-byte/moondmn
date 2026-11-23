@@ -368,9 +368,13 @@ fn bind_args(
     args.iter().any(arg => arg.0 is Some("key") && !(arg.1 is Text(_))) {
     return Null
   }
-  if name == "list replace" && args.iter().any(arg =>
-    (arg.0 is Some("match") && !(arg.1 is Function(_))) ||
-    (arg.0 is Some("position") && !(arg.1 is Number(_)))) {
+  if name == "list replace" &&
+    args
+    .iter()
+    .any(arg => {
+      (arg.0 is Some("match") && !(arg.1 is Function(_))) ||
+      (arg.0 is Some("position") && !(arg.1 is Number(_)))
+    }) {
     return Null
   }
   let named = args.iter().any(arg => arg.0 is Some(_))
@@ -868,7 +872,11 @@ fn dispatch(
       if xs.length() == 2 && xs[1] is Null {
         return Null
       }
-      let scale = if xs.length() == 2 { number(xs[1], name).to_int() } else { 0 }
+      let scale = if xs.length() == 2 {
+        number(xs[1], name).to_int()
+      } else {
+        0
+      }
       Number(number(xs[0], name).directed_round(scale, name))
     }
     "round up" | "round down" | "round half up" | "round half down" => {

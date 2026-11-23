@@ -126,7 +126,8 @@ fn aggregate(
     _ => raise @types.fail("E_TABLE_AGGREGATION", name)
   }
   match @builtins.call(builtin, [List(matches)]) {
-    Null => raise @types.fail("E_TABLE_AGGREGATION", "comparable outputs required")
+    Null =>
+      raise @types.fail("E_TABLE_AGGREGATION", "comparable outputs required")
     best => best
   }
 }

@@ -27,9 +27,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("fresh", type=Path)
     parser.add_argument("committed", type=Path)
+    parser.add_argument("--total", type=int, help="expected case count for this pinned level")
+    parser.add_argument("--minimum", type=int, help="historical pass floor")
     args = parser.parse_args()
     try:
         actual, expected = read(args.fresh), read(args.committed)
+        passed = sum(s == "PASS" for s in actual.values())
+        if args.total is not None and len(actual) != args.total:
+            raise ValueError(f"expected {args.total} cases, found {len(actual)}")
+        if args.minimum is not None and passed < args.minimum:
+            raise ValueError(f"{passed} passes below floor {args.minimum}")
         if actual.keys() != expected.keys():
             raise ValueError(f"case inventory changed: missing={len(expected.keys()-actual.keys())}, added={len(actual.keys()-expected.keys())}")
         regressed = [key for key, old in expected.items() if old == "PASS" and actual[key] != old]

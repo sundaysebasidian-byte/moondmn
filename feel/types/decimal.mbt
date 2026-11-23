@@ -591,7 +591,11 @@ pub fn from_double(value : Double, places : Int32) -> Decimal raise EngineError 
 /// Raise to a decimal power, using exact integer powers when supported.
 pub fn Decimal::pow(a : Decimal, b : Decimal) -> Decimal raise EngineError {
   if b.is_integer() && !a.is_zero() {
-    let mut magnitude = if a.coefficient < 0N { -a.coefficient } else { a.coefficient }
+    let mut magnitude = if a.coefficient < 0N {
+      -a.coefficient
+    } else {
+      a.coefficient
+    }
     let mut base_exp = -a.scale
     while magnitude % 10N == 0N {
       magnitude = magnitude / 10N
@@ -604,11 +608,15 @@ pub fn Decimal::pow(a : Decimal, b : Decimal) -> Decimal raise EngineError {
       }
       // Any larger integral exponent is already past the decimal128 bounds.
       if b.abs().compare(decimal_int(6176)) > 0 {
-        if (base_exp < 0) != b.is_negative() { return zero() }
+        if (base_exp < 0) != b.is_negative() {
+          return zero()
+        }
         raise fail("E_DECIMAL_RANGE", "power outside decimal128 range")
       }
       let exponent = base_exp * b.to_int()
-      if exponent < -6176 { return zero() }
+      if exponent < -6176 {
+        return zero()
+      }
       let value = Decimal::power_of_ten(exponent)
       return if negative { value.negate() } else { value }
     }
@@ -744,7 +752,9 @@ pub fn Decimal::exp(self : Decimal) -> Decimal raise EngineError {
   }
   let log_ten = @math.ln(10.0)
   let exponent = (x / log_ten).to_int()
-  let mantissa = decimal(@math.exp(x - exponent.to_double() * log_ten).to_string())
+  let mantissa = decimal(
+    @math.exp(x - exponent.to_double() * log_ten).to_string(),
+  )
   normalize(mantissa.coefficient, mantissa.scale - exponent) catch {
     Failure("E_DECIMAL_RANGE", _, _, _) =>
       raise fail("E_NUMBER", "exponential exceeds decimal128 range")
@@ -778,7 +788,7 @@ pub fn Decimal::log10(self : Decimal) -> Decimal raise EngineError {
     raise fail("E_NUMBER", "logarithm of a non-positive number")
   }
   // The coefficient has at most 34 digits even when the value is outside binary64.
-  let coefficient : Decimal = { coefficient: self.coefficient, scale: 0 }
+  let coefficient : Decimal = { coefficient: self.coefficient, scale: 0, }
   from_double(@math.log10(coefficient.to_double()) - self.scale.to_double(), 8)
 }
 

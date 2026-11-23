@@ -119,7 +119,9 @@ jobs:
         run: scripts/build-web.sh
 
       - name: Smoke test
-        run: node web/smoke.mjs
+        run: |
+          node --test web/*-contract.test.mjs
+          node web/smoke.mjs
 
   tck:
     name: DMN TCK
@@ -160,9 +162,11 @@ jobs:
 
       - name: Summarise
         run: |
+          python3 scripts/test-conformance-report.py
           python3 scripts/audit/test-tck-gate.py
           for level in 2 3; do
-            python3 scripts/audit/moondmn-r4-tck.py \
+            if [ "$level" = 2 ]; then total=116; minimum=116; else total=3291; minimum=3271; fi
+            python3 scripts/audit/moondmn-r4-tck.py --total "$total" --minimum "$minimum" \
               "${{ runner.temp }}/tck-level-$level.json" "evidence/tck-level-$level.json"
           done
 
