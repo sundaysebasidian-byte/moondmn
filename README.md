@@ -23,7 +23,7 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 当前源码 | 0.4.0 | 模块声明的版本，不代表 Mooncakes 已发布 |
+| 当前源码 | 0.4.0 | 模块声明的版本；标签 `v0.4.0` 与 Mooncakes 0.4.0 已公开 |
 | Mooncakes | [版本列表](https://mooncakes.io/docs/sundaysebasidian-byte/moondmn) | 以注册表显示为准；包内容固定，不随 main 变化 |
 | Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次推送到 main 会重新构建；不代表 Mooncakes 已发布 |
 
@@ -236,10 +236,10 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | 原因 | 用例数 | 性质 |
 | --- | ---: | --- |
 | Java 外部函数（`0076-feel-external-java`） | 18 | 宿主桥已支持；不调用 JVM、不模拟 JDK，未注册时 E_EXTERNAL_UNBOUND |
-| 小数秒相等（`0068`） | 2 | `time_005` / `datetime_003_a` 各相差 100 微秒；TCK 期望 true，实现按时间值判等返回 false。[复核证据](https://github.com/sundaysebasidian-byte/moondmn/blob/v0.2.2/docs/evidence/0.2.2/fractional-seconds/README.md) |
+| 小数秒相等（`0068`） | 2 | `time_005` / `datetime_003_a` 各相差 100 微秒；TCK 期望 true，实现按时间值判等返回 false。[复核证据](docs/evidence/0.2.2/fractional-seconds/README.md) |
 
 这一版本对比 0.3.0 基线，两种时钟模式的逐例结果均无变化。TCK 通过数不等于完整 DMN 兼容。
-结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](https://github.com/sundaysebasidian-byte/moondmn/tree/v0.2.2/evidence)。
+结论、逐套件矩阵、逐例失败原因和复现步骤见 [docs/conformance.md](docs/conformance.md)，逐例原始报告在 [`evidence/`](evidence)。
 
 ## 和同类实现的区别
 
