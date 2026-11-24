@@ -1,5 +1,4 @@
 # MoonDMN 申报书
-
 - 项目名称：MoonDMN；仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 在线演示：https://sundaysebasidian-byte.github.io/moondmn/
 
@@ -13,7 +12,7 @@ FEEL 求值、决策表全部命中策略、InputData / ItemDefinition / BKM / �
 
 ## 规范覆盖矩阵
 
-目标标准：OMG DMN 1.5 与 FEEL，以官方 DMN TCK（固定提交 `1e349176`，无跳过）验证：Level 2 为 116/116，Level 3 为 3271/3291（99.39%）。状态为已支持或明确不支持。
+目标标准：OMG DMN 1.5 与 FEEL，以官方 DMN TCK（固定提交 `1e349176`，无跳过）验证。当前版本 0.4.0：Level 2 为 116/116，Level 3 为 3271/3291（99.39%），与 0.2.2 的逐例结果相同；不注入时钟时 Level 3 为 3269/3291（取自 0.4.0 变更记录，未单独重跑）。状态为已支持或明确不支持。
 
 | 范围 | 状态 | 说明 |
 | --- | --- | --- |
@@ -41,7 +40,7 @@ FEEL 求值、决策表全部命中策略、InputData / ItemDefinition / BKM / �
 
 1. 多文件 import：解析 `import` 元素，由宿主回调（CLI 按相对路径，Playground 使用虚拟文件表）提供被导入模型；支持别名、嵌套 import、命名空间隔离，以及 `别名.名称` 形式的 FEEL 与类型引用。实测：Level 3 增加 7 个通过用例，当时达到 3265/3291；0.2.2 审计修复后为 3271/3291。
 2. 宿主函数桥：库 API 注册外部函数回调，native、wasm-gc、js 行为一致；CLI 不暴露回调注册。
-3. 0.2.1 已发布，包含 Playground 多文件输入与内存 resolver；0.2.2 已发布，包含审计修复。
+3. 0.2.1 已发布，包含 Playground 多文件输入与内存 resolver；0.2.2 已发布，包含审计修复。0.3.0 与 0.4.0 已发布（0.4.0 于 2026-11-23 上架 mooncakes）：补齐区间文本往返、命名参数与类型声明检查、Unicode 字符串与正则字符类、大范围十进制对数和指数、决策表与模型的缺失／错误依赖诊断、带版本的模型导入，并修正 Playground 表单中的小数、时间与深层依赖图布局。这两个版本没有新增 TCK 通过用例，只保证逐例结果不回退。
 
 ## 生态贡献
 
@@ -53,7 +52,7 @@ FEEL 求值、决策表全部命中策略、InputData / ItemDefinition / BKM / �
 
 ## 测试与文档
 
-四后端 `moon check --deny-warn`、`moon test`、`moon fmt --check`，接口 `.mbti` 漂移检查，CLI 与 Playground 冒烟测试，独立 TCK 任务；文档为 README、API、设计、一致性、性能和变更记录。
+四后端 `moon check --deny-warn`、`moon test`、`moon fmt --check`，接口 `.mbti` 漂移检查，CLI 与 Playground 冒烟测试，独立 TCK 任务；文档为 README、API、设计、一致性、性能和变更记录。0.4.0 的数字：native、wasm-gc、wasm、js 四个目标各 433 个单元测试通过；CLI 38 项、Playground 37 项通过；Decimal128 对照 120 个算术用例通过。这些数字由发布后另行在干净克隆上重跑得到，用 MoonBit 0.1.20261119。
 
 ## 原创与参考
 
