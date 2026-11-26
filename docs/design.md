@@ -112,12 +112,12 @@ CLI 将其序列化为 JSON 并以退出码 1 结束。主要错误码：
 | `E_ZONE_UNSUPPORTED` | 无法解析时区偏移 |
 | `E_DMN_*` | 模型、决策表、迭代器、服务等 DMN 语义错误 |
 | `E_UNSUPPORTED_SYNTAX` / `E_LANGUAGE` | 明确不支持的语法或表达式语言 |
-| `E_IMPORT_UNSUPPORTED` | DMN 1.5 导入尚未实现 |
+| `E_IMPORT_UNSUPPORTED` | 当前方式无法解析的外部引用；已加载的命名空间导入见 [接入文档](imports-and-host-functions.md) |
 | `E_TCK_*` | TCK 用例层面的不匹配或预期错误差异 |
 
 ## 测试与性能
 
-- 单元测试覆盖 Decimal、词法、语法、求值、模型、XML、时区与 lint，在 native、wasm-gc、wasm、js 四个后端运行；另有 CLI 进程级检查和 Playground 冒烟测试。当前数量见 [一致性报告](conformance.md#测试规模)。
+- 单元测试覆盖 Decimal、词法、语法、求值、模型、XML、时区与 lint，在 native、wasm-gc、wasm、js 四个后端运行；另有 CLI 进程级检查和 Playground 冒烟测试。当前数量见 [一致性报告](conformance.md)。
 - TCK 作为端到端回归，当前结果见 [一致性报告](conformance.md)。
 - 全部用例在单机 native 后端约 2 秒内完成；无全局可变状态，除求值缓存外若干分配均随表达式规模线性。
 - 安全边界：XML 解析拒绝 DTD/外部实体并限制嵌套深度；词法限制表达式长度；FEEL 解析递归、循环构造链、类型和一元测试均限 128 层；有界 AST 校验在编译与公开求值入口拦截超过 128 层的树，递归求值另有 128 层限制。XML 限 128 层，导入和依赖另有限制。由受限 AST 产生的值由现有递归打印器输出；宿主直接构造的 Value 须自行保证有限深度。
@@ -125,8 +125,7 @@ CLI 将其序列化为 JSON 并以退出码 1 结束。主要错误码：
 ## 取舍与后续
 
 优先保证规范语义与可诊断性，因此选择显式语法树与结构化错误，而非生成代码。
-后续计划：DMN 1.5 import、外部函数桥接、正则标志完整支持、
-区间函数高级参数，以及更细的性能基准。
+已有多文件导入和显式注册的宿主回调，见 [接入文档](imports-and-host-functions.md)。宿主回调不执行 JVM 或 JDK 方法，不属于本期业务决策范围的验收项。
 
 ## 输入边界与健壮性
 

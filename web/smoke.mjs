@@ -117,6 +117,38 @@ test("insurance: every hit policy reports its hits", () => {
   });
 });
 
+test("loan: approval, referral and decline identify the winning row", () => {
+  const example = examples.find((item) => item.id === "loan");
+  for (const [changes, verdict, hit] of [
+    [{}, "Approve", 3],
+    [{ Employment: "unemployed" }, "Refer", 2],
+    [{ Employment: null }, "Refer", 4],
+    [{ "Credit Score": 579 }, "Decline", 0],
+  ]) {
+    const input = { ...example.input, Applicant: { ...example.input.Applicant, ...changes } };
+    const result = call("evaluate", { xml: example.xml, decision: "Verdict", input });
+    assert.equal(result.ok, true, JSON.stringify(result));
+    assert.equal(result.value, verdict);
+    assert.deepEqual(result.tables.Verdict.hits, [hit]);
+  }
+});
+
+test("loan: invalid financial inputs never yield an approval or a quote", () => {
+  const example = examples.find((item) => item.id === "loan");
+  for (const bad of [-1, 0]) {
+    for (const input of [
+      { ...example.input, "Loan Amount": bad },
+      { ...example.input, "Term Months": bad },
+      { ...example.input, Applicant: { ...example.input.Applicant, "Annual Income": bad } },
+    ]) {
+      const result = call("evaluate", { xml: example.xml, decision: "Offer", input });
+      assert.equal(result.ok, true, JSON.stringify(result));
+      assert.deepEqual(result.value, { verdict: "Refer", rate: null, monthly: null, interest: null });
+      assert.deepEqual(result.tables.Verdict.hits, [4]);
+    }
+  }
+});
+
 test("loan: a failed UNIQUE table still reports the rules that matched", () => {
   const example = examples.find((item) => item.id === "loan");
   const xml = example.xml.replace('<text>&lt;= 0.35</text>', "<text>&gt; 0</text>").replace('hitPolicy="FIRST">\n      <input label="Credit Tier"><inputExpression typeRef="string"><text>Credit Tier</text></inputExpression></input>\n      <input label="Debt Ratio">', 'hitPolicy="UNIQUE">\n      <input label="Credit Tier"><inputExpression typeRef="string"><text>Credit Tier</text></inputExpression></input>\n      <input label="Debt Ratio">');

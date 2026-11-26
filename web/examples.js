@@ -40,7 +40,7 @@ const loan = `<?xml version="1.0" encoding="UTF-8"?>
     <informationRequirement><requiredInput href="#applicant"/></informationRequirement>
     <informationRequirement><requiredInput href="#amount"/></informationRequirement>
     <informationRequirement><requiredInput href="#term"/></informationRequirement>
-    <literalExpression><text>decimal(Loan Amount / Term Months * 12 / Applicant.Annual Income, 3)</text></literalExpression>
+    <literalExpression><text>if Loan Amount &gt; 0 and Term Months &gt; 0 and Applicant.Annual Income &gt; 0 then decimal(Loan Amount / Term Months * 12 / Applicant.Annual Income, 3) else null</text></literalExpression>
   </decision>
 
   <decision id="verdict" name="Verdict">
@@ -56,7 +56,7 @@ const loan = `<?xml version="1.0" encoding="UTF-8"?>
       <rule><inputEntry><text>"D"</text></inputEntry><inputEntry><text>-</text></inputEntry><inputEntry><text>-</text></inputEntry><outputEntry><text>"Decline"</text></outputEntry></rule>
       <rule><inputEntry><text>-</text></inputEntry><inputEntry><text>&gt; 0.45</text></inputEntry><inputEntry><text>-</text></inputEntry><outputEntry><text>"Decline"</text></outputEntry></rule>
       <rule><inputEntry><text>-</text></inputEntry><inputEntry><text>-</text></inputEntry><inputEntry><text>"unemployed"</text></inputEntry><outputEntry><text>"Refer"</text></outputEntry></rule>
-      <rule><inputEntry><text>"A","B"</text></inputEntry><inputEntry><text>&lt;= 0.35</text></inputEntry><inputEntry><text>-</text></inputEntry><outputEntry><text>"Approve"</text></outputEntry></rule>
+      <rule><inputEntry><text>"A","B"</text></inputEntry><inputEntry><text>&lt;= 0.35</text></inputEntry><inputEntry><text>"employed","self-employed","retired"</text></inputEntry><outputEntry><text>"Approve"</text></outputEntry></rule>
       <rule><inputEntry><text>-</text></inputEntry><inputEntry><text>-</text></inputEntry><inputEntry><text>-</text></inputEntry><outputEntry><text>"Refer"</text></outputEntry></rule>
     </decisionTable>
   </decision>
@@ -83,14 +83,14 @@ const loan = `<?xml version="1.0" encoding="UTF-8"?>
     <context>
       <contextEntry>
         <variable name="Total Interest"/>
-        <literalExpression><text>decimal(Loan Amount * Interest Rate / 100 * Term Months / 12, 2)</text></literalExpression>
+        <literalExpression><text>if Verdict = "Approve" then decimal(Loan Amount * Interest Rate / 100 * Term Months / 12, 2) else null</text></literalExpression>
       </contextEntry>
       <contextEntry>
         <variable name="Monthly Payment"/>
-        <literalExpression><text>decimal((Loan Amount + Total Interest) / Term Months, 2)</text></literalExpression>
+        <literalExpression><text>if Verdict = "Approve" then decimal((Loan Amount + Total Interest) / Term Months, 2) else null</text></literalExpression>
       </contextEntry>
       <contextEntry>
-        <literalExpression><text>{ verdict: Verdict, rate: Interest Rate, monthly: Monthly Payment, interest: Total Interest }</text></literalExpression>
+        <literalExpression><text>{ verdict: Verdict, rate: if Verdict = "Approve" then Interest Rate else null, monthly: Monthly Payment, interest: Total Interest }</text></literalExpression>
       </contextEntry>
     </context>
   </decision>

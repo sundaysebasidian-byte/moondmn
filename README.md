@@ -7,12 +7,11 @@
   <img alt="MoonDMN Playground" src="docs/assets/playground-light.png">
 </picture>
 
-MoonDMN 是用 MoonBit 从零写的 OMG DMN 1.5 决策引擎和 FEEL 表达式求值器。
-不依赖 JVM，能编译到 native、wasm-gc 和 js，并用官方 DMN TCK 逐例验证。
+MoonDMN 是用 MoonBit 写的跨平台业务决策引擎。它把资格判定、审批、定价等规则从应用代码里拆出来，在没有 JVM 的环境中执行。
+它以 OMG DMN 1.5 为参考，读取支持范围内的 DMN 1.3–1.5 XML，执行 FEEL、决策表和决策依赖；不声明完整 DMN 1.5 兼容，也不声明任何正式符合性级别。
+本期验收范围和复跑方法见 [MoonDMN 申报书](docs/proposal.md)。
 
-English: a from-scratch DMN 1.5 decision engine and FEEL evaluator in MoonBit. It runs without a JVM,
-compiles to native, wasm-gc and JavaScript, and is checked case by case against the official DMN TCK
-(Level 2: 116/116; Level 3: 3271/3291 with an injected clock, 3269/3291 without).
+English: MoonDMN is a cross-platform business decision runtime written in MoonBit. It evaluates a documented subset of DMN 1.3–1.5 XML and FEEL on native, Wasm GC, and JavaScript, without a JVM. It is based on OMG DMN 1.5 and does not claim full compliance or any formal conformance level.
 
 - 仓库：https://github.com/sundaysebasidian-byte/moondmn
 - 许可证：Apache-2.0，第三方组件见 [NOTICE](NOTICE)
@@ -23,25 +22,11 @@ compiles to native, wasm-gc and JavaScript, and is checked case by case against 
 
 | 面 | 对应 | 说明 |
 | --- | --- | --- |
-| 当前源码 | 0.4.0 | 模块声明的版本；标签 `v0.4.0` 与 Mooncakes 0.4.0 已公开 |
+| 当前源码 | 0.4.1 | 模块声明的版本；Mooncakes 的实际上架状态见版本列表 |
 | Mooncakes | [版本列表](https://mooncakes.io/docs/sundaysebasidian-byte/moondmn) | 以注册表显示为准；包内容固定，不随 main 变化 |
 | Pages | 最近一次推送到 main 的构建 | [`pages.yml`](.github/workflows/pages.yml) 每次推送到 main 会重新构建；不代表 Mooncakes 已发布 |
 
-源码、注册表和 Pages 可以处于不同版本。只有对应的标签或包已公开时，再使用下面的版本命令：
-
-```bash
-# 已公开的源码标签
-git checkout v0.4.0
-moon test --target all
-
-# 安装包调用：在仓库外新建模块，把“安装与接入”中的 import 和示例原样放入 cmd/main
-moon new consumer && cd consumer
-moon add sundaysebasidian-byte/moondmn@0.4.0
-moon run cmd/main
-
-# 线上引擎：打开 Pages；对应的构建见 Actions 中 Pages 工作流的运行记录
-gh run list --workflow pages.yml --limit 1
-```
+发布标签、Mooncakes 包和 Pages 是三个不同对象。固定标签 [`v0.4.0`](https://github.com/sundaysebasidian-byte/moondmn/tree/v0.4.0) 对应 0.4.0 的发布源码；下方接入步骤从公开注册表下载 0.4.1。本文的[复审验收](docs/review-acceptance.md)在含该说明和配套测试的源码树执行，不要求历史发布标签或线上页面包含新增测试。
 
 ## 适用场景
 
@@ -90,7 +75,7 @@ moon build
 在已有 MoonBit 模块中安装：
 
 ```bash
-moon add sundaysebasidian-byte/moondmn
+moon add sundaysebasidian-byte/moondmn@0.4.1
 ```
 
 从源码构建并运行 CLI：
@@ -216,7 +201,7 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 | lint | 已支持 | 未定义引用、重复规则、缺口；输入域为有限枚举（最多 4096 个组合）时可证明完整覆盖，开放域只给提示，不判错 |
 | `now()` / `today()` | 已支持，需注入时钟 | API 的 clock 参数、CLI 的 `--now`；引擎不读系统时钟 |
 | 多文件 `import` 与命名空间引用 | 已支持 | 别名、嵌套导入、namespace 隔离、导入类型与 invocable；Playground 支持内存多文件导入；7 个 TCK 用例全部通过。见 [API 与示例](docs/imports-and-host-functions.md) |
-| 外部函数（Java） | 已支持宿主函数桥；JVM 调用不支持 | 影响：只有使用 `external {java:...}` 的模型；18 个 TCK 用例，均调用 JDK 类库。wasm-gc / js 没有 JVM，引擎不模拟 JDK |
+| 外部函数（Java） | 已支持宿主函数桥；JVM 调用不支持 | 调用方按 class 和完整 signature 注册自己的回调；这不是 Java/JDK 兼容。18 个 Java TCK 用例仍失败。 |
 
 ## 一致性结果
 
@@ -229,7 +214,7 @@ moon run cmd/main --target native -- tck .tck/TestCases/compliance-level-3/0068-
 
 两种模式均无跳过。时间固定为 `2026-01-01T00:00:00Z`；不注入时钟时，另有两个用例因 `now()`、`today()` 无时钟而失败。
 
-目标是 Level 2 ≥ 95%、Level 3 ≥ 80%。
+TCK 是回归证据，不是项目验收终点，也不证明达到 OMG 的任何正式符合性级别。
 
 ### 已知失败（注入时钟的 Level 3 剩余 20 个）
 
