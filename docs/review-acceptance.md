@@ -9,7 +9,7 @@
 | 多文件模型不是简单拼接 | Native CLI 加载独立命名空间中的子模型、类型、可复用函数与决策服务。`examples/imports/input.json` 的 `Shared.Amount=20` 得出 `Total=56`；lint 返回空列表。 | `python3 scripts/test-cli.py` |
 | 区分拒绝、忽略和显式注册 | 缺失导入返回 `E_IMPORT_NOT_FOUND`；未绑定 Java 返回 `E_EXTERNAL_UNBOUND`；PMML 返回 `E_DMN_UNSUPPORTED`。DMNDI 不参与求值，不承诺报错。 | CLI、`external_test.mbt`、`dmn/model/r101_23_boxed_function_kind_test.mbt` 与模型解析器。 |
 
-从含配套验收测试的候选源码根目录运行：`bash scripts/review-acceptance.sh`。下面是完整验证的命令。Native、Wasm GC、JS 表示编译目标，不是对 Windows、macOS 分别实测；浏览器核心由 Node 调用编译产物，实际界面可按[快速演示](review-demo.md)核对。
+从 [0.4.1 源码](https://github.com/sundaysebasidian-byte/moondmn/tree/d839824976439d8188777dd2380882c758ccbb28)根目录运行：`bash scripts/review-acceptance.sh`。下面是完整验证的命令。Native、Wasm GC、JS 表示编译目标，不是对 Windows、macOS 分别实测；浏览器核心由 Node 调用编译产物，实际界面可按[快速演示](review-demo.md)核对。
 
 ```sh
 for target in native wasm-gc js wasm; do
@@ -40,8 +40,10 @@ python3 scripts/verify-review-tck.py "$reports"
 校验会逐例比较测试身份与结果；不把旧失败换成不同错误算作复审复跑一致。无时钟模式只允许 `now()`、`today()` 各一个固定用例从通过变为无时钟错误。
 
 
-## 已发布包与候选的区别
+## 核验已发布的 0.4.1
 
-- Mooncakes 的 [0.4.0 包](https://download.mooncakes.io/user/sundaysebasidian-byte/moondmn/0.4.0.zip)是已经公开的版本，不包含本次新增验收。已在独立的新消费者项目按固定版本安装，Native、Wasm GC 和 JS 均返回精确结果 `0.3`（表达式 `0.1 + 0.2`）。
-- 如果从带 Git 标签的仓库核验包，运行 `python3 scripts/verify-reviewed-package.py /path/to/0.4.0.zip`。脚本核对固定哈希，并将该包内的 201 个 MoonBit 源文件和包清单与 v0.4.0 的 Git 文件逐字节比对。
-- Pages、发布包、复审候选分别验证。复审候选的贷款示例修复不是以前已上线的功能，不把它计入公开版的成绩。
+- [Mooncakes 0.4.1](https://download.mooncakes.io/user/sundaysebasidian-byte/moondmn/0.4.1.zip) 的公开归档 SHA-256 为 `2b7844de6fb2db014b21e7ecec1789b2eb4e322e29d134e22fabeade0e7b3d48`，其中 272 个文件的内容与提交发布前生成的包逐一相同。
+- 在独立的 MoonBit 项目中，使用 `moon add sundaysebasidian-byte/moondmn@0.4.1` 安装固定版本。用公开 API 求值 `0.1 + 0.2`；Native、Wasm GC 和 JS 均得到精确结果 `0.3`。
+- Pages 独立于安装包部署。线上 `examples.js` 和 `moondmn.js` 的文件内容与已验收构建一致；界面核对方法见[快速演示](review-demo.md)。
+
+历史对照：`python3 scripts/verify-reviewed-package.py /path/to/0.4.0.zip` 只核对 0.4.0，按固定哈希检查，并比对该包中 201 个源文件和包清单。不要把 0.4.1 传给这个脚本。

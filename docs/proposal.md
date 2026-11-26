@@ -1,6 +1,6 @@
 # MoonDMN｜跨平台业务决策引擎
 
-[源代码](https://github.com/sundaysebasidian-byte/moondmn) · [在线演示](https://sundaysebasidian-byte.github.io/moondmn/) · [Mooncakes 0.4.0](https://mooncakes.io/docs/sundaysebasidian-byte/moondmn@0.4.0)
+[0.4.1 源代码](https://github.com/sundaysebasidian-byte/moondmn/tree/d839824976439d8188777dd2380882c758ccbb28) · [在线演示](https://sundaysebasidian-byte.github.io/moondmn/) · [下载 Mooncakes 0.4.1](https://download.mooncakes.io/user/sundaysebasidian-byte/moondmn/0.4.1.zip)
 
 审批、定价和资格判定的规则常写在应用代码里。规则一变就要改代码，审核时也难追溯是哪条规则起了作用。MoonDMN 用 MoonBit 实现 FEEL 表达式、决策表和依赖求值。同一份规则可以在服务端、本地程序和浏览器中运行；业务人员能在 Playground 里改输入、看结果和命中的规则。
 
@@ -28,6 +28,6 @@
 
 MoonBit 实现 XML 模型解析、FEEL 求值、精确十进制运算和决策依赖执行；浏览器界面只编辑模型、收集输入、显示结果。[首个可追溯提交](https://github.com/sundaysebasidian-byte/moondmn/commit/474793716ca613c59375c65ccfb38291645d7248)的作者时间为北京时间 11 月 1 日 03:00。随后由 MoonBit 实现了[命名空间导入](https://github.com/sundaysebasidian-byte/moondmn/commit/6bd72a6a41931500331b0113687192dcdaeab420)、[Playground 多文件输入](https://github.com/sundaysebasidian-byte/moondmn/commit/15002a023af53ecd3eaf920e1421d84645b17ae3)与[固定时钟和审计复测](https://github.com/sundaysebasidian-byte/moondmn/commit/877a32b3455819133ace8620ea60c2268138fa2e)。XML 读取和基础工具使用 NOTICE 中列出的库，Unicode 与时区数据引用其原始来源。[多文件接入](imports-and-host-functions.md)和[设计文档](design.md)记录了实现。
 
-基于发布版 0.4.0 的复审候选在 Native 复跑固定的上游 TCK 提交 `1e349176e5ae689d924a2a2c7a8df25c220d8b07`。注入时钟：Level 2 为 116 / 116，Level 3 为 3271 / 3291，20 个失败中 18 个调用 JDK，2 个涉及小数秒相等；不注入时钟时，Level 3 为 3269 / 3291。两种模式不跳过用例、不修改期望值，逐例确认只在无时钟时多出两项时钟失败。这些数字只用来证明没有掩盖差异，不代表正式符合性。[逐例报告](conformance.md) · [小数秒复核](evidence/0.2.2/fractional-seconds/README.md)。
+0.4.1 发布前在 Native 复跑固定的上游 TCK 提交 `1e349176e5ae689d924a2a2c7a8df25c220d8b07`。注入时钟：Level 2 为 116 / 116，Level 3 为 3271 / 3291，20 个失败中 18 个调用 JDK，2 个涉及小数秒相等；不注入时钟时，Level 3 为 3269 / 3291。两种模式不跳过用例、不修改期望值，逐例确认只在无时钟时多出两项时钟失败。这些数字只用来证明没有掩盖差异，不代表正式符合性。[逐例报告](conformance.md) · [小数秒复核](evidence/0.2.2/fractional-seconds/README.md)。
 
 [moondmn-pricing](https://github.com/sundaysebasidian-byte/moondmn-pricing) 是作者自建的保险定价接入示例，不作为第三方采用证明。项目使用 Apache-2.0；第三方材料见 [NOTICE](../NOTICE)。
